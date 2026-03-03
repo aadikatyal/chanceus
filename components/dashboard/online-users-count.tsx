@@ -10,23 +10,24 @@ export default function OnlineUsersCount() {
   useEffect(() => {
     const fetchOnlineUsers = async () => {
       try {
-        // Simple method: count total users and estimate online
-        const { data: allUsers, error: allUsersError } = await supabase
+        // Count users who have been active in the last 2 minutes
+        // This is more reliable than is_online which can get stale
+        const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000).toISOString()
+        
+        const { count, error } = await supabase
           .from('users')
-          .select('id', { count: 'exact' })
+          .select('*', { count: 'exact', head: true })
+          .gte('last_seen', twoMinutesAgo)
 
-        if (allUsersError) {
-          console.error('Error fetching users:', allUsersError)
-          setOnlineCount(1)
+        if (error) {
+          console.error('Error fetching online users:', error)
+          setOnlineCount(0)
         } else {
-          // Show a percentage of total users as "online"
-          const totalUsers = allUsers?.length || 0
-          const onlineEstimate = Math.max(1, Math.floor(totalUsers * 0.4)) // 40% of users "online"
-          setOnlineCount(onlineEstimate)
+          setOnlineCount(count || 0)
         }
       } catch (error) {
         console.error('Error fetching online users:', error)
-        setOnlineCount(1) // Fallback
+        setOnlineCount(0)
       } finally {
         setLoading(false)
       }
@@ -35,10 +36,30 @@ export default function OnlineUsersCount() {
     // Fetch immediately
     fetchOnlineUsers()
 
-    // Update every 30 seconds
+    // Set up realtime subscription for last_seen updates
+    const subscription = supabase
+      .channel('online-users')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'users'
+        },
+        () => {
+          // Refetch when any user's last_seen is updated
+          fetchOnlineUsers()
+        }
+      )
+      .subscribe()
+
+    // Update every 30 seconds as backup (realtime handles immediate updates)
     const interval = setInterval(fetchOnlineUsers, 30000)
 
-    return () => clearInterval(interval)
+    return () => {
+      supabase.removeChannel(subscription)
+      clearInterval(interval)
+    }
   }, [])
 
   if (loading) {

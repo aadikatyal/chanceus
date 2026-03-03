@@ -83,6 +83,42 @@ export async function signInWithGoogle() {
   }
 }
 
+export async function signInWithApple() {
+  try {
+    const cookieStore = await cookies()
+    const supabase = createServerActionClient({ cookies: () => cookieStore })
+
+    const redirectUrl = getCallbackUrl()
+    console.log("Apple OAuth redirect URL:", redirectUrl)
+
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: "apple",
+      options: {
+        redirectTo: redirectUrl,
+      },
+    })
+
+    if (error) {
+      console.error("Apple sign-in error:", error)
+      redirect("/auth/login?error=" + encodeURIComponent(error.message))
+    }
+
+    if (data?.url) {
+      console.log("Redirecting to Apple OAuth:", data.url)
+      redirect(data.url)
+    } else {
+      console.error("No OAuth URL returned from Supabase")
+      redirect("/auth/login?error=no_oauth_url")
+    }
+  } catch (error: any) {
+    if (error.message === "NEXT_REDIRECT") {
+      throw error
+    }
+    console.error("Apple sign-in exception:", error)
+    redirect("/auth/login?error=" + encodeURIComponent("OAuth configuration error"))
+  }
+}
+
 // Sign up action
 export async function signUp(prevState: any, formData: FormData) {
   // Check if formData is valid

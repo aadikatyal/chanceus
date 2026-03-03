@@ -1,5 +1,76 @@
 # 📚 ChanceUS Project Documentation
 
+## Quick Run/Deploy Notes
+
+LOCAL DEVELOPMENT (QUICK START)
+
+1. Install Dependencies
+   Run: pnpm install
+
+2. Set Environment Variables
+   Create .env.local file in project root with:
+   
+   NEXT_PUBLIC_SUPABASE_URL=https://qhggmqttxbmuehugwbzi.supabase.co
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoZ2dtcXR0eGJtdWVodWd3YnppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUyODMzODYsImV4cCI6MjA3MDg1OTM4Nn0.JRDx-BTayKoB7-_EdtcmKtgMWqAPs7wc0avQ0g0cGd0
+   NEXT_PUBLIC_SITE_URL=http://localhost:3000
+
+3. Run Development Server
+   Run: pnpm dev
+
+4. Access Application
+   Open: http://localhost:3000
+
+PRODUCTION DEPLOYMENT (VERCEL)
+
+1. Build Command
+   Run: pnpm build
+
+2. Environment Variables (Set in Vercel Dashboard)
+   NEXT_PUBLIC_SUPABASE_URL=https://qhggmqttxbmuehugwbzi.supabase.co
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoZ2dtcXR0eGJtdWVodWd3YnppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUyODMzODYsImV4cCI6MjA3MDg1OTM4Nn0.JRDx-BTayKoB7-_EdtcmKtgMWqAPs7wc0avQ0g0cGd0
+   NEXT_PUBLIC_SITE_URL=https://chanceus.com
+
+3. Supabase Redirect URLs (Configure in Supabase Dashboard)
+   Site URL: https://chanceus.com
+   Redirect URL: https://chanceus.com/auth/callback
+   
+   For local development, also add: http://localhost:3000/auth/callback
+
+PREREQUISITES
+
+- Node.js: Version 18+ (check with: node --version)
+- Package Manager: pnpm
+- Database: Supabase PostgreSQL database (already configured)
+- Deployment: Vercel account (for production)
+
+COMMON COMMANDS
+
+Development:
+pnpm dev              Start dev server
+pnpm build            Build for production
+pnpm start            Start production server
+pnpm lint             Run linter
+
+Package Management:
+pnpm install          Install dependencies
+pnpm add <package>    Add new package
+
+TROUBLESHOOTING
+
+Port Already in Use:
+Run: lsof -ti:3000 | xargs kill -9
+
+Build Errors:
+Run: rm -rf .next node_modules
+Then: pnpm install
+Then: pnpm build
+
+Environment Variables Not Working:
+- Restart dev server after changing .env.local
+- Verify variables are prefixed with NEXT_PUBLIC_ for client-side access
+
+---
+
 ## Missing Features
 
 ### High Priority

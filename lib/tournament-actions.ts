@@ -66,9 +66,20 @@ export interface TournamentMatch {
 }
 
 // Utility functions (not server actions)
+// Find the smallest power of 2 that is >= N
+function findNextPowerOfTwo(n: number): number {
+  if (n <= 4) return 4
+  if (n <= 8) return 8
+  if (n <= 16) return 16
+  if (n <= 32) return 32
+  if (n <= 64) return 64
+  return 128 // Max 100 players, so 128 is the ceiling
+}
+
 function calculateTotalRounds(participantCount: number): number {
-  if (participantCount <= 1) return 0
-  return Math.ceil(Math.log2(participantCount))
+  if (participantCount < 4) return 0
+  const powerOfTwo = findNextPowerOfTwo(participantCount)
+  return Math.log2(powerOfTwo)
 }
 
 function generateBracketPositions(participantCount: number, round: number): number[] {
@@ -356,22 +367,29 @@ export async function startTournament(tournamentId: string) {
       return { error: `Failed to fetch participants: ${participantsError.message}` }
     }
 
-    if (!participants || participants.length < 2) {
+    if (!participants || participants.length < 4) {
       console.error("❌ Insufficient participants:", {
         participants,
         count: participants?.length || 0,
         tournamentId,
       })
-      return { error: `Need at least 2 participants to start tournament. Found: ${participants?.length || 0} participants.` }
+      return { error: `Need at least 4 participants to start tournament. Found: ${participants?.length || 0} participants.` }
     }
 
     const participantCount = participants.length
+    const N = participantCount
+
+    // Find the smallest power of 2 >= N
+    const P = findNextPowerOfTwo(N)
+    const byes = P - N
+
+    console.log(`📊 Tournament setup: ${N} participants, next power of 2: ${P}, byes: ${byes}`)
 
     // Shuffle participants randomly for fair pairing
     const shuffledParticipants = shuffleArray(participants)
     console.log(`🎲 Shuffled ${participantCount} participants randomly for pairing`)
 
-    // Assign bracket positions (1 to participantCount) to shuffled participants
+    // Assign bracket positions (1 to N) to shuffled participants
     for (let i = 0; i < participantCount; i++) {
       const { error: updateError } = await supabase
         .from("tournament_participants")
@@ -392,13 +410,14 @@ export async function startTournament(tournamentId: string) {
 
     const finalParticipants = updatedParticipants || shuffledParticipants
 
-    // Generate first round matches
-    const matchesPerRound = Math.floor(participantCount / 2)
-    const byes = participantCount % 2
+    // Round 1: Players who play = N - Byes
+    // Matches in Round 1 = (N - Byes) / 2
+    const playersInRound1 = N - byes
+    const matchesPerRound = playersInRound1 / 2
 
-    console.log(`🎮 Creating ${matchesPerRound} matches for round 1 (${participantCount} participants)`)
+    console.log(`🎮 Round 1: ${playersInRound1} players will play in ${matchesPerRound} matches, ${byes} players get byes`)
 
-    // Create matches for round 1
+    // Create matches for round 1 (only for players who play, not byes)
     const createdMatches = []
     for (let i = 0; i < matchesPerRound; i++) {
       const player1 = finalParticipants[i * 2]
@@ -455,34 +474,47 @@ export async function startTournament(tournamentId: string) {
 
     console.log(`✅ Created ${createdMatches.length} matches for round 1`)
 
-    // Handle byes (if odd number of participants)
-    if (byes === 1) {
-      const byePlayer = finalParticipants[participantCount - 1]
-      // Create a bye match (automatic advancement)
-      const { data: byeMatch, error: byeMatchError } = await supabase
-        .from("matches")
-        .insert({
-          game_id: tournament.game_id,
-          player1_id: byePlayer.user_id,
-          bet_amount: 0,
-          status: "completed", // Bye is automatically completed
-          winner_id: byePlayer.user_id,
-          completed_at: new Date().toISOString(),
-        })
-        .select()
-        .single()
+    // Handle byes - players who automatically advance to Round 2
+    if (byes > 0) {
+      console.log(`🎯 Creating ${byes} bye(s) for automatic advancement`)
+      
+      // Bye players are the last 'byes' players in the list
+      for (let i = 0; i < byes; i++) {
+        const byePlayer = finalParticipants[playersInRound1 + i]
+        if (!byePlayer) {
+          console.error(`Missing bye player at index ${playersInRound1 + i}`)
+          continue
+        }
 
-      if (!byeMatchError && byeMatch) {
-        await supabase.from("tournament_matches").insert({
-          tournament_id: tournamentId,
-          match_id: byeMatch.id,
-          round_number: 1,
-          bracket_position: matchesPerRound + 1,
-          player1_bracket_position: byePlayer.bracket_position || participantCount,
-          is_bye: true,
-          winner_bracket_position: byePlayer.bracket_position || participantCount,
-          status: "completed",
-        })
+        // Create a bye match (automatic advancement)
+        const { data: byeMatch, error: byeMatchError } = await supabase
+          .from("matches")
+          .insert({
+            game_id: tournament.game_id,
+            player1_id: byePlayer.user_id,
+            bet_amount: 0,
+            status: "completed", // Bye is automatically completed
+            winner_id: byePlayer.user_id,
+            completed_at: new Date().toISOString(),
+          })
+          .select()
+          .single()
+
+        if (!byeMatchError && byeMatch) {
+          await supabase.from("tournament_matches").insert({
+            tournament_id: tournamentId,
+            match_id: byeMatch.id,
+            round_number: 1,
+            bracket_position: matchesPerRound + i + 1,
+            player1_bracket_position: byePlayer.bracket_position || (playersInRound1 + i + 1),
+            is_bye: true,
+            winner_bracket_position: byePlayer.bracket_position || (playersInRound1 + i + 1),
+            status: "completed",
+          })
+          console.log(`✅ Created bye for player ${byePlayer.user_id} at bracket position ${byePlayer.bracket_position}`)
+        } else if (byeMatchError) {
+          console.error(`❌ Error creating bye match:`, byeMatchError)
+        }
       }
     }
 
@@ -860,8 +892,15 @@ export async function advanceTournamentRound(tournamentId: string) {
 
     // Create next round matches
     const nextRound = currentRound + 1
-    const matchesPerRound = Math.floor(winners.length / 2)
-    const byes = winners.length % 2
+    const winnersCount = winners.length
+    
+    // After Round 1, we should have P/2 players (a power of 2), so no more byes
+    // But if somehow we have an odd number, we need to handle it
+    // In practice, after Round 1 with proper setup, this should never happen
+    const matchesPerRound = Math.floor(winnersCount / 2)
+    const byes = winnersCount % 2
+
+    console.log(`🎮 Round ${nextRound}: ${winnersCount} winners, ${matchesPerRound} matches, ${byes} byes`)
 
     // Shuffle winners randomly for fair pairing in next round
     const shuffledWinners = shuffleArray(winners)
@@ -871,6 +910,11 @@ export async function advanceTournamentRound(tournamentId: string) {
     for (let i = 0; i < matchesPerRound; i++) {
       const player1 = shuffledWinners[i * 2]
       const player2 = shuffledWinners[i * 2 + 1]
+
+      if (!player1 || !player2) {
+        console.error(`Missing players for match ${i + 1} in round ${nextRound}`)
+        continue
+      }
 
       // Get participant records
       const { data: p1 } = await supabase
@@ -921,8 +965,9 @@ export async function advanceTournamentRound(tournamentId: string) {
       })
     }
 
-    // Handle byes
+    // Handle byes (shouldn't happen after Round 1, but handle it just in case)
     if (byes === 1) {
+      console.log(`⚠️ Warning: Odd number of winners in round ${nextRound}, creating bye`)
       const byePlayer = shuffledWinners[shuffledWinners.length - 1]
       const { data: byeMatch, error: byeMatchError } = await supabase
         .from("matches")

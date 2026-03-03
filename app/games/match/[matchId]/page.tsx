@@ -10,8 +10,10 @@ import ChatWindow from "@/components/chat/chat-window"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, Trophy, Users, Clock } from "lucide-react"
+import { ArrowLeft, Trophy, Users, Clock, CheckCircle, XCircle } from "lucide-react"
 import Link from "next/link"
+import { acceptFriendMatchRequest, markPlayerReady } from "@/lib/game-actions"
+import { useToast } from "@/hooks/use-toast"
 
 interface MatchPageProps {
   params: {
@@ -27,8 +29,11 @@ export default function MatchPage({ params }: MatchPageProps) {
   const [rematchStatus, setRematchStatus] = useState<'none' | 'requested' | 'received' | 'accepted' | 'rejected'>('none')
   const [isLoadingRematch, setIsLoadingRematch] = useState(false)
   const [isTournamentMatch, setIsTournamentMatch] = useState(false)
+  const [acceptingMatch, setAcceptingMatch] = useState(false)
+  const [markingReady, setMarkingReady] = useState(false)
   const router = useRouter()
   const supabase = createClient()
+  const { toast } = useToast()
 
   console.log('🎮 MatchPage component loaded!', { params })
 
@@ -44,23 +49,29 @@ export default function MatchPage({ params }: MatchPageProps) {
   useEffect(() => {
     if (!matchId) return
 
-    const loadData = async () => {
+    // Load user data once (don't reload on every poll to avoid rate limits)
+    const loadUserData = async () => {
       try {
-        // Get user
         const { data: { user: authUser } } = await supabase.auth.getUser()
         if (!authUser) {
           router.push("/auth/login")
           return
         }
 
-        // Get user profile
         const { data: userData } = await supabase.from("users").select("*").eq("id", authUser.id).single()
         if (!userData) {
           router.push("/auth/login")
           return
         }
         setUser(userData)
+      } catch (error) {
+        console.error("Error loading user:", error)
+      }
+    }
 
+    // Load match data (can be polled)
+    const loadMatchData = async () => {
+      try {
         // Get match data
         const { data: matchData, error: matchError } = await supabase
           .from("matches")
@@ -105,17 +116,19 @@ export default function MatchPage({ params }: MatchPageProps) {
 
         setMatch(matchData)
       } catch (error) {
-        console.error("Error loading data:", error)
-        router.push("/games")
+        console.error("Error loading match:", error)
       } finally {
         setLoading(false)
       }
     }
 
-    loadData()
+    // Load both initially
+    loadUserData()
+    loadMatchData()
 
-    // Poll for match updates every 2 seconds
-    const pollInterval = setInterval(loadData, 2000)
+    // Poll for match updates every 15 seconds (realtime subscription handles immediate updates)
+    // Only poll match data, not user data, to avoid rate limiting
+    const pollInterval = setInterval(loadMatchData, 15000)
     
     // Set up real-time subscription for immediate updates
     const channel = supabase
@@ -129,14 +142,34 @@ export default function MatchPage({ params }: MatchPageProps) {
         }, 
         async (payload) => {
           console.log('🔄 Match updated via real-time:', payload.new)
-          const updatedMatch = payload.new as any
-          // Preserve games relation if it exists in current match
-          if (match?.games) {
-            updatedMatch.games = match.games
+          // Reload full match data with relations
+          const { data: updatedMatchData } = await supabase
+            .from("matches")
+            .select(`
+              *,
+              games (*),
+              player1:users!matches_player1_id_fkey (*),
+              player2:users!matches_player2_id_fkey (*)
+            `)
+            .eq("id", matchId)
+            .single()
+          
+          if (updatedMatchData) {
+            setMatch(updatedMatchData)
+            
+            // If match started and both players are ready, show notification
+            if (updatedMatchData.status === 'in_progress' && 
+                updatedMatchData.game_data?.player1_ready && 
+                updatedMatchData.game_data?.player2_ready) {
+              toast({
+                title: "Match starting!",
+                description: "Both players are ready",
+              })
+            }
           }
-          setMatch(updatedMatch)
 
           // If match completed and it's a tournament match, redirect to tournament
+          const updatedMatch = payload.new as any
           if (updatedMatch.status === 'completed' && updatedMatch.tournament_id) {
             console.log('🏆 Tournament match completed, redirecting to tournament page...')
             setTimeout(() => {
@@ -409,97 +442,246 @@ export default function MatchPage({ params }: MatchPageProps) {
           )}
         </div>
 
-        {/* Start Match Button - Show for both players when match is waiting */}
-        {match.status === "waiting" && (
+        {/* Friend Match Request - Show accept button for player2 */}
+        {match.status === "waiting" && 
+         match.game_data?.friend_match_request && 
+         !match.game_data?.friend_match_accepted && 
+         isPlayer2 && (
+          <div className="text-center mt-6 mb-6">
+            <Card className="bg-orange-900/20 border-orange-500/30">
+              <CardContent className="pt-6">
+                <div className="space-y-4">
+                  <div className="text-xl text-white font-semibold">
+                    Match Request from {match.player1?.display_name || match.player1?.username || 'Friend'}
+                  </div>
+                  <div className="text-gray-400">
+                    <p>Game: {match.games?.name || 'Unknown'}</p>
+                    <p>Bet Amount: {match.bet_amount} tokens</p>
+                  </div>
+                  <div className="flex gap-4 justify-center">
+                    <Button
+                      onClick={async () => {
+                        setAcceptingMatch(true)
+                        try {
+                          const result = await acceptFriendMatchRequest(match.id)
+                          if (result.error) {
+                            toast({
+                              title: "Failed to accept",
+                              description: result.error,
+                              variant: "destructive",
+                            })
+                          } else {
+                            toast({
+                              title: "Match request accepted!",
+                              description: "Both players need to click 'I'm Ready' to start",
+                            })
+                            // Refresh match data
+                            const { data: updatedMatch } = await supabase
+                              .from("matches")
+                              .select(`
+                                *,
+                                games (*),
+                                player1:users!matches_player1_id_fkey (*),
+                                player2:users!matches_player2_id_fkey (*)
+                              `)
+                              .eq("id", match.id)
+                              .single()
+                            if (updatedMatch) {
+                              setMatch(updatedMatch)
+                            }
+                          }
+                        } catch (error) {
+                          console.error('Error accepting match:', error)
+                          toast({
+                            title: "Error",
+                            description: "Failed to accept match request",
+                            variant: "destructive",
+                          })
+                        } finally {
+                          setAcceptingMatch(false)
+                        }
+                      }}
+                      disabled={acceptingMatch}
+                      className="bg-green-500 hover:bg-green-600 text-white"
+                    >
+                      <CheckCircle className="mr-2 h-4 w-4" />
+                      {acceptingMatch ? "Accepting..." : "Accept Match"}
+                    </Button>
+                    <Button
+                      onClick={async () => {
+                        // Cancel the match request
+                        await supabase
+                          .from("matches")
+                          .update({ status: "cancelled" })
+                          .eq("id", match.id)
+                        toast({
+                          title: "Match request declined",
+                        })
+                        router.push("/dashboard")
+                      }}
+                      variant="outline"
+                      className="border-red-500 text-red-400 hover:bg-red-500 hover:text-white"
+                    >
+                      <XCircle className="mr-2 h-4 w-4" />
+                      Decline
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* Waiting for friend to accept - Show for player1 */}
+        {match.status === "waiting" && 
+         match.game_data?.friend_match_request && 
+         !match.game_data?.friend_match_accepted && 
+         isPlayer1 && (
+          <div className="text-center mt-6 mb-6">
+            <Card className="bg-blue-900/20 border-blue-500/30">
+              <CardContent className="pt-6">
+                <div className="space-y-4">
+                  <div className="text-xl text-white font-semibold">
+                    Waiting for {match.player2?.display_name || match.player2?.username || 'Friend'} to accept...
+                  </div>
+                  <div className="text-gray-400">
+                    Your friend will receive a notification to accept this match request.
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* Ready Button - Show after match is accepted */}
+        {match.status === "waiting" && 
+         match.game_data?.friend_match_accepted && 
+         isInMatch && (
           <div className="text-center mt-6 mb-6">
             <button 
               onClick={async () => {
+                setMarkingReady(true)
                 try {
-                  // Get current game_data
-                  const { data: currentMatch } = await supabase
-                    .from('matches')
-                    .select('game_data')
-                    .eq('id', match.id)
-                    .single()
-                  
-                  const gameData = currentMatch?.game_data || {}
-                  const playerKey = isPlayer1 ? 'player1_ready' : 'player2_ready'
-                  const opponentKey = isPlayer1 ? 'player2_ready' : 'player1_ready'
-                  
-                  // Mark current player as ready
-                  const updatedGameData = {
-                    ...gameData,
-                    [playerKey]: true
-                  }
-                  
-                  // Check if both players are ready
-                  const bothReady = updatedGameData.player1_ready && updatedGameData.player2_ready
-                  
-                  if (bothReady) {
-                    // Both players ready - start the match with countdown
-                    const { error } = await supabase
-                      .from('matches')
-                      .update({ 
-                        status: 'in_progress', 
-                        started_at: new Date().toISOString(),
-                        game_data: updatedGameData
-                      })
-                      .eq('id', match.id)
-                    
-                    if (error) {
-                      console.error('Error starting match:', error)
-                    } else {
-                      console.log('Match started! Both players ready.')
-                      setMatch((prev: any) => ({ 
-                        ...prev, 
-                        status: 'in_progress', 
-                        started_at: new Date().toISOString(),
-                        game_data: updatedGameData
-                      }))
-                      
-                      // Clean up matchmaking queues for both players
-                      console.log('🧹 Cleaning up matchmaking queues...')
-                      if (match.player1_id) {
-                        await supabase
-                          .from("matchmaking_queue")
-                          .update({ status: "matched" })
-                          .eq("user_id", match.player1_id)
-                          .eq("status", "waiting")
-                        console.log('✅ Marked player1 queues as matched')
-                      }
-                      if (match.player2_id) {
-                        await supabase
-                          .from("matchmaking_queue")
-                          .update({ status: "matched" })
-                          .eq("user_id", match.player2_id)
-                          .eq("status", "waiting")
-                        console.log('✅ Marked player2 queues as matched')
-                      }
-                    }
+                  const result = await markPlayerReady(match.id)
+                  if (result.error) {
+                    toast({
+                      title: "Error",
+                      description: result.error,
+                      variant: "destructive",
+                    })
                   } else {
-                    // Only current player ready - update game_data
-                    const { error } = await supabase
-                      .from('matches')
-                      .update({ game_data: updatedGameData })
-                      .eq('id', match.id)
-                    
-                    if (error) {
-                      console.error('Error updating player readiness:', error)
+                    if (result.bothReady) {
+                      toast({
+                        title: "Both players ready!",
+                        description: "Match is starting...",
+                      })
                     } else {
-                      console.log(`${isPlayer1 ? 'Player 1' : 'Player 2'} is ready. Waiting for opponent...`)
-                      setMatch((prev: any) => ({ 
-                        ...prev, 
-                        game_data: updatedGameData
-                      }))
+                      toast({
+                        title: "You're ready!",
+                        description: "Waiting for opponent...",
+                      })
+                    }
+                    // Refresh match data
+                    const { data: updatedMatch } = await supabase
+                      .from("matches")
+                      .select(`
+                        *,
+                        games (*),
+                        player1:users!matches_player1_id_fkey (*),
+                        player2:users!matches_player2_id_fkey (*)
+                      `)
+                      .eq("id", match.id)
+                      .single()
+                    if (updatedMatch) {
+                      setMatch(updatedMatch)
                     }
                   }
                 } catch (error) {
-                  console.error('Error starting match:', error)
+                  console.error('Error marking ready:', error)
+                  toast({
+                    title: "Error",
+                    description: "Failed to mark as ready",
+                    variant: "destructive",
+                  })
+                } finally {
+                  setMarkingReady(false)
                 }
               }}
-              className="bg-green-500 hover:bg-green-600 text-white px-8 py-3 rounded-lg font-semibold transition-colors"
+              disabled={markingReady || (isPlayer1 && match.game_data?.player1_ready) || (isPlayer2 && match.game_data?.player2_ready)}
+              className="bg-green-500 hover:bg-green-600 text-white px-8 py-3 rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {match.game_data?.player1_ready && match.game_data?.player2_ready 
+              {markingReady 
+                ? 'Processing...' 
+                : (isPlayer1 && match.game_data?.player1_ready) || (isPlayer2 && match.game_data?.player2_ready)
+                  ? 'You\'re Ready!'
+                  : match.game_data?.player1_ready && match.game_data?.player2_ready
+                    ? 'Both Players Ready!'
+                    : 'I\'m Ready!'}
+            </button>
+            
+            {/* Show readiness status */}
+            <div className="mt-2 text-sm text-gray-400">
+              {match.game_data?.player1_ready && match.game_data?.player2_ready ? (
+                <span className="text-green-400">Both players ready! Match starting...</span>
+              ) : (
+                <span>
+                  {match.game_data?.player1_ready && isPlayer1 ? 'You\'re ready! ' : ''}
+                  {match.game_data?.player2_ready && isPlayer2 ? 'You\'re ready! ' : ''}
+                  {match.game_data?.player1_ready && match.game_data?.player2_ready 
+                    ? 'Waiting for match to start...' 
+                    : 'Waiting for both players to be ready...'}
+                </span>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Start Match Button - Show for regular matches (not friend matches) */}
+        {match.status === "waiting" && 
+         !match.game_data?.friend_match_request && 
+         isInMatch && (
+          <div className="text-center mt-6 mb-6">
+            <button 
+              onClick={async () => {
+                setMarkingReady(true)
+                try {
+                  const result = await markPlayerReady(match.id)
+                  if (result.error) {
+                    toast({
+                      title: "Error",
+                      description: result.error,
+                      variant: "destructive",
+                    })
+                  } else {
+                    // Refresh match data
+                    const { data: updatedMatch } = await supabase
+                      .from("matches")
+                      .select(`
+                        *,
+                        games (*),
+                        player1:users!matches_player1_id_fkey (*),
+                        player2:users!matches_player2_id_fkey (*)
+                      `)
+                      .eq("id", match.id)
+                      .single()
+                    if (updatedMatch) {
+                      setMatch(updatedMatch)
+                    }
+                  }
+                } catch (error) {
+                  console.error('Error marking ready:', error)
+                } finally {
+                  setMarkingReady(false)
+                }
+              }}
+              disabled={markingReady || (isPlayer1 && match.game_data?.player1_ready) || (isPlayer2 && match.game_data?.player2_ready)}
+              className="bg-green-500 hover:bg-green-600 text-white px-8 py-3 rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {markingReady 
+                ? 'Processing...' 
+                : (isPlayer1 && match.game_data?.player1_ready) || (isPlayer2 && match.game_data?.player2_ready)
+                  ? 'You\'re Ready!'
+                  : match.game_data?.player1_ready && match.game_data?.player2_ready
                 ? 'Both Players Ready!' 
                 : 'I\'m Ready!'}
             </button>

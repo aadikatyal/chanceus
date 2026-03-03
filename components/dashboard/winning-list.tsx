@@ -20,51 +20,36 @@ export default function WinningList() {
   useEffect(() => {
     const fetchRecentWinners = async () => {
       try {
-        // Always use mock data for now to ensure recent times
-        console.log('Using mock data for recent winners')
-        const mockWinners: Winner[] = [
-          {
-            id: '1',
-            username: 'MathWizard',
-            display_name: 'MathWizard',
-            amount: 250,
-            won_at: new Date(Date.now() - 10000).toISOString(), // 10 seconds ago
-            game_name: 'Math Blitz'
-          },
-          {
-            id: '2',
-            username: 'ConnectPro',
-            display_name: 'ConnectPro',
-            amount: 180,
-            won_at: new Date(Date.now() - 30000).toISOString(), // 30 seconds ago
-            game_name: 'Four in a Row'
-          },
-          {
-            id: '3',
-            username: 'TriviaKing',
-            display_name: 'TriviaKing',
-            amount: 320,
-            won_at: new Date(Date.now() - 60000).toISOString(), // 1 minute ago
-            game_name: 'Trivia Challenge'
-          },
-          {
-            id: '4',
-            username: 'QuickShot',
-            display_name: 'QuickShot',
-            amount: 150,
-            won_at: new Date(Date.now() - 90000).toISOString(), // 1.5 minutes ago
-            game_name: 'Math Blitz'
-          },
-          {
-            id: '5',
-            username: 'BrainBox',
-            display_name: 'BrainBox',
-            amount: 200,
-            won_at: new Date(Date.now() - 120000).toISOString(), // 2 minutes ago
-            game_name: 'Trivia Challenge'
-          }
-        ]
-        setWinners(mockWinners)
+        // Fetch recent completed matches with winners
+        const { data: matchesData, error } = await supabase
+          .from("matches")
+          .select(`
+            id,
+            bet_amount,
+            completed_at,
+            winner_id,
+            games (name),
+            winner:users!matches_winner_id_fkey (id, username, display_name)
+          `)
+          .eq("status", "completed")
+          .not("winner_id", "is", null)
+          .order("completed_at", { ascending: false })
+          .limit(10)
+
+        if (error) {
+          console.error('Error fetching winners:', error)
+          setWinners([])
+        } else if (matchesData) {
+          const formattedWinners: Winner[] = matchesData.map((match: any) => ({
+            id: match.id,
+            username: match.winner?.username || 'Unknown',
+            display_name: match.winner?.display_name || match.winner?.username || 'Unknown',
+            amount: match.bet_amount * 2, // Winner gets both bets
+            won_at: match.completed_at,
+            game_name: match.games?.name || 'Unknown Game'
+          }))
+          setWinners(formattedWinners)
+        }
       } catch (error) {
         console.error('Error fetching winners:', error)
         setWinners([])
@@ -75,9 +60,30 @@ export default function WinningList() {
 
     fetchRecentWinners()
     
-    // Update every 30 seconds to show new winners
+    // Set up realtime subscription for new completed matches
+    const subscription = supabase
+      .channel('global-winners')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'matches',
+          filter: 'status=eq.completed'
+        },
+        () => {
+          fetchRecentWinners()
+        }
+      )
+      .subscribe()
+    
+    // Also poll every 30 seconds as backup (realtime handles immediate updates)
     const interval = setInterval(fetchRecentWinners, 30000)
-    return () => clearInterval(interval)
+    
+    return () => {
+      supabase.removeChannel(subscription)
+      clearInterval(interval)
+    }
   }, [])
 
   const formatTimeAgo = (dateString: string) => {

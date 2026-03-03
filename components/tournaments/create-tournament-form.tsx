@@ -162,13 +162,13 @@ export default function CreateTournamentForm({ games }: CreateTournamentFormProp
                 type="number"
                 value={formData.maxParticipants}
                 onChange={(e) => setFormData({ ...formData, maxParticipants: e.target.value })}
-                min="2"
+                min="4"
                 max="100"
                 className="bg-gray-800 border-gray-700 text-white"
                 required
               />
               <p className="text-xs text-gray-400">
-                Maximum 100 players (tournament can start with 2+ players)
+                Minimum 4 players, maximum 100 players (tournament needs at least 4 to start)
               </p>
             </div>
           </div>

@@ -7,6 +7,7 @@ import MatchmakingRealtime from "@/components/matchmaking-realtime"
 import MyMatchmakingQueues from "@/components/my-matchmaking-queues"
 import CleanupHandler from "@/components/cleanup-handler"
 import GamesPageClient from "@/components/games-page-client"
+import FriendsOnline from "@/components/dashboard/friends-online"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { forceCompleteMatches } from "@/lib/force-complete-matches"
@@ -319,11 +320,12 @@ export default async function GamesPage() {
         {/* Page Header */}
         <div className="mb-6 sm:mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
-            <div>
+            <div className="flex-1">
               <h1 className="text-2xl sm:text-4xl font-bold text-white mb-2">Games Lobby</h1>
               <p className="text-gray-400 text-sm sm:text-lg">Choose your game and test your skills against other players</p>
             </div>
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
+            <div className="flex items-center sm:ml-4">
+              <FriendsOnline />
             </div>
           </div>
         </div>

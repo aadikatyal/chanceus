@@ -3,12 +3,22 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Trophy, DollarSign, Coins, Zap, Users, Brain } from "lucide-react"
+import { Trophy, DollarSign, Coins, Zap, Users, Brain, UserPlus } from "lucide-react"
 import { useState, useEffect } from "react"
 import type { Game } from "@/lib/supabase/client"
 import { useRouter, useSearchParams } from "next/navigation"
 import MatchmakingInterface from "./matchmaking-interface"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { createFriendMatch } from "@/lib/game-actions"
+import { useToast } from "@/hooks/use-toast"
 
 
 
@@ -30,9 +40,14 @@ export default function CreateMatchForm({ game, user }: CreateMatchFormProps) {
   const [activeMatchInfo, setActiveMatchInfo] = useState<any>(null)
   const [loadingMatchInfo, setLoadingMatchInfo] = useState(false)
   const [hasExistingQueues, setHasExistingQueues] = useState(false)
+  const [showFriendDialog, setShowFriendDialog] = useState(false)
+  const [friends, setFriends] = useState<any[]>([])
+  const [loadingFriends, setLoadingFriends] = useState(false)
+  const [creatingMatch, setCreatingMatch] = useState(false)
   const router = useRouter()
   const searchParams = useSearchParams()
   const supabase = createClientComponentClient()
+  const { toast } = useToast()
 
   // Debug effect to track hasActiveMatch state changes
   useEffect(() => {
@@ -260,6 +275,108 @@ export default function CreateMatchForm({ game, user }: CreateMatchFormProps) {
       setSelectedTier(tier as 'free' | 'tokens' | 'cash5' | 'cash10')
     }
   }, [searchParams])
+
+  // Fetch friends when dialog opens
+  useEffect(() => {
+    const fetchFriends = async () => {
+      if (!showFriendDialog) return
+      
+      setLoadingFriends(true)
+      try {
+        const { data: { user: currentUser } } = await supabase.auth.getUser()
+        if (!currentUser) {
+          setFriends([])
+          return
+        }
+
+        const { data: friendsData, error } = await supabase
+          .from('friends')
+          .select(`
+            id,
+            user_id,
+            friend_id,
+            status,
+            user:users!friends_user_id_fkey(id, display_name, username, is_online, tokens),
+            friend:users!friends_friend_id_fkey(id, display_name, username, is_online, tokens)
+          `)
+          .eq('status', 'accepted')
+          .or(`user_id.eq.${currentUser.id},friend_id.eq.${currentUser.id}`)
+
+        if (error) {
+          console.error('Error fetching friends:', error)
+          setFriends([])
+        } else {
+          const mappedFriends = (friendsData || []).map((friendship: any) => {
+            const otherUser = friendship.user_id === currentUser.id ? friendship.friend : friendship.user
+            return {
+              id: otherUser.id,
+              display_name: otherUser.display_name || otherUser.username,
+              username: otherUser.username,
+              is_online: otherUser.is_online || false,
+              tokens: otherUser.tokens || 0
+            }
+          })
+          setFriends(mappedFriends)
+        }
+      } catch (error) {
+        console.error('Error fetching friends:', error)
+        setFriends([])
+      } finally {
+        setLoadingFriends(false)
+      }
+    }
+
+    fetchFriends()
+  }, [showFriendDialog, supabase])
+
+  const handlePlayFriend = async (friendId: string) => {
+    const betAmount = selectedTier === 'free' ? 0 :
+      selectedTier === 'tokens' ? 100 :
+      selectedTier === 'cash5' ? 500 : 1000
+
+    if (betAmount > 0 && user.tokens < betAmount) {
+      toast({
+        title: "Insufficient tokens",
+        description: `You need ${betAmount} tokens to play this match`,
+        variant: "destructive",
+      })
+      return
+    }
+
+    setCreatingMatch(true)
+    try {
+      const result = await createFriendMatch(
+        game.id,
+        friendId,
+        betAmount,
+        isTriviaGame ? selectedCategory : undefined
+      )
+
+      if (result.error) {
+        toast({
+          title: "Failed to create match",
+          description: result.error,
+          variant: "destructive",
+        })
+      } else if (result.matchId) {
+        toast({
+          title: "Match request sent!",
+          description: result.message || "Your friend will be notified to accept the match",
+        })
+        setShowFriendDialog(false)
+        router.push(`/games/match/${result.matchId}`)
+      }
+    } catch (error) {
+      console.error('Error creating friend match:', error)
+      toast({
+        title: "Error",
+        description: "Failed to create match with friend",
+        variant: "destructive",
+      })
+    } finally {
+      setCreatingMatch(false)
+    }
+  }
 
   // Clear any existing matchmaking queues when component mounts
   useEffect(() => {
@@ -749,6 +866,75 @@ export default function CreateMatchForm({ game, user }: CreateMatchFormProps) {
             <Users className="mr-2 h-5 w-5" />
             Start Matchmaking
           </Button>
+
+          <Dialog open={showFriendDialog} onOpenChange={setShowFriendDialog}>
+            <DialogTrigger asChild>
+              <Button 
+                variant="outline"
+                className="w-full border-orange-500 text-orange-400 hover:bg-orange-500 hover:text-black font-semibold py-6 text-lg"
+              >
+                <UserPlus className="mr-2 h-5 w-5" />
+                Play a Friend
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="bg-gray-900 border-gray-700 text-white max-h-[80vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle className="text-white">Select a Friend to Play</DialogTitle>
+                <DialogDescription className="text-gray-400">
+                  Choose a friend to challenge in {game.name}
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-2 mt-4">
+                {loadingFriends ? (
+                  <div className="text-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mx-auto mb-4"></div>
+                    <p className="text-gray-400">Loading friends...</p>
+                  </div>
+                ) : friends.length === 0 ? (
+                  <div className="text-center py-8 text-gray-400">
+                    <p>No friends found</p>
+                    <p className="text-sm mt-2">Add friends to play matches with them!</p>
+                  </div>
+                ) : (
+                  friends.map((friend) => {
+                    const betAmount = selectedTier === 'free' ? 0 :
+                      selectedTier === 'tokens' ? 100 :
+                      selectedTier === 'cash5' ? 500 : 1000
+                    const canPlay = betAmount === 0 || (friend.tokens >= betAmount && user.tokens >= betAmount)
+                    
+                    return (
+                      <div
+                        key={friend.id}
+                        className="flex items-center justify-between p-4 bg-gray-800/50 rounded-lg border border-gray-700 hover:bg-gray-800/70 transition-colors"
+                      >
+                        <div className="flex items-center space-x-3">
+                          <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center text-black font-bold">
+                            {friend.display_name.charAt(0).toUpperCase()}
+                          </div>
+                          <div>
+                            <div className="text-white font-medium">{friend.display_name}</div>
+                            <div className="text-sm text-gray-400">
+                              @{friend.username} {friend.is_online && <span className="text-green-400">• Online</span>}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              {friend.tokens.toLocaleString()} tokens
+                            </div>
+                          </div>
+                        </div>
+                        <Button
+                          onClick={() => handlePlayFriend(friend.id)}
+                          disabled={!canPlay || creatingMatch}
+                          className="bg-orange-500 hover:bg-orange-600 text-black"
+                        >
+                          {creatingMatch ? "Creating..." : "Challenge"}
+                        </Button>
+                      </div>
+                    )
+                  })
+                )}
+              </div>
+            </DialogContent>
+          </Dialog>
           
           {/* Show resume option if there are existing queues */}
           {hasExistingQueues && (

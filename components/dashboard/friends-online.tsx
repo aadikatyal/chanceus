@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
-import { ChevronDown, Users, Circle, UserPlus, Search, CheckCircle, XCircle, Loader2 } from 'lucide-react'
+import { ChevronDown, Users, Circle, UserPlus, Search, CheckCircle, XCircle, Loader2, Gamepad2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -14,6 +14,15 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { searchUsers, sendFriendRequest, getPendingRequests, getSentRequests, acceptFriendRequest, rejectFriendRequest, FriendRequest } from '@/lib/friends-actions'
 import { useToast } from '@/hooks/use-toast'
+import { createFriendMatch } from '@/lib/game-actions'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
 
 interface Friend {
   id: string
@@ -36,6 +45,9 @@ export default function FriendsOnline() {
   const [pendingRequests, setPendingRequests] = useState<FriendRequest[]>([])
   const [sentRequests, setSentRequests] = useState<FriendRequest[]>([])
   const [isLoadingRequests, setIsLoadingRequests] = useState(true)
+  const [showPlayFriendDialog, setShowPlayFriendDialog] = useState(false)
+  const [selectedFriend, setSelectedFriend] = useState<Friend | null>(null)
+  const [creatingMatch, setCreatingMatch] = useState(false)
   const { toast } = useToast()
   const router = useRouter()
 
@@ -235,6 +247,37 @@ export default function FriendsOnline() {
     }
   }
 
+  const handlePlayFriend = async (friend: Friend, gameId: string, betAmount: number) => {
+    setCreatingMatch(true)
+    try {
+      const result = await createFriendMatch(gameId, friend.id, betAmount)
+
+      if (result.error) {
+        toast({
+          title: "Failed to create match",
+          description: result.error,
+          variant: "destructive",
+        })
+      } else if (result.matchId) {
+        toast({
+          title: "Match request sent!",
+          description: result.message || "Your friend will be notified to accept the match",
+        })
+        setShowPlayFriendDialog(false)
+        router.push(`/games/match/${result.matchId}`)
+      }
+    } catch (error) {
+      console.error('Error creating friend match:', error)
+      toast({
+        title: "Error",
+        description: "Failed to create match with friend",
+        variant: "destructive",
+      })
+    } finally {
+      setCreatingMatch(false)
+    }
+  }
+
   const onlineFriends = friends.filter(friend => friend.is_online)
   const onlineCount = onlineFriends.length
 
@@ -316,37 +359,84 @@ export default function FriendsOnline() {
         ) : (
                 <div>
             {friends.map((friend) => (
-              <DropdownMenuItem 
-                key={friend.id}
-                className="flex items-center space-x-3 px-3 py-2 hover:bg-gray-800 cursor-pointer"
-                onClick={() => {
-                  console.log('Clicked friend:', friend.display_name)
-                }}
-              >
-                <div className="relative">
-                  <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-black font-bold text-sm">
-                    {friend.display_name.charAt(0).toUpperCase()}
+              <div key={friend.id} className="px-3 py-2 hover:bg-gray-800">
+                <div className="flex items-center space-x-3">
+                  <div className="relative">
+                    <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-black font-bold text-sm">
+                      {friend.display_name.charAt(0).toUpperCase()}
+                    </div>
+                    <Circle 
+                      className={`absolute -bottom-1 -right-1 h-3 w-3 ${
+                        friend.is_online 
+                          ? 'text-green-500 fill-green-500' 
+                          : 'text-gray-500 fill-gray-500'
+                      }`} 
+                    />
                   </div>
-                  <Circle 
-                    className={`absolute -bottom-1 -right-1 h-3 w-3 ${
-                      friend.is_online 
-                        ? 'text-green-500 fill-green-500' 
-                        : 'text-gray-500 fill-gray-500'
-                    }`} 
-                  />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium text-white truncate">
-                    {friend.display_name}
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium text-white truncate">
+                      {friend.display_name}
+                    </div>
+                    <div className="text-xs text-gray-400 truncate">
+                      @{friend.username}
+                    </div>
                   </div>
-                  <div className="text-xs text-gray-400 truncate">
-                    @{friend.username}
+                  <div className="flex items-center space-x-2">
+                    <div className="text-xs text-gray-500">
+                      {friend.is_online ? 'Online' : 'Offline'}
+                    </div>
+                    <Dialog open={showPlayFriendDialog && selectedFriend?.id === friend.id} onOpenChange={(open) => {
+                      setShowPlayFriendDialog(open)
+                      if (!open) setSelectedFriend(null)
+                    }}>
+                      <DialogTrigger asChild>
+                        <Button
+                          size="sm"
+                          onClick={() => {
+                            setSelectedFriend(friend)
+                            setShowPlayFriendDialog(true)
+                          }}
+                          className="h-7 px-2 bg-orange-500 hover:bg-orange-600 text-white text-xs"
+                        >
+                          <Gamepad2 className="h-3 w-3 mr-1" />
+                          Play
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="bg-gray-900 border-gray-700 text-white">
+                        <DialogHeader>
+                          <DialogTitle className="text-white">Play with {friend.display_name}</DialogTitle>
+                          <DialogDescription className="text-gray-400">
+                            Select a game to challenge {friend.display_name}
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-2 mt-4">
+                          <Button
+                            onClick={() => handlePlayFriend(friend, 'd0c5fda9-ec91-46b4-be62-cba48b398168', 100)}
+                            disabled={creatingMatch}
+                            className="w-full bg-cyan-500 hover:bg-cyan-600 text-black"
+                          >
+                            Math Blitz (100 tokens)
+                          </Button>
+                          <Button
+                            onClick={() => handlePlayFriend(friend, '69bf26d2-110b-40d9-b20a-d5cfab14d133', 100)}
+                            disabled={creatingMatch}
+                            className="w-full bg-yellow-500 hover:bg-yellow-600 text-black"
+                          >
+                            Four in a Row (100 tokens)
+                          </Button>
+                          <Button
+                            onClick={() => handlePlayFriend(friend, 'e03ee060-b913-4795-9149-54660e2e2eac', 100)}
+                            disabled={creatingMatch}
+                            className="w-full bg-purple-500 hover:bg-purple-600 text-black"
+                          >
+                            Trivia Challenge (100 tokens)
+                          </Button>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
                   </div>
                 </div>
-                <div className="text-xs text-gray-500">
-                  {friend.is_online ? 'Online' : 'Offline'}
-                </div>
-              </DropdownMenuItem>
+              </div>
             ))}
           </div>
         )}

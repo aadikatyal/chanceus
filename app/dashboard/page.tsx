@@ -8,6 +8,7 @@ import OnlineUsersCount from "@/components/dashboard/online-users-count"
 import DashboardClient from "@/components/dashboard/dashboard-client"
 import FriendsOnline from "@/components/dashboard/friends-online"
 import WinningList from "@/components/dashboard/winning-list"
+import UserRank from "@/components/dashboard/user-rank"
 import { handleAuthError } from "@/lib/auth-fix"
 import { Wallet, Trophy, Users, TrendingUp } from "lucide-react"
 import Image from "next/image"
@@ -92,7 +93,7 @@ export default async function DashboardPage() {
 
           <StatsCard
             title="Rank"
-            value="#247"
+            value={<UserRank />}
             description="Global leaderboard"
             icon={TrendingUp}
           />
