@@ -78,6 +78,9 @@ const fmtWhen = (iso: string) =>
   })
 
 /** Make titles consistent regardless of how description/note was set */
+const STRIPE_PURCHASE_DESC_PREFIX = "Token purchase (Stripe session:"
+const STRIPE_PI_DESC_PREFIX = "Token purchase (Stripe PaymentIntent:"
+
 function deriveTitle(t: Transaction) {
   const raw = (t as any).description || (t as any).note || ""
   const trimmed = raw.trim()
@@ -96,6 +99,12 @@ function deriveTitle(t: Transaction) {
   }
 
   if (t.type === "buy") return "Token pack purchase"
+  if (
+    t.type === "bonus" &&
+    (trimmed.startsWith(STRIPE_PURCHASE_DESC_PREFIX) ||
+      trimmed.startsWith(STRIPE_PI_DESC_PREFIX))
+  )
+    return "Token pack purchase"
   if (t.type === "win") return trimmed || "Game win"
   if (t.type === "bet") return trimmed || "Game bet"
   if (t.type === "bonus") return trimmed || "Bonus"
@@ -126,7 +135,13 @@ export default function TransactionHistory({ transactions }: TransactionHistoryP
         ) : (
           <div className="space-y-3">
             {transactions.map((t) => {
-              const meta = TYPE_META[t.type] ?? fallbackMeta
+              const isStripePurchase =
+                t.type === "bonus" &&
+                ((desc) =>
+                  desc.startsWith(STRIPE_PURCHASE_DESC_PREFIX) ||
+                  desc.startsWith(STRIPE_PI_DESC_PREFIX))((t as any).description || "")
+              const meta =
+                isStripePurchase ? TYPE_META.buy : (TYPE_META[t.type] ?? fallbackMeta)
               const title = deriveTitle(t)
               const amountClass =
                 meta.amountClass ?? (t.amount > 0 ? "text-emerald-400" : "text-red-400")

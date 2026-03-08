@@ -1,9 +1,10 @@
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
+import { Suspense } from "react"
 import Header from "@/components/navigation/header"
 import AddTokensForm from "@/components/wallet/add-tokens-form"
 import TransactionHistory from "@/components/wallet/transaction-history"
-import TransferTokensForm from "@/components/wallet/transfer-tokens-form"
+import StripeCheckoutSuccess from "@/components/wallet/stripe-checkout-success"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Wallet, TrendingUp, ArrowUpRight, ArrowDownLeft } from "lucide-react"
 import BuyButtons from './BuyButtons'
@@ -116,11 +117,13 @@ export default async function WalletPage() {
         </div>
 
         {/* Wallet Actions and History */}
+        <Suspense fallback={null}>
+          <StripeCheckoutSuccess />
+        </Suspense>
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Left Column - Actions */}
           <div className="space-y-6">
             <BuyButtons current={user.tokens} />
-            <TransferTokensForm userBalance={user.tokens} />
           </div>
 
           {/* Right Column - Transaction History */}

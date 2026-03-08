@@ -8,6 +8,13 @@ Create a `.env.local` file in your project root:
 NEXT_PUBLIC_SUPABASE_URL=https://qhggmqttxbmuehugwbzi.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoZ2dtcXR0eGJtdWVodWd3YnppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUyODMzODYsImV4cCI6MjA3MDg1OTM4Nn0.JRDx-BTayKoB7-_EdtcmKtgMWqAPs7wc0avQ0g0cGd0
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
+
+# Stripe (for wallet token purchases / test checkout)
+# Get keys from https://dashboard.stripe.com/apikeys
+# Use Test mode (sk_test_...) for testing to avoid real charges
+STRIPE_SECRET_KEY=sk_test_xxxxxxxxxxxxxxxxxxxxxxxx
+# Required for in-page Apple Pay / card (Payment Element). Use pk_test_... in test mode.
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_xxxxxxxxxxxxxxxxxxxxxxxx
 ```
 
 ## Vercel Production
