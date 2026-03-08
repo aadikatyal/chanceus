@@ -12,6 +12,7 @@ const stripePromise = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
 type PaymentFormInnerProps = {
   paymentIntentId: string
   packLabel: string
+  packPrice?: string
   returnUrl: string
   onSuccess: () => void
   onError: (msg: string) => void
@@ -20,6 +21,7 @@ type PaymentFormInnerProps = {
 function PaymentFormInner({
   paymentIntentId,
   packLabel,
+  packPrice,
   returnUrl,
   onSuccess,
   onError,
@@ -67,9 +69,12 @@ function PaymentFormInner({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      <p className="text-sm text-gray-400">
-        Pay for <span className="text-white font-medium">{packLabel}</span>
-      </p>
+      {packPrice && (
+        <p className="text-sm text-gray-400">
+          <span className="text-white font-medium">{packLabel}</span>
+          <span className="text-yellow-400 font-semibold"> — {packPrice}</span>
+        </p>
+      )}
       <PaymentElement
         options={{
           layout: 'tabs',
@@ -93,6 +98,7 @@ type StripePaymentFormProps = {
   clientSecret: string
   paymentIntentId: string
   packLabel: string
+  packPrice?: string
   onSuccess: () => void
   onError: (msg: string) => void
 }
@@ -101,6 +107,7 @@ export default function StripePaymentForm({
   clientSecret,
   paymentIntentId,
   packLabel,
+  packPrice,
   onSuccess,
   onError,
 }: StripePaymentFormProps) {
@@ -129,6 +136,7 @@ export default function StripePaymentForm({
       <PaymentFormInner
         paymentIntentId={paymentIntentId}
         packLabel={packLabel}
+        packPrice={packPrice}
         returnUrl={returnUrl}
         onSuccess={onSuccess}
         onError={onError}

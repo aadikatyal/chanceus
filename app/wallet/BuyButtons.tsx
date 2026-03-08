@@ -135,16 +135,19 @@ export default function BuyButtons({ current }: { current: number }) {
       <Dialog open={modalOpen} onOpenChange={handleModalOpenChange}>
         <DialogContent className="bg-gray-900 border-gray-800 text-white sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-white">Pay with card or Apple Pay</DialogTitle>
-            <p className="text-xs text-gray-500 font-normal mt-1">
-              Apple Pay appears in Safari (Mac/iOS) when your domain is set up in Stripe.
-            </p>
+            <DialogTitle className="text-white">Checkout with Stripe</DialogTitle>
+            {clientSecret && paymentIntentId && selectedPack && (
+              <p className="text-lg font-semibold text-yellow-400 mt-1">
+                {selectedPack.label} — {selectedPack.note}
+              </p>
+            )}
           </DialogHeader>
           {clientSecret && paymentIntentId && selectedPack && (
             <StripePaymentForm
               clientSecret={clientSecret}
               paymentIntentId={paymentIntentId}
               packLabel={selectedPack.label}
+              packPrice={selectedPack.note}
               onSuccess={handlePaymentSuccess}
               onError={handlePaymentError}
             />
