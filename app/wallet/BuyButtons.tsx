@@ -135,12 +135,7 @@ export default function BuyButtons({ current }: { current: number }) {
       <Dialog open={modalOpen} onOpenChange={handleModalOpenChange}>
         <DialogContent className="bg-gray-900 border-gray-800 text-white sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-white">Checkout with Stripe</DialogTitle>
-            {clientSecret && paymentIntentId && selectedPack && (
-              <p className="text-lg font-semibold text-yellow-400 mt-1">
-                {selectedPack.label} — {selectedPack.note}
-              </p>
-            )}
+            <DialogTitle className="text-white">Token checkout</DialogTitle>
           </DialogHeader>
           {clientSecret && paymentIntentId && selectedPack && (
             <StripePaymentForm
