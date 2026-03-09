@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { advanceTournamentRound } from "@/lib/tournament-actions"
 import { useRouter } from "next/navigation"
@@ -20,6 +20,7 @@ export default function TournamentAutoAdvance({
 }: TournamentAutoAdvanceProps) {
   const router = useRouter()
   const [isAdvancing, setIsAdvancing] = useState(false)
+  const advancingRef = useRef(false)
 
   useEffect(() => {
     if (status !== "in_progress" || currentRound === 0 || matchIds.length === 0) {
@@ -27,6 +28,40 @@ export default function TournamentAutoAdvance({
     }
 
     const supabase = createClient()
+
+    const checkAndAdvance = async () => {
+      if (advancingRef.current) return
+      try {
+        const { data: tournamentMatches } = await supabase
+          .from("tournament_matches")
+          .select("*, matches(status)")
+          .eq("tournament_id", tournamentId)
+          .eq("round_number", currentRound)
+
+        if (tournamentMatches) {
+          const allCompleted = tournamentMatches.every(
+            (tm: any) =>
+              tm.status === "completed" ||
+              tm.is_bye ||
+              tm.matches?.status === "completed"
+          )
+
+          if (allCompleted) {
+            advancingRef.current = true
+            setIsAdvancing(true)
+            const result = await advanceTournamentRound(tournamentId)
+            if (result.success) router.refresh()
+          }
+        }
+      } catch (error) {
+        console.error("Error checking tournament advancement:", error)
+      } finally {
+        advancingRef.current = false
+        setIsAdvancing(false)
+      }
+    }
+
+    checkAndAdvance()
 
     // Subscribe to match updates
     const channel = supabase
@@ -43,11 +78,10 @@ export default function TournamentAutoAdvance({
           console.log("🎮 Tournament match updated:", payload)
 
           // Check if match is completed
-          if (payload.new.status === "completed" && !isAdvancing) {
+          if (payload.new.status === "completed" && !advancingRef.current) {
             // Small delay to ensure all updates are processed
             setTimeout(async () => {
-              if (isAdvancing) return
-              setIsAdvancing(true)
+              if (advancingRef.current) return
 
               try {
                 // Check if all matches in current round are completed
@@ -66,6 +100,8 @@ export default function TournamentAutoAdvance({
                   )
 
                   if (allCompleted) {
+                    advancingRef.current = true
+                    setIsAdvancing(true)
                     console.log("✅ All matches in round completed, advancing tournament...")
                     const result = await advanceTournamentRound(tournamentId)
 
@@ -80,6 +116,7 @@ export default function TournamentAutoAdvance({
               } catch (error) {
                 console.error("Error checking tournament advancement:", error)
               } finally {
+                advancingRef.current = false
                 setIsAdvancing(false)
               }
             }, 2000) // 2 second delay
@@ -91,7 +128,7 @@ export default function TournamentAutoAdvance({
     return () => {
       supabase.removeChannel(channel)
     }
-  }, [tournamentId, currentRound, status, matchIds, router, isAdvancing])
+  }, [tournamentId, currentRound, status, matchIds, router])
 
   return null // This component doesn't render anything
 }

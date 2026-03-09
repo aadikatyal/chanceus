@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -14,9 +15,11 @@ interface SpectatorModeProps {
   matchId: string
   currentUser: User
   isPlayer: boolean
+  tournamentId?: string | null
 }
 
-export default function SpectatorMode({ matchId, currentUser, isPlayer }: SpectatorModeProps) {
+export default function SpectatorMode({ matchId, currentUser, isPlayer, tournamentId }: SpectatorModeProps) {
+  const router = useRouter()
   const [isSpectating, setIsSpectating] = useState(false)
   const [spectatorCount, setSpectatorCount] = useState(0)
   const [spectators, setSpectators] = useState<any[]>([])
@@ -24,22 +27,32 @@ export default function SpectatorMode({ matchId, currentUser, isPlayer }: Specta
 
   const supabase = createClient()
 
-  // Check if user is already spectating
+  // Auto-join as spectator when non-player loads the page (you're spectating by default)
   useEffect(() => {
-    const checkSpectatorStatus = async () => {
-      const { data } = await supabase
+    if (isPlayer) return
+
+    const autoJoinSpectator = async () => {
+      const { data: existing } = await supabase
         .from("spectators")
         .select("id")
         .eq("match_id", matchId)
         .eq("user_id", currentUser.id)
         .single()
 
-      setIsSpectating(!!data)
+      if (existing) {
+        setIsSpectating(true)
+        return
+      }
+
+      const result = await joinAsSpectator(matchId)
+      if (result.error) {
+        console.warn("Auto-join spectator failed:", result.error)
+      } else {
+        setIsSpectating(true)
+      }
     }
 
-    if (!isPlayer) {
-      checkSpectatorStatus()
-    }
+    autoJoinSpectator()
   }, [matchId, currentUser.id, isPlayer])
 
   // Subscribe to spectator changes
@@ -83,18 +96,6 @@ export default function SpectatorMode({ matchId, currentUser, isPlayer }: Specta
     }
   }, [matchId, isPlayer, supabase])
 
-  const handleJoinSpectator = async () => {
-    setLoading(true)
-    const result = await joinAsSpectator(matchId)
-    if (result.error) {
-      toast.error(result.error)
-    } else {
-      setIsSpectating(true)
-      toast.success("You are now spectating this match")
-    }
-    setLoading(false)
-  }
-
   const handleLeaveSpectator = async () => {
     setLoading(true)
     const result = await leaveSpectatorMode(matchId)
@@ -103,6 +104,8 @@ export default function SpectatorMode({ matchId, currentUser, isPlayer }: Specta
     } else {
       setIsSpectating(false)
       toast.success("You left spectator mode")
+      // Navigate back to tournament (or tournaments list)
+      router.push(tournamentId ? `/tournaments/${tournamentId}` : "/tournaments")
     }
     setLoading(false)
   }
@@ -133,37 +136,23 @@ export default function SpectatorMode({ matchId, currentUser, isPlayer }: Specta
       <CardHeader className="pb-3">
         <CardTitle className="text-sm font-medium flex items-center gap-2">
           <Eye className="h-4 w-4" />
-          Spectator Mode
+          Spectating
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
-        {!isSpectating ? (
-          <div className="space-y-2">
-            <p className="text-sm text-gray-400">
-              Watch this match live without participating
-            </p>
-            <Button
-              onClick={handleJoinSpectator}
-              disabled={loading}
-              className="w-full bg-blue-600 hover:bg-blue-700"
-            >
-              <Eye className="h-4 w-4 mr-2" />
-              Join as Spectator
-            </Button>
-          </div>
-        ) : (
-          <div className="space-y-2">
-            <p className="text-sm text-green-400">You are spectating this match</p>
-            <Button
-              onClick={handleLeaveSpectator}
-              disabled={loading}
-              variant="outline"
-              className="w-full"
-            >
-              <EyeOff className="h-4 w-4 mr-2" />
-              Stop Spectating
-            </Button>
-          </div>
+        <p className="text-sm text-green-400">
+          {isSpectating ? "You're watching this match live" : "You're viewing this match"}
+        </p>
+        {isSpectating && (
+          <Button
+            onClick={handleLeaveSpectator}
+            disabled={loading}
+            variant="outline"
+            className="w-full"
+          >
+            <EyeOff className="h-4 w-4 mr-2" />
+            Stop Spectating
+          </Button>
         )}
         {spectatorCount > 0 && (
           <div className="pt-2 border-t border-gray-800">

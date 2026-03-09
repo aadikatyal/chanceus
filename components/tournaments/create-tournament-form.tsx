@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { createTournament } from "@/lib/tournament-actions"
+import { createTournament, registerForTournament } from "@/lib/tournament-actions"
 import { toast } from "@/hooks/use-toast"
 import { Trophy, Coins, Users } from "lucide-react"
 
@@ -37,6 +37,7 @@ export default function CreateTournamentForm({ games }: CreateTournamentFormProp
     description: "",
     entryFee: "100",
     maxParticipants: "100",
+    joinAsPlayer: true,
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -53,10 +54,26 @@ export default function CreateTournamentForm({ games }: CreateTournamentFormProp
       )
 
       if (result) {
-        toast({
-          title: "Tournament created!",
-          description: "Your tournament is now open for registration.",
-        })
+        if (formData.joinAsPlayer) {
+          const regResult = await registerForTournament(result.id)
+          if (regResult.error) {
+            toast({
+              title: "Tournament created",
+              description: regResult.error,
+              variant: "destructive",
+            })
+          } else {
+            toast({
+              title: "Tournament created!",
+              description: "You're registered and ready to play.",
+            })
+          }
+        } else {
+          toast({
+            title: "Tournament created!",
+            description: "You can start the tournament when ready (spectator mode).",
+          })
+        }
         router.push(`/tournaments/${result.id}`)
         router.refresh()
       }
@@ -171,6 +188,21 @@ export default function CreateTournamentForm({ games }: CreateTournamentFormProp
                 Minimum 4 players, maximum 100 players (tournament needs at least 4 to start)
               </p>
             </div>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              id="joinAsPlayer"
+              checked={formData.joinAsPlayer}
+              onChange={(e) =>
+                setFormData({ ...formData, joinAsPlayer: e.target.checked })
+              }
+              className="rounded border-gray-600 bg-gray-800 text-orange-500 focus:ring-orange-500"
+            />
+            <Label htmlFor="joinAsPlayer" className="text-white cursor-pointer">
+              Join as a player (uncheck to spectate only)
+            </Label>
           </div>
 
           <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">

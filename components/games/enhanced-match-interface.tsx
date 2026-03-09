@@ -28,6 +28,7 @@ import {
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { sendFriendRequest, getFriends, getSentRequests, getPendingRequests, acceptFriendRequest } from '@/lib/friends-actions'
+import { useConnectFourBotAutoPlay } from '@/hooks/use-connect-four-bot-autoplay'
 
 interface EnhancedMatchInterfaceProps {
   match: Match
@@ -77,6 +78,21 @@ export default function EnhancedMatchInterface({
   const [isLoadingFriend, setIsLoadingFriend] = useState(false)
   const [pendingRequestId, setPendingRequestId] = useState<string | null>(null)
   
+  // Bot-vs-bot Connect 4 auto-play (when both players are tournament bots)
+  const p1Username = (match.player1 as any)?.username || (player1Data as any)?.username
+  const p2Username = (match.player2 as any)?.username || (player2Data as any)?.username
+  const isBotVsBot =
+    !!p1Username?.startsWith?.('tournament_bot_') &&
+    !!p2Username?.startsWith?.('tournament_bot_')
+
+  useConnectFourBotAutoPlay(
+    match.id,
+    match.player1_id || undefined,
+    match.player2_id || undefined,
+    isBotVsBot,
+    (game as any)?.name || (match as any).games?.name || ''
+  )
+
   // Debug: Log when opponent state changes
   useEffect(() => {
     console.log('👤 Opponent state updated:', opponent)
@@ -1252,6 +1268,7 @@ export default function EnhancedMatchInterface({
             currentUserId={currentUser.id}
             player1Id={match.player1_id}
             player2Id={match.player2_id}
+            initialGameData={match.game_data}
           />
         case 'trivia challenge':
           console.log('🎮 Rendering Multiplayer Trivia Challenge')
@@ -1311,6 +1328,7 @@ export default function EnhancedMatchInterface({
             currentUserId={currentUser.id}
             player1Id={match.player1_id}
             player2Id={match.player2_id}
+            initialGameData={match.game_data}
           />
         case 'trivia challenge':
           console.log('🎮 Fallback: Rendering Multiplayer Trivia Challenge')

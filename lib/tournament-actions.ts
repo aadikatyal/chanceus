@@ -17,6 +17,7 @@ export interface Tournament {
   current_round: number
   total_rounds: number
   winner_id: string | null
+  creator_id: string | null
   started_at: string | null
   completed_at: string | null
   created_at: string
@@ -149,6 +150,7 @@ export async function createTournament(
       status: "registration",
       current_round: 0,
       total_rounds: totalRounds,
+      creator_id: user.id,
     })
     .select()
     .single()
@@ -376,8 +378,23 @@ export async function startTournament(tournamentId: string) {
       return { error: `Need at least 4 participants to start tournament. Found: ${participants?.length || 0} participants.` }
     }
 
-    const participantCount = participants.length
+    // Dedupe by user_id so the same user never appears twice (avoids "player vs themselves")
+    const seenUserIds = new Set<string>()
+    const uniqueParticipants = (participants as any[]).filter((p: any) => {
+      if (seenUserIds.has(p.user_id)) return false
+      seenUserIds.add(p.user_id)
+      return true
+    })
+    if (uniqueParticipants.length !== participants.length) {
+      console.warn(`⚠️ Removed ${participants.length - uniqueParticipants.length} duplicate participant(s) by user_id`)
+    }
+
+    const participantCount = uniqueParticipants.length
     const N = participantCount
+
+    if (N < 4) {
+      return { error: `Need at least 4 unique participants to start. Found: ${N}.` }
+    }
 
     // Find the smallest power of 2 >= N
     const P = findNextPowerOfTwo(N)
@@ -386,7 +403,7 @@ export async function startTournament(tournamentId: string) {
     console.log(`📊 Tournament setup: ${N} participants, next power of 2: ${P}, byes: ${byes}`)
 
     // Shuffle participants randomly for fair pairing
-    const shuffledParticipants = shuffleArray(participants)
+    const shuffledParticipants = shuffleArray(uniqueParticipants)
     console.log(`🎲 Shuffled ${participantCount} participants randomly for pairing`)
 
     // Assign bracket positions (1 to N) to shuffled participants
@@ -401,14 +418,25 @@ export async function startTournament(tournamentId: string) {
       }
     }
 
-    // Refresh participants to get updated bracket positions
+    // Refresh participants to get updated bracket positions (dedupe again in case of stale data)
     const { data: updatedParticipants } = await supabase
       .from("tournament_participants")
       .select("*")
       .eq("tournament_id", tournamentId)
       .order("bracket_position", { ascending: true })
 
-    const finalParticipants = updatedParticipants || shuffledParticipants
+    const rawList = (updatedParticipants || shuffledParticipants) as any[]
+    const seenIds = new Set<string>()
+    const finalParticipants = rawList.filter((p: any) => {
+      if (!p?.user_id || seenIds.has(p.user_id)) return false
+      seenIds.add(p.user_id)
+      return true
+    })
+
+    if (finalParticipants.length < N - byes) {
+      console.error(`❌ After dedupe we have ${finalParticipants.length} participants but need ${N - byes} for round 1`)
+      return { error: "Duplicate participants detected. Please remove duplicates and try again." }
+    }
 
     // Round 1: Players who play = N - Byes
     // Matches in Round 1 = (N - Byes) / 2
@@ -425,6 +453,11 @@ export async function startTournament(tournamentId: string) {
 
       if (!player1 || !player2) {
         console.error(`Missing players for match ${i + 1}:`, { player1, player2 })
+        continue
+      }
+
+      if (player1.user_id === player2.user_id) {
+        console.error(`Skipping match ${i + 1}: same user (${player1.user_id}) would play themselves`)
         continue
       }
 
@@ -527,6 +560,15 @@ export async function startTournament(tournamentId: string) {
         started_at: new Date().toISOString(),
       })
       .eq("id", tournamentId)
+
+    // Run bot-vs-bot Connect 4 matches to completion in the background
+    // (so spectators see live games when they open, not waiting for someone to load the page)
+    const { runBotVsBotConnectFourToCompletion } = await import("@/lib/connect-four-bot-actions")
+    for (const matchId of createdMatches) {
+      runBotVsBotConnectFourToCompletion(matchId).catch((err) =>
+        console.error("Bot match auto-run error:", err)
+      )
+    }
 
     revalidatePath("/tournaments")
     revalidatePath(`/tournaments/${tournamentId}`)
@@ -710,11 +752,13 @@ export async function getTournamentParticipants(
 }
 
 // Get tournament matches for a round
+// Uses admin client to bypass RLS so we can show the full bracket (including bot-vs-bot matches)
 export async function getTournamentMatches(
   tournamentId: string,
   roundNumber?: number
 ): Promise<TournamentMatch[]> {
-  const supabase = await createClient()
+  const { createAdminClient } = await import("@/lib/supabase/admin")
+  const supabase = createAdminClient()
 
   let query = supabase
     .from("tournament_matches")
@@ -765,17 +809,42 @@ export async function advanceTournamentRound(tournamentId: string) {
     }
 
     const currentRound = tournament.current_round
+    const nextRound = currentRound + 1
 
-    // Get all matches from current round
-    const { data: currentRoundMatches, error: matchesError } = await supabase
+    // Guard: if next round already has matches, advancement already ran (e.g. from another tab/client)
+    const { data: existingNextRound, error: nextRoundErr } = await supabase
+      .from("tournament_matches")
+      .select("id")
+      .eq("tournament_id", tournamentId)
+      .eq("round_number", nextRound)
+      .limit(1)
+
+    if (!nextRoundErr && existingNextRound && existingNextRound.length > 0) {
+      console.log(`⚠️ Round ${nextRound} already has matches, skipping duplicate advancement`)
+      revalidatePath("/tournaments")
+      revalidatePath(`/tournaments/${tournamentId}`)
+      return { success: true, message: "Already advanced" }
+    }
+
+    // Get all matches from current round (ordered for deterministic winner list)
+    const { data: currentRoundMatchesRaw, error: matchesError } = await supabase
       .from("tournament_matches")
       .select("*, matches(*)")
       .eq("tournament_id", tournamentId)
       .eq("round_number", currentRound)
+      .order("bracket_position", { ascending: true })
 
-    if (matchesError || !currentRoundMatches) {
+    if (matchesError || !currentRoundMatchesRaw) {
       return { error: "Failed to fetch current round matches" }
     }
+
+    // Dedupe by match_id so we never count the same match twice (avoids same player in both slots)
+    const seenMatchIds = new Set<string>()
+    const currentRoundMatches = (currentRoundMatchesRaw as any[]).filter((tm: any) => {
+      if (seenMatchIds.has(tm.match_id)) return false
+      seenMatchIds.add(tm.match_id)
+      return true
+    })
 
     // Check if all matches are completed
     const allCompleted = currentRoundMatches.every(
@@ -786,7 +855,7 @@ export async function advanceTournamentRound(tournamentId: string) {
       return { error: "Not all matches in current round are completed" }
     }
 
-    // Get winners
+    // Get winners (one per match, no duplicates)
     const winners: Array<{ bracketPosition: number; userId: string }> = []
 
     for (const tm of currentRoundMatches) {
@@ -891,7 +960,6 @@ export async function advanceTournamentRound(tournamentId: string) {
     }
 
     // Create next round matches
-    const nextRound = currentRound + 1
     const winnersCount = winners.length
     
     // After Round 1, we should have P/2 players (a power of 2), so no more byes
@@ -902,17 +970,40 @@ export async function advanceTournamentRound(tournamentId: string) {
 
     console.log(`🎮 Round ${nextRound}: ${winnersCount} winners, ${matchesPerRound} matches, ${byes} byes`)
 
-    // Shuffle winners randomly for fair pairing in next round
-    const shuffledWinners = shuffleArray(winners)
-    console.log(`🎲 Shuffled ${winners.length} winners randomly for round ${nextRound} pairing`)
+    // Pair winners in bracket order (NO shuffle - winner of match 1 vs winner of match 2, etc.)
+    console.log(`🎮 Pairing ${winners.length} winners in bracket order for round ${nextRound}`)
+
+    // Build pairs and fix any self-pairing (same player twice) by swapping with next pair
+    const pairs: Array<[typeof winners[0], typeof winners[0]]> = []
+    for (let i = 0; i < matchesPerRound; i++) {
+      let p1 = winners[i * 2]
+      let p2 = winners[i * 2 + 1]
+      if (!p1 || !p2) continue
+      if (p1.userId === p2.userId) {
+        // Self-pair: swap p2 with first player from next pair so this match has two different players
+        const nextIdx = (i + 1) * 2
+        if (nextIdx < winners.length && winners[nextIdx]) {
+          p2 = winners[nextIdx]
+          winners[nextIdx] = p1 // move duplicate into next pair (next pair will then have p1 vs their original p2)
+        }
+      }
+      pairs.push([p1, p2])
+    }
 
     // Create matches for next round
-    for (let i = 0; i < matchesPerRound; i++) {
-      const player1 = shuffledWinners[i * 2]
-      const player2 = shuffledWinners[i * 2 + 1]
+    const nextRoundMatchIds: string[] = []
+    for (let i = 0; i < pairs.length; i++) {
+      const [player1, player2] = pairs[i]
 
       if (!player1 || !player2) {
         console.error(`Missing players for match ${i + 1} in round ${nextRound}`)
+        continue
+      }
+
+      if (player1.userId === player2.userId) {
+        console.error(
+          `Skipping match ${i + 1} in round ${nextRound}: same player (${player1.userId}) would play themselves (could not fix pairing)`
+        )
         continue
       }
 
@@ -949,6 +1040,8 @@ export async function advanceTournamentRound(tournamentId: string) {
         continue
       }
 
+      if (match) nextRoundMatchIds.push(match.id)
+
       // Calculate winner bracket position for next round (position in next round)
       const winnerBracketPosition = i + 1
 
@@ -968,7 +1061,7 @@ export async function advanceTournamentRound(tournamentId: string) {
     // Handle byes (shouldn't happen after Round 1, but handle it just in case)
     if (byes === 1) {
       console.log(`⚠️ Warning: Odd number of winners in round ${nextRound}, creating bye`)
-      const byePlayer = shuffledWinners[shuffledWinners.length - 1]
+      const byePlayer = winners[winners.length - 1]
       const { data: byeMatch, error: byeMatchError } = await supabase
         .from("matches")
         .insert({
@@ -1001,6 +1094,14 @@ export async function advanceTournamentRound(tournamentId: string) {
           status: "completed",
         })
       }
+    }
+
+    // Run bot-vs-bot Connect 4 matches to completion in the background
+    const { runBotVsBotConnectFourToCompletion } = await import("@/lib/connect-four-bot-actions")
+    for (const matchId of nextRoundMatchIds) {
+      runBotVsBotConnectFourToCompletion(matchId).catch((err) =>
+        console.error("Bot match auto-run error:", err)
+      )
     }
 
     // Update tournament current round

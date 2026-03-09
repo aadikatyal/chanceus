@@ -83,7 +83,7 @@ export default function QuickActions() {
               <CardDescription className="text-gray-400">{game.description}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex justify-between text-sm text-gray-400">
+              <div className="flex justify-between gap-4 text-sm text-gray-400">
                 <span>Min Bet: {game.minBet} tokens</span>
                 <span>Max Bet: {game.maxBet} tokens</span>
               </div>

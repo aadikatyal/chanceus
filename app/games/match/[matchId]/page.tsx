@@ -7,6 +7,7 @@ import Header from "@/components/navigation/header"
 import EnhancedMatchInterface from "@/components/games/enhanced-match-interface"
 import StartGameButton from "@/components/games/start-game-button"
 import ChatWindow from "@/components/chat/chat-window"
+import SpectatorMode from "@/components/games/spectator-mode"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -724,9 +725,17 @@ export default function MatchPage({ params }: MatchPageProps) {
             />
           </div>
 
-          {/* Match Chat - Takes 1 column on large screens */}
-          {isInMatch && match.player2_id && (
-            <div className="lg:col-span-1">
+          {/* Match Chat - for players and spectators (when match is full) */}
+          {(isInMatch && match.player2_id) || (!isInMatch && match.player2_id) ? (
+            <div className="lg:col-span-1 space-y-4">
+              {!isInMatch && match.player2_id && (
+                <SpectatorMode
+                  matchId={match.id}
+                  currentUser={user}
+                  isPlayer={false}
+                  tournamentId={(match as any)?.tournament_id}
+                />
+              )}
               <ChatWindow
                 messageType="match"
                 currentUser={user}
@@ -735,11 +744,11 @@ export default function MatchPage({ params }: MatchPageProps) {
                 maxHeight="600px"
               />
             </div>
-          )}
+          ) : null}
         </div>
 
         {/* Match Actions */}
-        {match.status === "waiting" && !isInMatch && (
+        {match.status === "waiting" && !isInMatch && !match.player2_id && (
           <Card className="bg-gray-900/50 border-yellow-500/20 mt-6">
             <CardContent className="pt-6">
               <div className="text-center space-y-4">
@@ -791,6 +800,8 @@ export default function MatchPage({ params }: MatchPageProps) {
             </CardContent>
           </Card>
         )}
+
+        {/* Match is full - spectator mode for non-players (SpectatorMode + Chat in sidebar above) */}
 
         {match.status === "waiting" && isInMatch && !match.player2_id && (
           <Card className="bg-gray-900/50 border-yellow-500/20 mt-6">

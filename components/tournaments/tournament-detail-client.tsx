@@ -233,12 +233,12 @@ export default function TournamentDetailClient({
     }
   }
 
-  // Check if current user can start tournament (must be registered and tournament must be in registration)
-  // Allow starting with at least 2 players (minimum for a tournament)
+  // Creator can start without registering; others must be registered
+  const isCreator = tournament.creator_id === currentUser.id
   const canStartTournament =
     tournament.status === "registration" &&
-    isRegistered &&
-    participants.length >= 2
+    (isRegistered || isCreator) &&
+    participants.length >= 4
 
   // Get match IDs for current round for auto-advance
   const currentRoundMatches = matches.filter((m) => m.round_number === tournament.current_round)
@@ -268,7 +268,7 @@ export default function TournamentDetailClient({
             </CardTitle>
             <CardDescription>
               {participants.length} of {tournament.max_participants} players registered
-              {participants.length >= 2 && participants.length < tournament.max_participants && (
+              {participants.length >= 4 && participants.length < tournament.max_participants && (
                 <span className="text-orange-400 ml-2">(Can start now with {participants.length} players)</span>
               )}
             </CardDescription>
@@ -303,6 +303,19 @@ export default function TournamentDetailClient({
                   <p className="text-sm text-red-400 text-center">
                     You need {tournament.entry_fee - currentUser.tokens} more tokens to register
                   </p>
+                )}
+                {isCreator && canStartTournament && (
+                  <div className="space-y-2 pt-4 border-t border-gray-700">
+                    <p className="text-sm text-gray-400">As creator, you can start without playing:</p>
+                    <Button
+                      onClick={handleStartTournament}
+                      disabled={isStarting}
+                      variant="outline"
+                      className="w-full border-green-500/50 text-green-400 hover:bg-green-500/10"
+                    >
+                      {isStarting ? "Starting..." : `Start Tournament (spectate only)`}
+                    </Button>
+                  </div>
                 )}
               </div>
             ) : (
@@ -572,7 +585,11 @@ export default function TournamentDetailClient({
                                         className="w-full border-gray-600 text-gray-300 hover:text-white"
                                       >
                                         <Link href={`/games/match/${tm.match_id}`}>
-                                          {tm.matches.status === "completed" ? "View Result" : "Play Match"}
+                                          {tm.matches.status === "completed"
+                                            ? "View Result"
+                                            : (tm.matches.player1_id === currentUser.id || tm.matches.player2_id === currentUser.id)
+                                              ? "Play Match"
+                                              : "Watch"}
                                           <ArrowRight className="ml-2 h-3 w-3" />
                                         </Link>
                                       </Button>

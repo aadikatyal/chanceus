@@ -15,18 +15,26 @@ interface SimpleConnectFourProps {
   currentUserId?: string
   player1Id?: string
   player2Id?: string
+  initialGameData?: { board?: (string | null)[]; winner?: string } | null
 }
 
-export default function SimpleConnectFour({ matchId, betAmount, status, currentUserId, player1Id, player2Id }: SimpleConnectFourProps) {
+export default function SimpleConnectFour({ matchId, betAmount, status, currentUserId, player1Id, player2Id, initialGameData }: SimpleConnectFourProps) {
   const [isTournamentMatch, setIsTournamentMatch] = useState(false)
   const router = useRouter()
-  const [board, setBoard] = useState(Array(42).fill(null))
+  const initialBoard = initialGameData?.board && Array.isArray(initialGameData.board) && initialGameData.board.length === 42
+    ? initialGameData.board
+    : Array(42).fill(null)
+  const [board, setBoard] = useState(initialBoard)
   const [currentStatus, setCurrentStatus] = useState<string>(status)
   const [isLoading, setIsLoading] = useState(false)
   const [currentPlayer, setCurrentPlayer] = useState<'player1' | 'player2'>('player1')
-  const [winner, setWinner] = useState<'player1' | 'player2' | 'draw' | null>(null)
+  const [winner, setWinner] = useState<'player1' | 'player2' | 'draw' | null>(
+    initialGameData?.winner && ["player1", "player2", "draw"].includes(initialGameData.winner)
+      ? (initialGameData.winner as "player1" | "player2" | "draw")
+      : null
+  )
   const isProcessingMoveRef = useRef(false)
-  const boardRef = useRef<(string | null)[]>(Array(42).fill(null))
+  const boardRef = useRef<(string | null)[]>(initialBoard)
   const matchCompletedAtRef = useRef<number | null>(null) // Track when match was completed to prevent immediate rematch checks
   const [playerNames, setPlayerNames] = useState<{player1: string, player2: string}>({player1: 'Player 1', player2: 'Player 2'})
   
