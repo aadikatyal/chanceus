@@ -67,14 +67,20 @@ export interface TournamentMatch {
 }
 
 // Utility functions (not server actions)
-// Find the smallest power of 2 that is >= N
+// Powers of 2 supported for tournaments (no byes)
 function findNextPowerOfTwo(n: number): number {
   if (n <= 4) return 4
   if (n <= 8) return 8
   if (n <= 16) return 16
   if (n <= 32) return 32
   if (n <= 64) return 64
-  return 128 // Max 100 players, so 128 is the ceiling
+  if (n <= 128) return 128
+  if (n <= 256) return 256
+  return 512
+}
+
+function isPowerOfTwo(n: number): boolean {
+  return n >= 4 && (n & (n - 1)) === 0
 }
 
 function calculateTotalRounds(participantCount: number): number {
@@ -137,6 +143,10 @@ export async function createTournament(
   // Calculate total rounds
   const totalRounds = calculateTotalRounds(maxParticipants)
 
+  if (maxParticipants < 4 || maxParticipants > 512 || !isPowerOfTwo(maxParticipants)) {
+    throw new Error("Max participants must be a power of 2: 4, 8, 16, 32, 64, 128, 256, or 512")
+  }
+
   // Create tournament
   const { data: tournament, error: tournamentError } = await supabase
     .from("tournaments")
@@ -162,6 +172,53 @@ export async function createTournament(
 
   revalidatePath("/tournaments")
   return tournament
+}
+
+// Delete a tournament (creator only). Cascades to tournament_participants and tournament_matches.
+export async function deleteTournament(tournamentId: string) {
+  const cookieStore = await cookies()
+  const supabase = createServerActionClient({ cookies: () => cookieStore })
+
+  try {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+      return { error: "You must be logged in to delete a tournament" }
+    }
+
+    const { data: tournament, error: fetchError } = await supabase
+      .from("tournaments")
+      .select("id, creator_id")
+      .eq("id", tournamentId)
+      .single()
+
+    if (fetchError || !tournament) {
+      return { error: "Tournament not found" }
+    }
+
+    if (tournament.creator_id !== user.id) {
+      return { error: "Only the tournament creator can delete it" }
+    }
+
+    const { error: deleteError } = await supabase
+      .from("tournaments")
+      .delete()
+      .eq("id", tournamentId)
+
+    if (deleteError) {
+      console.error("Tournament delete error:", deleteError)
+      return { error: deleteError.message || "Failed to delete tournament" }
+    }
+
+    revalidatePath("/tournaments")
+    revalidatePath(`/tournaments/${tournamentId}`)
+    return { success: true }
+  } catch (err: any) {
+    console.error("Delete tournament error:", err)
+    return { error: err?.message || "Failed to delete tournament" }
+  }
 }
 
 // Register for a tournament
@@ -396,11 +453,16 @@ export async function startTournament(tournamentId: string) {
       return { error: `Need at least 4 unique participants to start. Found: ${N}.` }
     }
 
-    // Find the smallest power of 2 >= N
     const P = findNextPowerOfTwo(N)
-    const byes = P - N
+    // No byes: require exact power of 2
+    if (N !== P) {
+      return {
+        error: `Tournament must have exactly a power of 2 players (4, 8, 16, 32, 64, 128, 256, 512). You have ${N} participants.`,
+      }
+    }
+    const byes = 0 // Bye logic commented out — power of 2 only
 
-    console.log(`📊 Tournament setup: ${N} participants, next power of 2: ${P}, byes: ${byes}`)
+    console.log(`📊 Tournament setup: ${N} participants (power of 2, no byes)`)
 
     // Shuffle participants randomly for fair pairing
     const shuffledParticipants = shuffleArray(uniqueParticipants)
@@ -438,12 +500,11 @@ export async function startTournament(tournamentId: string) {
       return { error: "Duplicate participants detected. Please remove duplicates and try again." }
     }
 
-    // Round 1: Players who play = N - Byes
-    // Matches in Round 1 = (N - Byes) / 2
-    const playersInRound1 = N - byes
-    const matchesPerRound = playersInRound1 / 2
+    // Round 1: all N players play (no byes)
+    const playersInRound1 = N
+    const matchesPerRound = N / 2
 
-    console.log(`🎮 Round 1: ${playersInRound1} players will play in ${matchesPerRound} matches, ${byes} players get byes`)
+    console.log(`🎮 Round 1: ${playersInRound1} players, ${matchesPerRound} matches`)
 
     // Create matches for round 1 (only for players who play, not byes)
     const createdMatches = []
@@ -507,49 +568,14 @@ export async function startTournament(tournamentId: string) {
 
     console.log(`✅ Created ${createdMatches.length} matches for round 1`)
 
-    // Handle byes - players who automatically advance to Round 2
-    if (byes > 0) {
-      console.log(`🎯 Creating ${byes} bye(s) for automatic advancement`)
-      
-      // Bye players are the last 'byes' players in the list
-      for (let i = 0; i < byes; i++) {
-        const byePlayer = finalParticipants[playersInRound1 + i]
-        if (!byePlayer) {
-          console.error(`Missing bye player at index ${playersInRound1 + i}`)
-          continue
-        }
-
-        // Create a bye match (automatic advancement)
-        const { data: byeMatch, error: byeMatchError } = await supabase
-          .from("matches")
-          .insert({
-            game_id: tournament.game_id,
-            player1_id: byePlayer.user_id,
-            bet_amount: 0,
-            status: "completed", // Bye is automatically completed
-            winner_id: byePlayer.user_id,
-            completed_at: new Date().toISOString(),
-          })
-          .select()
-          .single()
-
-        if (!byeMatchError && byeMatch) {
-          await supabase.from("tournament_matches").insert({
-            tournament_id: tournamentId,
-            match_id: byeMatch.id,
-            round_number: 1,
-            bracket_position: matchesPerRound + i + 1,
-            player1_bracket_position: byePlayer.bracket_position || (playersInRound1 + i + 1),
-            is_bye: true,
-            winner_bracket_position: byePlayer.bracket_position || (playersInRound1 + i + 1),
-            status: "completed",
-          })
-          console.log(`✅ Created bye for player ${byePlayer.user_id} at bracket position ${byePlayer.bracket_position}`)
-        } else if (byeMatchError) {
-          console.error(`❌ Error creating bye match:`, byeMatchError)
-        }
-      }
-    }
+    // Bye logic disabled — power of 2 only, no byes
+    // if (byes > 0) {
+    //   console.log(`🎯 Creating ${byes} bye(s) for automatic advancement`)
+    //   for (let i = 0; i < byes; i++) {
+    //     const byePlayer = finalParticipants[playersInRound1 + i]
+    //     ...
+    //   }
+    // }
 
     // Update tournament status
     await supabase
@@ -772,6 +798,7 @@ export async function getTournamentMatches(
   const { data: matches, error } = await query
     .order("round_number", { ascending: true })
     .order("bracket_position", { ascending: true })
+    .order("id", { ascending: true })
 
   if (error) {
     console.error("❌ Error fetching tournament matches:", error)
@@ -826,25 +853,27 @@ export async function advanceTournamentRound(tournamentId: string) {
       return { success: true, message: "Already advanced" }
     }
 
-    // Get all matches from current round (ordered for deterministic winner list)
-    const { data: currentRoundMatchesRaw, error: matchesError } = await supabase
-      .from("tournament_matches")
-      .select("*, matches(*)")
+    // Use getTournamentMatches so we have the EXACT same data/order as the bracket display
+    const allMatches = await getTournamentMatches(tournamentId)
+    const currentRoundMatchesRaw = allMatches.filter((m) => m.round_number === currentRound)
+    const currentRoundMatches = currentRoundMatchesRaw
+      .sort((a, b) => a.bracket_position - b.bracket_position || (a.id || "").localeCompare(b.id || ""))
+      // Dedupe by bracket_position (same as bracket display) — one winner per slot
+      .filter((tm, idx, arr) => {
+        const firstAtPos = arr.findIndex((x) => x.bracket_position === tm.bracket_position)
+        return firstAtPos === idx
+      })
+
+    // For byes, resolve winner by participant bracket_position (same as display) — avoids match data mismatches
+    const { data: participants } = await supabase
+      .from("tournament_participants")
+      .select("user_id, bracket_position")
       .eq("tournament_id", tournamentId)
-      .eq("round_number", currentRound)
-      .order("bracket_position", { ascending: true })
-
-    if (matchesError || !currentRoundMatchesRaw) {
-      return { error: "Failed to fetch current round matches" }
+      .not("bracket_position", "is", null)
+    const participantByBracketPos = new Map<number, string>()
+    for (const p of participants ?? []) {
+      participantByBracketPos.set(p.bracket_position, p.user_id)
     }
-
-    // Dedupe by match_id so we never count the same match twice (avoids same player in both slots)
-    const seenMatchIds = new Set<string>()
-    const currentRoundMatches = (currentRoundMatchesRaw as any[]).filter((tm: any) => {
-      if (seenMatchIds.has(tm.match_id)) return false
-      seenMatchIds.add(tm.match_id)
-      return true
-    })
 
     // Check if all matches are completed
     const allCompleted = currentRoundMatches.every(
@@ -855,46 +884,28 @@ export async function advanceTournamentRound(tournamentId: string) {
       return { error: "Not all matches in current round are completed" }
     }
 
-    // Get winners (one per match, no duplicates)
+    // Get winners (one per match) — use joined matches(*) data so we match bracket display exactly
     const winners: Array<{ bracketPosition: number; userId: string }> = []
 
     for (const tm of currentRoundMatches) {
       if (tm.is_bye) {
-        // Bye winner
-        const { data: byeMatch } = await supabase
-          .from("matches")
-          .select("player1_id")
-          .eq("id", tm.match_id)
-          .single()
-
-        if (byeMatch) {
-          winners.push({
-            bracketPosition: tm.winner_bracket_position || tm.player1_bracket_position || 0,
-            userId: byeMatch.player1_id,
-          })
+        // Use participant lookup (same as display) — player1_bracket_position = participant 99, 100, etc.
+        const bp = tm.player1_bracket_position ?? tm.winner_bracket_position ?? 0
+        const winnerId = bp ? participantByBracketPos.get(bp) : null
+        if (winnerId) {
+          winners.push({ bracketPosition: bp, userId: winnerId })
         }
       } else {
-        // Regular match winner
-        const { data: match } = await supabase
-          .from("matches")
-          .select("winner_id")
-          .eq("id", tm.match_id)
-          .single()
-
-        if (match?.winner_id) {
-          // Calculate winner bracket position for next round
-          const winnerBracketPos = Math.ceil((tm.bracket_position || 1) / 2)
+        const matchData = tm.matches as { player1_id?: string; player2_id?: string; winner_id?: string } | null
+        if (!matchData) continue
+        const winnerId = matchData.winner_id
+        if (winnerId) {
           winners.push({
-            bracketPosition: winnerBracketPos,
-            userId: match.winner_id,
+            bracketPosition: Math.ceil((tm.bracket_position || 1) / 2),
+            userId: winnerId,
           })
-
-          // Mark losing player as eliminated
           const loserId =
-            match.winner_id === tm.matches?.player1_id
-              ? tm.matches?.player2_id
-              : tm.matches?.player1_id
-
+            winnerId === matchData.player1_id ? matchData.player2_id : matchData.player1_id
           if (loserId) {
             await supabase
               .from("tournament_participants")
@@ -973,19 +984,25 @@ export async function advanceTournamentRound(tournamentId: string) {
     // Pair winners in bracket order (NO shuffle - winner of match 1 vs winner of match 2, etc.)
     console.log(`🎮 Pairing ${winners.length} winners in bracket order for round ${nextRound}`)
 
-    // Build pairs and fix any self-pairing (same player twice) by swapping with next pair
+    // Validate: no duplicate winners (same player can't advance from two slots)
+    const winnerUserIds = new Set<string>()
+    for (const w of winners) {
+      if (winnerUserIds.has(w.userId)) {
+        console.error(`Duplicate winner detected: ${w.userId} appears twice in round ${currentRound} winners. Bracket data may be corrupted.`)
+        return { error: "Duplicate winners detected - bracket data may be corrupted. Please contact support." }
+      }
+      winnerUserIds.add(w.userId)
+    }
+
+    // Build pairs — no self-pairs possible since we validated no duplicate winners
     const pairs: Array<[typeof winners[0], typeof winners[0]]> = []
     for (let i = 0; i < matchesPerRound; i++) {
-      let p1 = winners[i * 2]
-      let p2 = winners[i * 2 + 1]
+      const p1 = winners[i * 2]
+      const p2 = winners[i * 2 + 1]
       if (!p1 || !p2) continue
       if (p1.userId === p2.userId) {
-        // Self-pair: swap p2 with first player from next pair so this match has two different players
-        const nextIdx = (i + 1) * 2
-        if (nextIdx < winners.length && winners[nextIdx]) {
-          p2 = winners[nextIdx]
-          winners[nextIdx] = p1 // move duplicate into next pair (next pair will then have p1 vs their original p2)
-        }
+        console.error(`Self-pair at index ${i}: both players are ${p1.userId}`)
+        continue
       }
       pairs.push([p1, p2])
     }
@@ -1021,6 +1038,10 @@ export async function advanceTournamentRound(tournamentId: string) {
         .eq("tournament_id", tournamentId)
         .eq("user_id", player2.userId)
         .single()
+
+      const bp1 = p1?.bracket_position ?? "?"
+      const bp2 = p2?.bracket_position ?? "?"
+      console.log(`🎮 Round ${nextRound} pair ${i + 1}: Bot ${bp1} vs Bot ${bp2}`)
 
       // Create match
       const { data: match, error: matchError } = await supabase

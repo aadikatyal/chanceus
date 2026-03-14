@@ -2,7 +2,7 @@ import { createClient, isSupabaseConfigured } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import Header from "@/components/navigation/header"
 import CreateTournamentForm from "@/components/tournaments/create-tournament-form"
-import { getAllTournaments } from "@/lib/tournament-actions"
+import TournamentPasswordGate from "@/components/tournaments/tournament-password-gate"
 
 export default async function CreateTournamentPage() {
   if (!isSupabaseConfigured) {
@@ -42,12 +42,14 @@ export default async function CreateTournamentPage() {
       <div className="absolute inset-0 bg-gradient-to-br from-blue-950/20 via-purple-950/10 to-transparent pointer-events-none"></div>
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">Create Tournament</h1>
-          <p className="text-gray-400">Set up a new tournament for up to 100 players</p>
-        </div>
+        <TournamentPasswordGate>
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-white mb-2">Create Tournament</h1>
+            <p className="text-gray-400">Power of 2 players (4, 8, 16, … 512). No byes.</p>
+          </div>
 
-        <CreateTournamentForm games={games} />
+          <CreateTournamentForm games={games} />
+        </TournamentPasswordGate>
       </main>
     </div>
   )

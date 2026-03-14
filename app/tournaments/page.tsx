@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Trophy, Users, Calendar, Coins, ArrowRight } from "lucide-react"
 import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
+import TournamentPasswordGate from "@/components/tournaments/tournament-password-gate"
 
 export default async function TournamentsPage() {
   if (!isSupabaseConfigured) {
@@ -41,11 +42,12 @@ export default async function TournamentsPage() {
       <div className="absolute inset-0 bg-gradient-to-br from-blue-950/20 via-purple-950/10 to-transparent pointer-events-none"></div>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
-        <div className="mb-8">
+        <TournamentPasswordGate>
+          <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <div>
               <h1 className="text-3xl font-bold text-white mb-2">Tournaments</h1>
-              <p className="text-gray-400">Compete in skill-based tournaments with up to 100 players</p>
+              <p className="text-gray-400">Compete in skill-based tournaments (power of 2 players, up to 512)</p>
             </div>
             <Button asChild className="bg-orange-500 hover:bg-orange-600">
               <Link href="/tournaments/create">Create Tournament</Link>
@@ -143,6 +145,7 @@ export default async function TournamentsPage() {
             })}
           </div>
         )}
+        </TournamentPasswordGate>
       </main>
     </div>
   )

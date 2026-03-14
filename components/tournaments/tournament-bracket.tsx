@@ -20,8 +20,8 @@ function getSlot(totalRounds: number, round: number, matchIndex: number): number
   const r = round
   const i = matchIndex
   if (r === 1) return i
-  const half = Math.pow(2, r - 2)
-  return half * (2 * i + 1)
+  const step = Math.pow(2, r - 2)
+  return step * (2 * i + 0.5) // midpoint of parent slots
 }
 
 export default function TournamentBracket({
@@ -60,14 +60,57 @@ export default function TournamentBracket({
     )
   }
 
+  // One match per (round, bracket_position) so slot N always shows the match that belongs there
   const rounds = Array.from(new Set(matches.map((m) => m.round_number)))
     .sort((a, b) => a - b)
-    .map((round) => ({
-      round,
-      matches: matches
+    .map((round) => {
+      const roundMatches = matches
         .filter((m) => m.round_number === round)
-        .sort((a, b) => a.bracket_position - b.bracket_position),
-    }))
+        .sort((a, b) => a.bracket_position - b.bracket_position || (a.id || "").localeCompare(b.id || ""))
+      const seenPos = new Set<number>()
+      const deduped = roundMatches.filter((m) => {
+        const pos = m.bracket_position
+        if (seenPos.has(pos)) return false
+        seenPos.add(pos)
+        return true
+      })
+      return { round, matches: deduped }
+    })
+
+  // Winner of a slot: for byes it's the single player; for matches it's winner_id
+  const getWinnerUserId = (tm: TournamentMatch): string | null => {
+    if (!tm.matches) return null
+    if (tm.is_bye) return tm.matches.player1_id ?? null
+    return tm.matches.winner_id ?? null
+  }
+
+  // For Round 2+, put the correct match in each slot so it matches the drawn lines.
+  // Slot i must show the match between winner of prev round slot 2i and winner of prev round slot 2i+1.
+  const slotMismatches: Record<string, { expected: [string | null, string | null]; actual: [string | null, string | null] }> = {}
+  for (let r = 1; r < rounds.length; r++) {
+    const prevRound = rounds[r - 1]
+    const currRound = rounds[r]
+    const reordered: TournamentMatch[] = []
+    for (let i = 0; i < currRound.matches.length; i++) {
+      const expected1 = getWinnerUserId(prevRound.matches[2 * i])
+      const expected2 = getWinnerUserId(prevRound.matches[2 * i + 1])
+      const found = currRound.matches.find(
+        (m) =>
+          m.matches &&
+          ((m.matches.player1_id === expected1 && m.matches.player2_id === expected2) ||
+            (m.matches.player1_id === expected2 && m.matches.player2_id === expected1))
+      )
+      const displayed = found ?? currRound.matches[i]
+      if (!found && displayed.matches) {
+        slotMismatches[`r${currRound.round}-i${i}`] = {
+          expected: [expected1, expected2],
+          actual: [displayed.matches.player1_id ?? null, displayed.matches.player2_id ?? null],
+        }
+      }
+      reordered.push(displayed)
+    }
+    rounds[r] = { ...currRound, matches: reordered }
+  }
 
   if (rounds.length === 0) {
     return (
@@ -228,9 +271,20 @@ export default function TournamentBracket({
                               isUserMatch(tm)
                                 ? "bg-orange-500/10 border-orange-500/30"
                                 : "bg-gray-800/50 border-gray-700"
+                            } ${
+                              slotMismatches[`r${roundData.round}-i${matchIndex}`]
+                                ? "border-red-500/50 ring-1 ring-red-500/30"
+                                : ""
                             }`}
                             style={{ minHeight: matchHeight }}
                           >
+                            {slotMismatches[`r${roundData.round}-i${matchIndex}`] && (
+                              <div className="mb-1.5 px-2 py-1 rounded bg-red-500/20 border border-red-500/40 text-[10px] text-red-300">
+                                Wrong pairing (lines say{" "}
+                                {getParticipantNameByUserId(slotMismatches[`r${roundData.round}-i${matchIndex}`].expected[0])} vs{" "}
+                                {getParticipantNameByUserId(slotMismatches[`r${roundData.round}-i${matchIndex}`].expected[1])})
+                              </div>
+                            )}
                             {tm.is_bye ? (
                               <div className="text-center py-1">
                                 <p className="text-gray-400 text-xs mb-0.5">Bye</p>

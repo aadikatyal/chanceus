@@ -24,6 +24,7 @@ interface MultiplayerTriviaChallengeProps {
   player1Id: string
   player2Id: string
   onGameComplete?: (result: TriviaResult) => void
+  isTournamentMatch?: boolean
 }
 
 const TOTAL_QUESTIONS = 8
@@ -34,7 +35,8 @@ export default function MultiplayerTriviaChallenge({
   currentUserId, 
   player1Id, 
   player2Id,
-  onGameComplete 
+  onGameComplete,
+  isTournamentMatch: isTournamentMatchProp 
 }: MultiplayerTriviaChallengeProps) {
   const [gameState, setGameState] = useState<MultiplayerTriviaState | null>(null)
   const [currentQuestion, setCurrentQuestion] = useState<TriviaQuestion | null>(null)
@@ -53,8 +55,8 @@ export default function MultiplayerTriviaChallenge({
   const lastAnswerCountRef = useRef(0)
   const handleAnswerRef = useRef<((selectedAnswerIndex: number) => Promise<void>) | null>(null)
   
-  // Rematch state
-  const [isTournamentMatch, setIsTournamentMatch] = useState(false)
+  // Rematch state - init from prop so tournament matches never show rematch on first paint
+  const [isTournamentMatch, setIsTournamentMatch] = useState(!!isTournamentMatchProp)
   const [rematchStatus, setRematchStatus] = useState<'none' | 'requested' | 'received' | 'accepted' | 'rejected'>('none')
   const [rematchRequestedBy, setRematchRequestedBy] = useState<string | null>(null)
   const [isLoadingRematch, setIsLoadingRematch] = useState(false)

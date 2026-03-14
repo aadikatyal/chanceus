@@ -67,10 +67,10 @@ export default function EnhancedMatchInterface({
   const gameStateTransitionedRef = useRef(false)
   const gameCompletionRef = useRef(false) // Track if game completion has been processed
   
-  // Rematch state
+  // Rematch state - init from match.tournament_id so tournament matches never show rematch on first paint
   const [rematchStatus, setRematchStatus] = useState<'none' | 'requested' | 'received' | 'accepted' | 'rejected'>('none')
   const [isLoadingRematch, setIsLoadingRematch] = useState(false)
-  const [isTournamentMatch, setIsTournamentMatch] = useState(false)
+  const [isTournamentMatch, setIsTournamentMatch] = useState(!!(match as any)?.tournament_id)
   const router = useRouter()
   
   // Friend request state
@@ -1249,6 +1249,7 @@ export default function EnhancedMatchInterface({
             player1Id={match.player1_id}
             player2Id={match.player2_id || ''}
             onGameComplete={handleGameComplete}
+            isTournamentMatch={!!(match as any)?.tournament_id}
           />
         case '4 in a row':
         case 'four in a row':
@@ -1269,6 +1270,7 @@ export default function EnhancedMatchInterface({
             player1Id={match.player1_id}
             player2Id={match.player2_id}
             initialGameData={match.game_data}
+            isTournamentMatch={!!(match as any)?.tournament_id}
           />
         case 'trivia challenge':
           console.log('🎮 Rendering Multiplayer Trivia Challenge')
@@ -1278,6 +1280,7 @@ export default function EnhancedMatchInterface({
             player1Id={match.player1_id}
             player2Id={match.player2_id || ''}
             onGameComplete={handleGameComplete}
+            isTournamentMatch={!!(match as any)?.tournament_id}
           />
         default:
           console.log('🎮 Unknown game type, falling back to Math Blitz. Game name was:', game?.name)
@@ -1287,6 +1290,7 @@ export default function EnhancedMatchInterface({
             player1Id={match.player1_id}
             player2Id={match.player2_id || ''}
             onGameComplete={handleGameComplete}
+            isTournamentMatch={!!(match as any)?.tournament_id}
           />
       }
     } else if (match.player2_id) {
@@ -1318,6 +1322,7 @@ export default function EnhancedMatchInterface({
             player1Id={match.player1_id}
             player2Id={match.player2_id || ''}
             onGameComplete={handleGameComplete}
+            isTournamentMatch={!!(match as any)?.tournament_id}
           />
         case '4 in a row':
         case 'four in a row':
@@ -1329,6 +1334,7 @@ export default function EnhancedMatchInterface({
             player1Id={match.player1_id}
             player2Id={match.player2_id}
             initialGameData={match.game_data}
+            isTournamentMatch={!!(match as any)?.tournament_id}
           />
         case 'trivia challenge':
           console.log('🎮 Fallback: Rendering Multiplayer Trivia Challenge')
@@ -1338,6 +1344,7 @@ export default function EnhancedMatchInterface({
             player1Id={match.player1_id}
             player2Id={match.player2_id || ''}
             onGameComplete={handleGameComplete}
+            isTournamentMatch={!!(match as any)?.tournament_id}
           />
         default:
           console.log('🎮 Fallback: Unknown game type, falling back to Math Blitz. Game name was:', game?.name)
@@ -1347,6 +1354,7 @@ export default function EnhancedMatchInterface({
             player1Id={match.player1_id}
             player2Id={match.player2_id || ''}
             onGameComplete={handleGameComplete}
+            isTournamentMatch={!!(match as any)?.tournament_id}
           />
       }
     } else {

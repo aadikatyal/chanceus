@@ -7,10 +7,21 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
-import { registerForTournament, startTournament, advanceTournamentRound, syncTournamentPrizePool } from "@/lib/tournament-actions"
+import { registerForTournament, startTournament, advanceTournamentRound, syncTournamentPrizePool, deleteTournament } from "@/lib/tournament-actions"
 import { toast } from "@/hooks/use-toast"
-import { Trophy, Users, Play, ArrowRight, CheckCircle2, XCircle } from "lucide-react"
+import { Trophy, Users, Play, ArrowRight, CheckCircle2, XCircle, Trash2 } from "lucide-react"
 import Link from "next/link"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 import type { Tournament, TournamentParticipant, TournamentMatch } from "@/lib/tournament-actions"
 import TournamentBracket from "./tournament-bracket"
 import TournamentAutoAdvance from "./tournament-auto-advance"
@@ -40,6 +51,7 @@ export default function TournamentDetailClient({
   const [isRegistering, setIsRegistering] = useState(false)
   const [isStarting, setIsStarting] = useState(false)
   const [isSyncing, setIsSyncing] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
   const [participants, setParticipants] = useState(initialParticipants)
   const [matches, setMatches] = useState(initialMatches)
   const supabase = createClient()
@@ -233,6 +245,32 @@ export default function TournamentDetailClient({
     }
   }
 
+  const handleDeleteTournament = async () => {
+    setIsDeleting(true)
+    try {
+      const result = await deleteTournament(tournament.id)
+      if (result.error) {
+        toast({
+          title: "Could not delete tournament",
+          description: result.error,
+          variant: "destructive",
+        })
+      } else {
+        toast({ title: "Tournament deleted" })
+        router.push("/tournaments")
+        router.refresh()
+      }
+    } catch (err: any) {
+      toast({
+        title: "Error",
+        description: err?.message || "Failed to delete tournament",
+        variant: "destructive",
+      })
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
   // Creator can start without registering; others must be registered
   const isCreator = tournament.creator_id === currentUser.id
   const canStartTournament =
@@ -248,6 +286,71 @@ export default function TournamentDetailClient({
 
   return (
     <div className="space-y-6">
+      {/* Creator: delete option */}
+      {isCreator && (
+        <Card className="bg-gray-900/80 border-gray-800">
+          <CardContent className="pt-6">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-white">Creator options</p>
+                {participants.length < 4 && tournament.status === "registration" && (
+                  <p className="text-xs text-gray-400">
+                    Seed bots:{" "}
+                    <code className="bg-gray-800 px-1.5 py-0.5 rounded text-orange-400">
+                      node scripts/seed-tournament-players.mjs {tournament.id} {tournament.max_participants}
+                    </code>
+                  </p>
+                )}
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                {canStartTournament && (
+                  <Button
+                    onClick={handleStartTournament}
+                    disabled={isStarting}
+                    className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold"
+                  >
+                    {isStarting ? "Starting..." : `Start Tournament (${participants.length} players)`}
+                  </Button>
+                )}
+                <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="border-red-500/50 text-red-400 hover:bg-red-500/10 hover:text-red-300"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete tournament
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent className="bg-gray-900 border-gray-700">
+                  <AlertDialogHeader>
+                    <AlertDialogTitle className="text-white">Delete tournament?</AlertDialogTitle>
+                    <AlertDialogDescription className="text-gray-400">
+                      This will permanently delete &quot;{tournament.name}&quot; and all its participants and bracket data. This cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel className="border-gray-600 text-gray-300">Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={(e) => {
+                        e.preventDefault()
+                        handleDeleteTournament()
+                      }}
+                      disabled={isDeleting}
+                      className="bg-red-600 hover:bg-red-700 text-white"
+                    >
+                      {isDeleting ? "Deleting..." : "Delete"}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
+          </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Auto-advance component (hidden) */}
       {tournament.status === "in_progress" && tournament.current_round > 0 && (
         <TournamentAutoAdvance

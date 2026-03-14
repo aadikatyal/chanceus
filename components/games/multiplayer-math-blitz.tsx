@@ -27,6 +27,7 @@ interface MultiplayerMathBlitzProps {
   player1Id: string
   player2Id: string
   onGameComplete?: (result: MultiplayerResult) => void
+  isTournamentMatch?: boolean
 }
 
 export default function MultiplayerMathBlitz({ 
@@ -34,7 +35,8 @@ export default function MultiplayerMathBlitz({
   currentUserId, 
   player1Id, 
   player2Id,
-  onGameComplete 
+  onGameComplete,
+  isTournamentMatch: isTournamentMatchProp 
 }: MultiplayerMathBlitzProps) {
   const [gameState, setGameState] = useState<MultiplayerGameState | null>(null)
   const [currentProblem, setCurrentProblem] = useState<MathProblem | null>(null)
@@ -56,8 +58,8 @@ export default function MultiplayerMathBlitz({
   // Local state to track current problem index for this player
   const [myCurrentProblemIndex, setMyCurrentProblemIndex] = useState(0)
 
-  // Rematch state
-  const [isTournamentMatch, setIsTournamentMatch] = useState(false)
+  // Rematch state - init from prop so tournament matches never show rematch on first paint
+  const [isTournamentMatch, setIsTournamentMatch] = useState(!!isTournamentMatchProp)
   const [rematchStatus, setRematchStatus] = useState<'none' | 'requested' | 'received' | 'accepted' | 'rejected'>('none')
   const [rematchRequestedBy, setRematchRequestedBy] = useState<string | null>(null)
   const [isLoadingRematch, setIsLoadingRematch] = useState(false)

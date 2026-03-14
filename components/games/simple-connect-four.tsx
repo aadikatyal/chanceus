@@ -15,11 +15,12 @@ interface SimpleConnectFourProps {
   currentUserId?: string
   player1Id?: string
   player2Id?: string
-  initialGameData?: { board?: (string | null)[]; winner?: string } | null
+  initialGameData?: { board?: (string | null)[]; winner?: string; currentPlayer?: "player1" | "player2" } | null
+  isTournamentMatch?: boolean
 }
 
-export default function SimpleConnectFour({ matchId, betAmount, status, currentUserId, player1Id, player2Id, initialGameData }: SimpleConnectFourProps) {
-  const [isTournamentMatch, setIsTournamentMatch] = useState(false)
+export default function SimpleConnectFour({ matchId, betAmount, status, currentUserId, player1Id, player2Id, initialGameData, isTournamentMatch: isTournamentMatchProp }: SimpleConnectFourProps) {
+  const [isTournamentMatch, setIsTournamentMatch] = useState(!!isTournamentMatchProp)
   const router = useRouter()
   const initialBoard = initialGameData?.board && Array.isArray(initialGameData.board) && initialGameData.board.length === 42
     ? initialGameData.board
@@ -27,7 +28,11 @@ export default function SimpleConnectFour({ matchId, betAmount, status, currentU
   const [board, setBoard] = useState(initialBoard)
   const [currentStatus, setCurrentStatus] = useState<string>(status)
   const [isLoading, setIsLoading] = useState(false)
-  const [currentPlayer, setCurrentPlayer] = useState<'player1' | 'player2'>('player1')
+  const initialCurrentPlayer =
+    initialGameData?.currentPlayer === "player1" || initialGameData?.currentPlayer === "player2"
+      ? initialGameData.currentPlayer
+      : "player1"
+  const [currentPlayer, setCurrentPlayer] = useState<"player1" | "player2">(initialCurrentPlayer)
   const [winner, setWinner] = useState<'player1' | 'player2' | 'draw' | null>(
     initialGameData?.winner && ["player1", "player2", "draw"].includes(initialGameData.winner)
       ? (initialGameData.winner as "player1" | "player2" | "draw")

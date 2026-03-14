@@ -28,6 +28,8 @@ interface CreateTournamentFormProps {
   }>
 }
 
+const TOURNAMENT_SIZES = [4, 8, 16, 32, 64, 128, 256, 512] as const
+
 export default function CreateTournamentForm({ games }: CreateTournamentFormProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -36,7 +38,7 @@ export default function CreateTournamentForm({ games }: CreateTournamentFormProp
     name: "",
     description: "",
     entryFee: "100",
-    maxParticipants: "100",
+    maxParticipants: "8",
     joinAsPlayer: true,
   })
 
@@ -174,18 +176,24 @@ export default function CreateTournamentForm({ games }: CreateTournamentFormProp
                 <Users className="h-4 w-4" />
                 Max Participants
               </Label>
-              <Input
-                id="maxParticipants"
-                type="number"
+              <Select
                 value={formData.maxParticipants}
-                onChange={(e) => setFormData({ ...formData, maxParticipants: e.target.value })}
-                min="4"
-                max="100"
-                className="bg-gray-800 border-gray-700 text-white"
+                onValueChange={(value) => setFormData({ ...formData, maxParticipants: value })}
                 required
-              />
+              >
+                <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
+                  <SelectValue placeholder="Select size" />
+                </SelectTrigger>
+                <SelectContent>
+                  {TOURNAMENT_SIZES.map((size) => (
+                    <SelectItem key={size} value={String(size)} className="text-white">
+                      {size} players
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <p className="text-xs text-gray-400">
-                Minimum 4 players, maximum 100 players (tournament needs at least 4 to start)
+                Power of 2 only (no byes). Seed bots to fill: node scripts/seed-tournament-players.mjs &lt;id&gt; {formData.maxParticipants}
               </p>
             </div>
           </div>
