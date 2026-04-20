@@ -8,7 +8,10 @@ import { Label } from "@/components/ui/label"
 import { Lock } from "lucide-react"
 
 const COOKIE_NAME = "tournaments_unlocked"
-const PASSWORD = "Ca$ino"
+// Optional: set NEXT_PUBLIC_TOURNAMENT_GATE_PASSWORD in .env.local (defaults to Ca$ino if unset)
+const PASSWORD = typeof process.env.NEXT_PUBLIC_TOURNAMENT_GATE_PASSWORD === "string" && process.env.NEXT_PUBLIC_TOURNAMENT_GATE_PASSWORD.length > 0
+  ? process.env.NEXT_PUBLIC_TOURNAMENT_GATE_PASSWORD
+  : "Ca$ino"
 const COOKIE_MAX_AGE_DAYS = 1
 
 function getCookie(name: string): string | null {

@@ -15,6 +15,9 @@ NEXT_PUBLIC_SITE_URL=http://localhost:3000
 STRIPE_SECRET_KEY=sk_test_xxxxxxxxxxxxxxxxxxxxxxxx
 # Required for in-page Apple Pay / card (Payment Element). Use pk_test_... in test mode.
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_xxxxxxxxxxxxxxxxxxxxxxxx
+
+# Optional: tournament gate password (tournaments page). If unset, defaults to Ca$ino.
+# NEXT_PUBLIC_TOURNAMENT_GATE_PASSWORD=your-secret-password
 ```
 
 ## Vercel Production
@@ -25,6 +28,9 @@ Add these environment variables in your Vercel dashboard:
 NEXT_PUBLIC_SUPABASE_URL=https://qhggmqttxbmuehugwbzi.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoZ2dtcXR0eGJtdWVodWd3YnppIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUyODMzODYsImV4cCI6MjA3MDg1OTM4Nn0.JRDx-BTayKoB7-_EdtcmKtgMWqAPs7wc0avQ0g0cGd0
 NEXT_PUBLIC_SITE_URL=https://chanceus.com
+
+# Optional: tournament gate password (if you change it from the default)
+# NEXT_PUBLIC_TOURNAMENT_GATE_PASSWORD=your-secret-password
 ```
 
 ## Supabase Configuration
