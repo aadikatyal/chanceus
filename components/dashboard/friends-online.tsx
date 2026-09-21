@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
-import { ChevronDown, Users, Circle, UserPlus, Search, CheckCircle, XCircle, Loader2, Gamepad2 } from 'lucide-react'
+import { ChevronDown, Users, Circle, UserPlus, Search, CheckCircle, XCircle, Loader2, Gamepad2, Video } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -15,6 +15,8 @@ import {
 import { searchUsers, sendFriendRequest, getPendingRequests, getSentRequests, acceptFriendRequest, rejectFriendRequest, FriendRequest } from '@/lib/friends-actions'
 import { useToast } from '@/hooks/use-toast'
 import { createFriendMatch } from '@/lib/game-actions'
+import { inviteFriendToLiveCall } from '@/lib/call-actions'
+import { generateRoomCode, type CallGameId } from '@/lib/call-constants'
 import {
   Dialog,
   DialogContent,
@@ -247,6 +249,59 @@ export default function FriendsOnline() {
     }
   }
 
+  const handleLiveCallFriend = async (friend: Friend, game: CallGameId) => {
+    setCreatingMatch(true)
+    try {
+      const roomCode = generateRoomCode()
+      const { data: { user: currentUser } } = await supabase.auth.getUser()
+      if (!currentUser) {
+        toast({ title: "Not signed in", variant: "destructive" })
+        return
+      }
+
+      const { data: profile } = await supabase
+        .from("users")
+        .select("display_name, username")
+        .eq("id", currentUser.id)
+        .single()
+      const fromName = profile?.display_name || profile?.username || "A friend"
+
+      const result = await inviteFriendToLiveCall(friend.id, roomCode, game)
+      if (result.error) {
+        toast({
+          title: "Could not invite friend",
+          description: result.error,
+          variant: "destructive",
+        })
+        return
+      }
+
+      const inviteChannel = supabase.channel(`call-invite:${friend.id}`)
+      await inviteChannel.subscribe()
+      await inviteChannel.send({
+        type: "broadcast",
+        event: "invite",
+        payload: { roomCode, game, fromId: currentUser.id, fromName },
+      })
+      await supabase.removeChannel(inviteChannel)
+
+      toast({
+        title: "Live Call invite sent",
+        description: `${friend.display_name} can join your video match.`,
+      })
+      setShowPlayFriendDialog(false)
+      router.push(`/call/${roomCode}?game=${game}&host=1`)
+    } catch (error) {
+      toast({
+        title: "Invite failed",
+        description: "Could not start a Live Call with this friend.",
+        variant: "destructive",
+      })
+    } finally {
+      setCreatingMatch(false)
+    }
+  }
+
   const handlePlayFriend = async (friend: Friend, gameId: string, betAmount: number) => {
     setCreatingMatch(true)
     try {
@@ -410,6 +465,32 @@ export default function FriendsOnline() {
                           </DialogDescription>
                         </DialogHeader>
                         <div className="space-y-2 mt-4">
+                          <p className="text-xs uppercase tracking-wide text-orange-400">Live Call</p>
+                          <Button
+                            onClick={() => handleLiveCallFriend(friend, "connect-four")}
+                            disabled={creatingMatch}
+                            className="w-full bg-orange-500 hover:bg-orange-600 text-black"
+                          >
+                            <Video className="h-4 w-4 mr-2" />
+                            Four in a Row on video
+                          </Button>
+                          <Button
+                            onClick={() => handleLiveCallFriend(friend, "math-blitz")}
+                            disabled={creatingMatch}
+                            className="w-full bg-orange-500 hover:bg-orange-600 text-black"
+                          >
+                            <Video className="h-4 w-4 mr-2" />
+                            Math Blitz on video
+                          </Button>
+                          <Button
+                            onClick={() => handleLiveCallFriend(friend, "trivia")}
+                            disabled={creatingMatch}
+                            className="w-full bg-orange-500 hover:bg-orange-600 text-black"
+                          >
+                            <Video className="h-4 w-4 mr-2" />
+                            Trivia on video
+                          </Button>
+                          <p className="text-xs uppercase tracking-wide text-gray-500 pt-2">Token match</p>
                           <Button
                             onClick={() => handlePlayFriend(friend, 'd0c5fda9-ec91-46b4-be62-cba48b398168', 100)}
                             disabled={creatingMatch}
