@@ -1056,7 +1056,7 @@ export default function SimpleConnectFour({ matchId, betAmount, status, currentU
         player1Id,
         player2Id,
         betAmount,
-        gameId: '69bf26d2-110b-40d9-b20a-d5cfab14d133'
+        originalMatchId: matchId
       })
       
       // Validate that all IDs are valid UUIDs
@@ -1105,8 +1105,18 @@ export default function SimpleConnectFour({ matchId, betAmount, status, currentU
         }
       }
       
-      // Use server action to create rematch and deduct tokens atomically
-      const gameId = '69bf26d2-110b-40d9-b20a-d5cfab14d133' // Actual Four in a Row game ID
+      const { data: currentMatch } = await supabase
+        .from("matches")
+        .select("game_id")
+        .eq("id", matchId)
+        .single()
+
+      const gameId = currentMatch?.game_id
+      if (!gameId) {
+        alert("Could not find this game. Cannot create rematch.")
+        setIsLoadingRematch(false)
+        return
+      }
       
       console.log('🔄 Creating rematch with token deduction via server action:', {
         originalMatchId: matchId,
