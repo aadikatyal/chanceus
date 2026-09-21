@@ -49,7 +49,7 @@ export default async function DashboardPage() {
       <DashboardClient />
 
       {/* Subtle gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-950/20 via-purple-950/10 to-transparent pointer-events-none"></div>
+      
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
         <div className="mb-8 fade-in">
@@ -57,7 +57,7 @@ export default async function DashboardPage() {
             <div className="flex-1">
               <div className="flex items-center space-x-4 mb-2">
                 <Image src="/chanceus-eagle.png" alt="ChanceUS" width={60} height={60} className="h-12 w-12 flex-shrink-0" />
-                <h1 className="text-2xl sm:text-3xl font-bold text-white whitespace-nowrap">
+                <h1 className="text-2xl sm:text-3xl font-bold whitespace-nowrap">
                   Welcome back, <span className="text-accent">{user.display_name || user.username}</span>!
                 </h1>
               </div>

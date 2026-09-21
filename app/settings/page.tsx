@@ -10,7 +10,7 @@ export default async function SettingsPage() {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-950 relative">
         {/* Subtle gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-950/20 via-purple-950/10 to-transparent pointer-events-none"></div>
+        
         
         <h1 className="text-2xl font-bold mb-4 text-white relative z-10">Connect Supabase to get started</h1>
       </div>
@@ -40,7 +40,7 @@ export default async function SettingsPage() {
       <Header user={user} />
       
       {/* Subtle gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-950/20 via-purple-950/10 to-transparent pointer-events-none"></div>
+      
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
         {/* Page Header */}

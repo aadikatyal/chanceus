@@ -109,7 +109,7 @@ export default async function CreateMatchPage({ params }: CreateMatchPageProps) 
   return (
     <div className="min-h-screen h-full bg-gray-950 relative">
       {/* Subtle gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-950/20 via-purple-950/10 to-transparent pointer-events-none"></div>
+      
       
       <Header user={user} />
 

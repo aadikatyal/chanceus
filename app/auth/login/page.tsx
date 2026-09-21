@@ -38,7 +38,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
       <Header />
       
       {/* Subtle gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-950/20 via-purple-950/10 to-transparent pointer-events-none"></div>
+      
       
       <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center relative z-10 px-4 py-12 sm:px-6 lg:px-8">
         <LoginForm redirectUrl={params.redirect} />

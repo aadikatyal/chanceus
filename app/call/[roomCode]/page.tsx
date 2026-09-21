@@ -39,7 +39,6 @@ export default async function CallRoomPage({
   return (
     <div className="min-h-screen bg-gray-950 relative">
       <Header user={user} />
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-950/20 via-purple-950/10 to-transparent pointer-events-none" />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 relative z-10">
         <CallRoom
           roomCode={roomCode}

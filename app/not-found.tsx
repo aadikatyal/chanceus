@@ -9,7 +9,7 @@ export default function NotFound() {
   return (
     <div className="min-h-screen bg-gray-950 relative flex items-center justify-center p-4">
       {/* Subtle gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-950/20 via-purple-950/10 to-transparent pointer-events-none"></div>
+      
       
       <Card className="w-full max-w-md bg-gray-900/80 border-gray-800 relative z-10">
         <CardHeader className="text-center">

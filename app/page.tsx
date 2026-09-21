@@ -89,12 +89,8 @@ export default async function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 relative overflow-hidden">
+    <div className="min-h-screen bg-background">
       <Header />
-
-      {/* Animated gradient background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-950/30 via-purple-950/20 via-orange-950/10 to-transparent pointer-events-none"></div>
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,140,0,0.1),transparent_50%)] pointer-events-none"></div>
 
       {/* Hero Section */}
       <section className="relative overflow-hidden py-24 sm:py-32 z-10">
