@@ -311,19 +311,27 @@ export async function createRematchWithDeduction(
       betAmount
     })
 
-    // Get the original match to copy category (for trivia games)
     const { data: originalMatch, error: originalMatchError } = await supabase
-      .from('matches')
-      .select('game_data')
-      .eq('id', originalMatchId)
+      .from("matches")
+      .select("game_id, game_data, bet_amount, games (name)")
+      .eq("id", originalMatchId)
       .single()
-    
+
     if (originalMatchError) {
-      console.error('❌ Error fetching original match for rematch:', originalMatchError)
+      console.error("❌ Error fetching original match for rematch:", originalMatchError)
     }
-    
+
+    const resolvedGameId = originalMatch?.game_id || gameId
     const originalCategory = originalMatch?.game_data?.category
-    console.log('📋 Original match category for rematch:', originalCategory, 'Full game_data:', originalMatch?.game_data)
+    console.log("📋 Original match category for rematch:", originalCategory, "Full game_data:", originalMatch?.game_data)
+
+    const { data: gameRow } = await supabase.from("games").select("id, name").eq("id", resolvedGameId).maybeSingle()
+
+    if (!gameRow) {
+      return { success: false, error: "Original game no longer exists. Cannot create rematch." }
+    }
+
+    const gameName = (gameRow.name || ((originalMatch as any)?.games?.name) || "").toLowerCase()
 
     // Verify both players have sufficient tokens
     const { data: player1Data, error: player1Error } = await supabase
@@ -351,11 +359,8 @@ export async function createRematchWithDeduction(
       return { success: false, error: 'Player 2 has insufficient tokens' }
     }
 
-    // Create the new match with appropriate game_data based on game type
-    // Connect 4 game ID: 69bf26d2-110b-40d9-b20a-d5cfab14d133
-    // Trivia game ID: e03ee060-b913-4795-9149-54660e2e2eac
-    const isConnectFour = gameId === '69bf26d2-110b-40d9-b20a-d5cfab14d133'
-    const isTrivia = gameId === 'e03ee060-b913-4795-9149-54660e2e2eac'
+    const isConnectFour = /4 in a row|four in a row|connect/.test(gameName)
+    const isTrivia = gameName.includes("trivia")
     
     const gameData = isConnectFour ? {
       board: Array(42).fill(null),
@@ -375,7 +380,7 @@ export async function createRematchWithDeduction(
     const { data: newMatch, error: matchError } = await supabase
       .from('matches')
       .insert({
-        game_id: gameId,
+        game_id: gameRow.id,
         player1_id: player1Id,
         player2_id: player2Id,
         bet_amount: betAmount,
