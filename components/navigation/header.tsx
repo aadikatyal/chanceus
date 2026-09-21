@@ -11,7 +11,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { LogOut, Settings, User, Wallet, Coins, Gamepad2, Menu, Trophy, MessageSquare, Users, Eye } from "lucide-react"
+import { LogOut, Settings, User, Wallet, Coins, Gamepad2, Menu, Trophy, MessageSquare, Users, Video } from "lucide-react"
+import CallInviteListener from "@/components/call/call-invite-listener"
 import Link from "next/link"
 import { signOut } from "@/lib/actions"
 import type { User as UserType } from "@/lib/supabase/client"
@@ -103,59 +104,66 @@ export default function Header({ user }: HeaderProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="flex items-center justify-between h-16">
           <Link href={user ? "/dashboard" : "/"} className="flex items-center space-x-3 hover-lift">
-            <Image src="/chance-us-logo.png" alt="ChanceUS" width={200} height={60} className="h-12 w-auto" priority />
+            <Image
+              src="/chanceus-eagle.png"
+              alt="ChanceUS"
+              width={60}
+              height={60}
+              className="h-12 w-12 flex-shrink-0 object-contain"
+              priority
+            />
           </Link>
 
           {user && (
             <nav className="hidden md:flex items-center space-x-8">
               <Link
                 href="/dashboard"
-                className="text-white hover:text-orange-500 transition-colors duration-200 font-medium text-sm"
+                className="text-white hover:text-orange-500 transition-colors duration-200 font-medium text-sm whitespace-nowrap"
               >
                 Dashboard
               </Link>
               <Link
                 href="/games"
-                className="text-white hover:text-orange-500 transition-colors duration-200 font-medium text-sm"
+                className="text-white hover:text-orange-500 transition-colors duration-200 font-medium text-sm whitespace-nowrap"
               >
                 Games
               </Link>
               <Link
+                href="/call"
+                className="text-white hover:text-orange-500 transition-colors duration-200 font-medium text-sm inline-flex items-center gap-1 whitespace-nowrap"
+              >
+                <Video className="h-4 w-4 shrink-0" />
+                Live Call
+              </Link>
+              <Link
                 href="/matches"
-                className="text-white hover:text-orange-500 transition-colors duration-200 font-medium text-sm"
+                className="text-white hover:text-orange-500 transition-colors duration-200 font-medium text-sm whitespace-nowrap"
               >
                 Matches
               </Link>
               <Link
                 href="/wallet"
-                className="text-white hover:text-orange-500 transition-colors duration-200 font-medium text-sm"
+                className="text-white hover:text-orange-500 transition-colors duration-200 font-medium text-sm whitespace-nowrap"
               >
                 Wallet
               </Link>
               <Link
                 href="/bars"
-                className="text-white hover:text-orange-500 transition-colors duration-200 font-medium text-sm"
+                className="text-white hover:text-orange-500 transition-colors duration-200 font-medium text-sm whitespace-nowrap"
               >
                 Bar Trivia
               </Link>
               <Link
                 href="/tournaments"
-                className="text-white hover:text-orange-500 transition-colors duration-200 font-medium text-sm"
+                className="text-white hover:text-orange-500 transition-colors duration-200 font-medium text-sm whitespace-nowrap"
               >
                 Tournaments
               </Link>
               <Link
                 href="/chat"
-                className="text-white hover:text-orange-500 transition-colors duration-200 font-medium text-sm"
+                className="text-white hover:text-orange-500 transition-colors duration-200 font-medium text-sm whitespace-nowrap"
               >
                 Chat
-              </Link>
-              <Link
-                href="/watch"
-                className="text-white hover:text-orange-500 transition-colors duration-200 font-medium text-sm flex items-center gap-1"
-              >
-                <Eye className="h-4 w-4" />
-                Watch
               </Link>
             </nav>
           )}
@@ -266,6 +274,13 @@ export default function Header({ user }: HeaderProps) {
                         <span>Games</span>
                       </Link>
                       <Link
+                        href="/call"
+                        className="flex items-center space-x-3 px-4 py-3 rounded-lg text-white hover:bg-gray-800 transition-colors"
+                      >
+                        <Video className="h-5 w-5" />
+                        <span>Live Call</span>
+                      </Link>
+                      <Link
                         href="/matches"
                         className="flex items-center space-x-3 px-4 py-3 rounded-lg text-white hover:bg-gray-800 transition-colors"
                       >
@@ -300,13 +315,6 @@ export default function Header({ user }: HeaderProps) {
                         <MessageSquare className="h-5 w-5" />
                         <span>Chat</span>
                       </Link>
-                      <Link
-                        href="/watch"
-                        className="flex items-center space-x-3 px-4 py-3 rounded-lg text-white hover:bg-gray-800 transition-colors"
-                      >
-                        <Eye className="h-5 w-5" />
-                        <span>Watch</span>
-                      </Link>
                       <div className="border-t border-gray-700 my-2"></div>
                       <Link
                         href="/profile"
@@ -334,6 +342,7 @@ export default function Header({ user }: HeaderProps) {
                 </Sheet>
               </>
             )}
+            <CallInviteListener userId={user?.id} />
             {!user && (
               <div className="flex items-center space-x-3">
                 <Link href="/auth/login">
