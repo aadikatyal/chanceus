@@ -119,6 +119,6 @@ html:not(.dark) .bg-black\/90 {
     @apply rounded-lg border border-border bg-card;
   }
   .card-hover {
-    @apply transition-all duration-150 hover:border-foreground/20;
+    @apply transition-all duration-150 hover:border-border;
   }
 }
