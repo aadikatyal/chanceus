@@ -1,0 +1,523 @@
+/**
+ * ChanceUS design system CSS variables.
+ * Used by components/design-system/* — existing pages keep current shadcn tokens until migration.
+ */
+
+:root {
+    /* Surfaces & text */
+    --chance-bg: #f7f7f5;
+    --chance-fg: #0a0a0a;
+    --chance-surface: #ffffff;
+    --chance-surface-raised: #ffffff;
+    --chance-surface-inset: #f0f0ec;
+    --chance-border: #e8e8e3;
+    --chance-border-strong: #d4d4cf;
+    --chance-muted: #f0f0ec;
+    --chance-muted-fg: #6b6b66;
+
+    /* Actions */
+    --chance-primary: #0a0a0a;
+    --chance-primary-fg: #fafafa;
+    --chance-brand: #00a862;
+    --chance-brand-hover: #009956;
+    --chance-brand-muted: #e6f7ef;
+    --chance-brand-fg: #052e16;
+    --chance-destructive: #dc2626;
+    --chance-destructive-fg: #ffffff;
+    --chance-warning: #d97706;
+    --chance-warning-muted: #fef3c7;
+    --chance-success: #00a862;
+    --chance-success-muted: #e6f7ef;
+    --chance-info: #2563eb;
+    --chance-info-muted: #dbeafe;
+
+    /* Markets (Kalshi-inspired) */
+    --chance-yes: #00a862;
+    --chance-yes-muted: #e6f7ef;
+    --chance-no: #e5484d;
+    --chance-no-muted: #ffeef0;
+
+    --chance-ring: #0a0a0a;
+
+    /* Radius */
+    --chance-radius-sm: 0.375rem;
+    --chance-radius-md: 0.5rem;
+    --chance-radius-lg: 0.75rem;
+    --chance-radius-xl: 1rem;
+    --chance-radius-2xl: 1.25rem;
+
+    /* Shadows */
+    --chance-shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.04);
+    --chance-shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.06), 0 1px 2px -1px rgb(0 0 0 / 0.04);
+    --chance-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+    --chance-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.05);
+    --chance-shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.08), 0 8px 10px -6px rgb(0 0 0 / 0.04);
+    --chance-shadow-focus: 0 0 0 3px rgb(10 10 10 / 0.12);
+    --chance-shadow-focus-brand: 0 0 0 3px rgb(0 168 98 / 0.25);
+
+    /* Motion */
+    --chance-duration-instant: 100ms;
+    --chance-duration-fast: 150ms;
+    --chance-duration-normal: 200ms;
+    --chance-duration-slow: 300ms;
+    --chance-ease: cubic-bezier(0.4, 0, 0.2, 1);
+    --chance-ease-out: cubic-bezier(0, 0, 0.2, 1);
+    --chance-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+    /* Layout */
+    --chance-max-content: 42rem;
+    --chance-max-app: 72rem;
+    --chance-max-wide: 90rem;
+    --chance-header-h: 3.5rem;
+    /* Competitive shell (sidebar + rail) — 8px grid */
+    --chance-sidebar-w: 15rem;
+    --chance-sidebar-icon-w: 4.25rem;
+    --chance-rail-w: 17.5rem;
+    --chance-space-1: 0.25rem;
+    --chance-space-2: 0.5rem;
+    --chance-space-3: 0.75rem;
+    --chance-space-4: 1rem;
+    --chance-space-5: 1.25rem;
+    --chance-space-6: 1.5rem;
+    --chance-space-8: 2rem;
+    --chance-space-10: 2.5rem;
+    --chance-space-12: 3rem;
+    --chance-radius-banner: 1.25rem;
+    --chance-radius-shell: 1rem;
+    --chance-shadow-elevated: 0 8px 30px rgb(0 0 0 / 0.12);
+  }
+
+  .dark {
+    --chance-bg: #0a0a0a;
+    --chance-fg: #f5f5f2;
+    --chance-surface: #141414;
+    --chance-surface-raised: #1a1a1a;
+    --chance-surface-inset: #0f0f0f;
+    --chance-border: #2a2a2a;
+    --chance-border-strong: #3f3f3f;
+    --chance-muted: #1a1a1a;
+    --chance-muted-fg: #a1a1a1;
+
+    --chance-primary: #f5f5f2;
+    --chance-primary-fg: #0a0a0a;
+    --chance-brand: #00d26a;
+    --chance-brand-hover: #00e676;
+    --chance-brand-muted: #0d2a1a;
+    --chance-brand-fg: #ecfdf5;
+    --chance-destructive: #f87171;
+    --chance-destructive-fg: #1c1917;
+    --chance-warning: #fbbf24;
+    --chance-warning-muted: #422006;
+    --chance-success: #00d26a;
+    --chance-success-muted: #0d2a1a;
+    --chance-info: #60a5fa;
+    --chance-info-muted: #172554;
+
+    --chance-yes: #00d26a;
+    --chance-yes-muted: #0d2a1a;
+    --chance-no: #ff6369;
+    --chance-no-muted: #3b1214;
+
+    --chance-ring: #f5f5f2;
+    --chance-shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.35);
+    --chance-shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.4), 0 1px 2px -1px rgb(0 0 0 / 0.35);
+    --chance-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.45), 0 2px 4px -2px rgb(0 0 0 / 0.35);
+    --chance-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5), 0 4px 6px -4px rgb(0 0 0 / 0.4);
+    --chance-shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.55), 0 8px 10px -6px rgb(0 0 0 / 0.45);
+    --chance-shadow-focus: 0 0 0 3px rgb(245 245 242 / 0.15);
+    --chance-shadow-focus-brand: 0 0 0 3px rgb(0 210 106 / 0.3);
+  }
+
+/* Plain CSS fallbacks — apply when Tailwind dev chunks fail to load */
+html {
+  font-family: var(--font-sans, ui-sans-serif, system-ui, -apple-system, sans-serif);
+  -webkit-text-size-adjust: 100%;
+}
+
+body.chance-body {
+  margin: 0;
+  background-color: var(--chance-bg);
+  color: var(--chance-fg);
+  line-height: 1.5;
+  font-family: inherit;
+}
+
+.chance-header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+  min-height: var(--chance-header-h);
+}
+
+.chance-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+.chance-nav-desktop {
+  display: none;
+  align-items: center;
+  gap: 1.25rem;
+  flex: 1;
+  justify-content: center;
+  min-width: 0;
+}
+
+.chance-nav-mobile-only {
+  display: inline-flex;
+}
+
+.chance-token-pill {
+  display: none;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--chance-border);
+  border-radius: var(--chance-radius-md);
+  background: var(--chance-muted);
+  text-decoration: none;
+  color: inherit;
+  font-size: 0.875rem;
+}
+
+@media (min-width: 640px) {
+  .chance-token-pill {
+    display: inline-flex;
+  }
+}
+
+@media (min-width: 768px) {
+  .chance-nav-desktop {
+    display: flex;
+  }
+  .chance-nav-mobile-only {
+    display: none !important;
+  }
+}
+
+.chance-home-banner {
+  background:
+    radial-gradient(ellipse 80% 60% at 100% 0%, color-mix(in srgb, var(--chance-brand) 22%, transparent), transparent 55%),
+    linear-gradient(165deg, var(--chance-surface) 0%, var(--chance-surface-inset) 48%, var(--chance-bg) 100%);
+}
+
+.chance-home-hero {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+@media (min-width: 1024px) {
+  .chance-home-hero {
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: space-between;
+  }
+}
+
+.chance-home-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 16rem;
+}
+
+.chance-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 0.625rem 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.25rem;
+  border-radius: var(--chance-radius-md);
+  background: var(--chance-brand);
+  color: var(--chance-brand-fg);
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+}
+
+.chance-btn-primary:hover {
+  background: var(--chance-brand-hover);
+}
+
+@media (min-width: 640px) {
+  .chance-btn-primary {
+    width: auto;
+  }
+}
+
+.chance-bankroll-link {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--chance-border);
+  border-radius: var(--chance-radius-md);
+  background: var(--chance-surface-inset);
+  text-decoration: none;
+  color: inherit;
+}
+
+.chance-panel {
+  border: 1px solid var(--chance-border);
+  border-radius: var(--chance-radius-lg);
+  background: var(--chance-surface);
+  overflow: hidden;
+}
+
+.chance-quick-actions-desktop {
+  display: none;
+}
+
+.chance-quick-actions-mobile {
+  display: block;
+}
+
+@media (min-width: 768px) {
+  .chance-quick-actions-desktop {
+    display: block;
+  }
+  .chance-quick-actions-mobile {
+    display: none;
+  }
+}
+
+/* Competitive shell layout (works without Tailwind) */
+.chance-shell {
+  display: flex;
+  min-height: 100vh;
+  background: var(--chance-bg);
+  color: var(--chance-fg);
+}
+
+.chance-shell-sidebar {
+  display: none;
+  width: var(--chance-sidebar-w);
+  flex-shrink: 0;
+  border-right: 1px solid var(--chance-border);
+  background: var(--chance-bg);
+}
+
+.chance-shell-body {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+}
+
+.chance-shell-main-wrap {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+}
+
+.chance-shell-main {
+  min-width: 0;
+  flex: 1;
+  /* Horizontal/vertical padding lives on the main element in CompetitiveShell (responsive Tailwind). */
+}
+
+.chance-shell-rail {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  flex-shrink: 0;
+  padding: var(--chance-space-6);
+  gap: var(--chance-space-6);
+}
+
+@media (min-width: 768px) {
+  .chance-shell-sidebar {
+    display: flex;
+    flex-direction: column;
+    width: var(--chance-sidebar-icon-w);
+    padding-left: 0.375rem;
+    padding-right: 0.375rem;
+  }
+
+  .chance-shell-sidebar .chance-nav-label-only,
+  .chance-shell-sidebar .chance-nav-label,
+  .chance-shell-sidebar .chance-sidebar-section-label {
+    display: none;
+  }
+
+  .chance-shell-sidebar .chance-nav-link {
+    justify-content: center;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+
+  .chance-shell-sidebar .chance-sidebar-divider {
+    margin: 0.25rem 0.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .chance-shell-sidebar {
+    width: var(--chance-sidebar-w);
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+
+  .chance-shell-sidebar .chance-nav-label-only,
+  .chance-shell-sidebar .chance-nav-label,
+  .chance-shell-sidebar .chance-sidebar-section-label {
+    display: revert;
+  }
+
+  .chance-shell-sidebar .chance-nav-link {
+    justify-content: flex-start;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+
+  .chance-shell-rail {
+    width: var(--chance-rail-w);
+  }
+}
+
+.chance-surface-card {
+  border: 1px solid var(--chance-border);
+  border-radius: var(--chance-radius-shell);
+  background: var(--chance-surface);
+  box-shadow: var(--chance-shadow-xs);
+}
+
+.chance-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--chance-space-4);
+  margin-bottom: var(--chance-space-4);
+}
+
+.chance-text-display {
+    font-size: 2.5rem;
+    line-height: 2.75rem;
+    letter-spacing: -0.025em;
+    font-weight: 600;
+  }
+  .chance-text-h1 {
+    font-size: 1.875rem;
+    line-height: 2.25rem;
+    letter-spacing: -0.02em;
+    font-weight: 600;
+  }
+  .chance-text-h2 {
+    font-size: 1.5rem;
+    line-height: 2rem;
+    letter-spacing: -0.015em;
+    font-weight: 600;
+  }
+  .chance-text-h3 {
+    font-size: 1.125rem;
+    line-height: 1.75rem;
+    letter-spacing: -0.01em;
+    font-weight: 600;
+  }
+  .chance-text-h4 {
+    font-size: 1rem;
+    line-height: 1.5rem;
+    font-weight: 500;
+  }
+  .chance-text-body-lg {
+    font-size: 1rem;
+    line-height: 1.5rem;
+  }
+  .chance-text-body {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+  }
+  .chance-text-caption {
+    font-size: 0.75rem;
+    line-height: 1rem;
+    color: var(--chance-muted-fg);
+  }
+  .chance-text-label {
+    font-size: 0.6875rem;
+    line-height: 1rem;
+    letter-spacing: 0.06em;
+    font-weight: 500;
+    text-transform: uppercase;
+    color: var(--chance-muted-fg);
+  }
+  .chance-text-mono {
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-size: 0.8125rem;
+    line-height: 1.25rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .chance-animate-in {
+    animation: chance-fade-in var(--chance-duration-normal) var(--chance-ease-out) both;
+  }
+  .chance-animate-slide-up {
+    animation: chance-slide-up var(--chance-duration-normal) var(--chance-ease-out) both;
+  }
+  .chance-animate-scale-in {
+    animation: chance-scale-in var(--chance-duration-fast) var(--chance-ease-spring) both;
+  }
+.chance-animate-shimmer {
+  animation: chance-shimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes chance-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes chance-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes chance-scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes chance-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes chance-pulse-dot {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}

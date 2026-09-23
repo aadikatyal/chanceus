@@ -27,10 +27,14 @@ export async function updateSession(request: NextRequest) {
     request.nextUrl.pathname.startsWith("/settings") ||
     request.nextUrl.pathname.startsWith("/tournaments") ||
     request.nextUrl.pathname.startsWith("/analytics") ||
+    request.nextUrl.pathname.startsWith("/leaderboards") ||
+    request.nextUrl.pathname.startsWith("/rankings") ||
     request.nextUrl.pathname.startsWith("/replays") ||
     request.nextUrl.pathname.startsWith("/chat") ||
     request.nextUrl.pathname.startsWith("/friends") ||
-    request.nextUrl.pathname.startsWith("/bars")
+    request.nextUrl.pathname.startsWith("/bars") ||
+    request.nextUrl.pathname.startsWith("/bar") ||
+    request.nextUrl.pathname.startsWith("/session")
 
   try {
     // Only check session for protected routes

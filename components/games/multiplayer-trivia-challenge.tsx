@@ -17,6 +17,7 @@ import {
   getRandomTriviaQuestionFromDB,
   getRandomTriviaQuestion
 } from "@/lib/game-logic"
+import { gameEmbedSurfaceClass } from "@/components/gameplay/gameplay-utils"
 
 interface MultiplayerTriviaChallengeProps {
   matchId: string
@@ -25,6 +26,7 @@ interface MultiplayerTriviaChallengeProps {
   player2Id: string
   onGameComplete?: (result: TriviaResult) => void
   isTournamentMatch?: boolean
+  compactPresentation?: boolean
 }
 
 const TOTAL_QUESTIONS = 8
@@ -36,7 +38,8 @@ export default function MultiplayerTriviaChallenge({
   player1Id, 
   player2Id,
   onGameComplete,
-  isTournamentMatch: isTournamentMatchProp 
+  isTournamentMatch: isTournamentMatchProp,
+  compactPresentation = false,
 }: MultiplayerTriviaChallengeProps) {
   const [gameState, setGameState] = useState<MultiplayerTriviaState | null>(null)
   const [currentQuestion, setCurrentQuestion] = useState<TriviaQuestion | null>(null)
@@ -828,7 +831,7 @@ export default function MultiplayerTriviaChallenge({
   // Show loading
   if (!gameState) {
     return (
-      <Card className="w-full max-w-4xl mx-auto bg-gray-900/50 border-gray-800">
+      <Card className={gameEmbedSurfaceClass(compactPresentation)}>
         <CardContent className="py-12 text-center">
           <div className="inline-block animate-spin">
             <Brain className="h-8 w-8 text-orange-500" />
@@ -1040,7 +1043,7 @@ export default function MultiplayerTriviaChallenge({
     const iWon = gameResult.winner === (isPlayer1 ? 'player1' : 'player2')
     
     return (
-      <Card className="w-full max-w-4xl mx-auto bg-gray-900/50 border-gray-800">
+      <Card className={gameEmbedSurfaceClass(compactPresentation)}>
         <CardHeader className="pb-3 sm:pb-6">
           <CardTitle className="text-center text-white flex items-center justify-center gap-2">
             <Trophy className="h-5 w-5 sm:h-6 sm:w-6 text-yellow-400" />
@@ -1160,7 +1163,7 @@ export default function MultiplayerTriviaChallenge({
   if (myFinished && !opponentFinished) {
     const opponentName = isPlayer1 ? 'Player 2' : 'Player 1'
     return (
-      <Card className="w-full max-w-4xl mx-auto bg-gray-900/50 border-gray-800">
+      <Card className={gameEmbedSurfaceClass(compactPresentation)}>
         <CardContent className="py-12 text-center">
           <Trophy className="h-16 w-16 text-orange-500 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-white mb-2">You've Finished!</h2>
@@ -1181,7 +1184,7 @@ export default function MultiplayerTriviaChallenge({
   // Show main game
   if (!matchReady) {
     return (
-      <Card className="w-full max-w-4xl mx-auto bg-gray-900/50 border-gray-800">
+      <Card className={gameEmbedSurfaceClass(compactPresentation)}>
         <CardContent className="py-12 text-center">
           <p className="text-gray-400">Waiting for game to start...</p>
           {selectedCategory && (
@@ -1198,7 +1201,7 @@ export default function MultiplayerTriviaChallenge({
     // If only this player finished, waiting screen should already be shown above
     // This is a fallback to prevent showing questions
     return (
-      <Card className="w-full max-w-4xl mx-auto bg-gray-900/50 border-gray-800">
+      <Card className={gameEmbedSurfaceClass(compactPresentation)}>
         <CardContent className="py-12 text-center">
           <Trophy className="h-16 w-16 text-orange-500 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-white mb-2">You've Finished!</h2>
@@ -1216,7 +1219,8 @@ export default function MultiplayerTriviaChallenge({
   const mainOpponentProgress = isPlayer1 ? gameState.player2Answers.length : gameState.player1Answers.length
 
   return (
-    <Card className="w-full max-w-4xl mx-auto bg-black border-gray-800">
+    <Card className={gameEmbedSurfaceClass(compactPresentation)}>
+      {!compactPresentation ? (
       <CardHeader>
         <div className="flex justify-between items-center">
           <div>
@@ -1238,6 +1242,21 @@ export default function MultiplayerTriviaChallenge({
           </div>
         </div>
       </CardHeader>
+      ) : (
+        <CardHeader className="border-b border-[var(--chance-border)] pb-3">
+          <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
+            <p className="chance-text-caption">
+              Q {myCurrentQuestionIndex + 1}/{TOTAL_QUESTIONS}
+            </p>
+            <p className="chance-text-mono font-semibold tabular-nums">
+              {isPlayer1 ? gameState.player1Score : gameState.player2Score} pts
+            </p>
+            <p className="chance-text-caption">
+              Opp {mainOpponentProgress}/{TOTAL_QUESTIONS}
+            </p>
+          </div>
+        </CardHeader>
+      )}
       
       <CardContent className="space-y-6">
         {/* Timer */}

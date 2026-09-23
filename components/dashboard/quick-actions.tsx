@@ -1,115 +1,145 @@
 "use client"
 
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Calculator, Grid3X3, Brain, Trophy, Users, Zap } from "lucide-react"
+import { Calculator, Grid3X3, Brain, Zap, type LucideIcon } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import Image from "next/image"
+import { ChanceButton } from "@/components/design-system/button"
 
-const games = [
-  {
-    id: "d0c5fda9-ec91-46b4-be62-cba48b398168", // Math Blitz game ID
-    name: "Math Blitz",
-    description: "Lightning-fast arithmetic challenges",
-    icon: Calculator,
-    thumbnail: "/math-blitz.JPG",
-    color: "from-cyan-500 to-cyan-600",
-    hoverColor: "from-cyan-600 to-cyan-700",
-    minBet: 10,
-    maxBet: 500,
-  },
-  {
-    id: "69bf26d2-110b-40d9-b20a-d5cfab14d133", // Actual Four in a Row game ID
-    name: "Four in a Row",
-    description: "Strategic four-in-a-row battles",
-    icon: Grid3X3,
-    thumbnail: "/4-in-a-row.JPG",
-    color: "from-yellow-500 to-yellow-600",
-    hoverColor: "from-yellow-600 to-yellow-700",
-    minBet: 25,
-    maxBet: 1000,
-  },
-  {
-    id: "e03ee060-b913-4795-9149-54660e2e2eac", // Trivia Challenge game ID
-    name: "Trivia Challenge",
-    description: "Test your knowledge across categories",
-    icon: Brain,
-    thumbnail: "/trivia-blitz.JPG",
-    color: "from-purple-500 to-purple-600",
-    hoverColor: "from-purple-600 to-purple-700",
-    minBet: 15,
-    maxBet: 750,
-  },
-]
+export type DashboardGame = {
+  id: string
+  name: string
+  min_bet: number
+  max_bet: number
+}
 
-export default function QuickActions() {
+function iconForGame(name: string): LucideIcon {
+  const n = name.toLowerCase()
+  if (n.includes("math")) return Calculator
+  if (n.includes("row") || n.includes("four")) return Grid3X3
+  if (n.includes("trivia")) return Brain
+  return Zap
+}
+
+function shortName(name: string): string {
+  const n = name.toLowerCase()
+  if (n.includes("math")) return "Math"
+  if (n.includes("row")) return "4-in-a-row"
+  if (n.includes("trivia")) return "Trivia"
+  return name.split(" ")[0] ?? name
+}
+
+type QuickActionsProps = {
+  games: DashboardGame[]
+}
+
+/** Linear-style dense action rows — no marketing cards */
+export default function QuickActions({ games }: QuickActionsProps) {
   const router = useRouter()
 
-  const handleQuickMatch = (game: any) => {
-    console.log('🎯 Quick match clicked for:', game.name)
-    // Redirect to the create match page where users can choose bet amount and match type
-    router.push(`/games/${game.id}/create`)
-  }
-
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-white">Quick Play</h2>
-        <Button asChild variant="outline" className="border-gray-700 text-gray-300 hover:text-white bg-transparent">
-          <Link href="/games">
-            <Trophy className="mr-2 h-4 w-4" />
-            View All Games
-          </Link>
-        </Button>
+    <div className="w-full">
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <h2 className="chance-text-label" id="dashboard-quick-play">
+          Queue up
+        </h2>
+        <Link
+          href="/games"
+          className="chance-text-caption font-medium text-[var(--chance-brand)] hover:underline"
+        >
+          Full lobby
+        </Link>
       </div>
 
-      <div className="grid md:grid-cols-3 gap-6">
-        {games.map((game) => (
-          <Card key={game.id} className="bg-gray-900/50 border-gray-800 card-hover group">
-            <CardHeader className="text-center">
-              <div className="flex justify-center mb-4">
-                <div className="relative w-32 h-32 sm:w-40 sm:h-40 rounded-lg overflow-hidden group-hover:scale-110 transition-transform duration-300">
-                  <Image
-                    src={game.thumbnail}
-                    alt={game.name}
-                    fill
-                    className="object-cover"
-                    sizes="(max-width: 640px) 128px, 160px"
-                  />
-                </div>
-              </div>
-              <CardTitle className="text-white text-xl">{game.name}</CardTitle>
-              <CardDescription className="text-gray-400">{game.description}</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex justify-between gap-4 text-sm text-gray-400">
-                <span>Min Bet: {game.minBet} tokens</span>
-                <span>Max Bet: {game.maxBet} tokens</span>
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  onClick={() => handleQuickMatch(game)}
-                  className={`flex-1 bg-gradient-to-r ${game.color} hover:${game.hoverColor} text-black font-semibold`}
-                >
-                  <Zap className="mr-2 h-4 w-4" />
-                  Quick Match
-                </Button>
-                <Button
-                  asChild
-                  variant="outline"
-                  className="border-gray-700 text-gray-300 hover:text-white hover:bg-gray-800 bg-transparent"
-                >
-                  <Link href={`/games/${game.id}`}>
-                    <Users className="mr-2 h-4 w-4" />
-                    Lobby
-                  </Link>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      {games.length === 0 ? (
+        <p className="chance-text-caption py-4">
+          No active games.{" "}
+          <Link href="/games" className="text-[var(--chance-brand)] hover:underline">
+            Browse games
+          </Link>
+        </p>
+      ) : (
+        <>
+          <div className="chance-quick-actions-desktop hidden overflow-x-auto md:block">
+            <table className="w-full min-w-[520px] border-collapse text-left text-sm">
+              <thead>
+                <tr className="border-b border-[var(--chance-border)] chance-text-label normal-case tracking-normal">
+                  <th className="pb-2 pr-4 font-medium text-[var(--chance-muted-fg)]">Game</th>
+                  <th className="pb-2 pr-4 font-medium text-[var(--chance-muted-fg)]">Stake range</th>
+                  <th className="pb-2 text-right font-medium text-[var(--chance-muted-fg)]">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {games.map((game) => {
+                  const Icon = iconForGame(game.name)
+                  return (
+                    <tr
+                      key={game.id}
+                      className="border-b border-[var(--chance-border)] last:border-0 hover:bg-[var(--chance-surface-inset)]/60"
+                    >
+                      <td className="py-2.5 pr-4">
+                        <span className="inline-flex items-center gap-2 font-medium text-[var(--chance-fg)]">
+                          <Icon className="size-4 text-[var(--chance-muted-fg)]" aria-hidden />
+                          {game.name}
+                        </span>
+                      </td>
+                      <td className="py-2.5 pr-4 chance-text-mono text-[var(--chance-muted-fg)]">
+                        {game.min_bet}–{game.max_bet}
+                      </td>
+                      <td className="py-2.5">
+                        <div className="flex justify-end gap-2">
+                          <ChanceButton
+                            variant="brand"
+                            size="sm"
+                            onClick={() => router.push(`/games/${game.id}`)}
+                          >
+                            <Zap className="size-3.5" aria-hidden />
+                            Match
+                          </ChanceButton>
+                          <ChanceButton variant="ghost" size="sm" asChild>
+                            <Link href={`/games/${game.id}`}>Lobby</Link>
+                          </ChanceButton>
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          <ul className="chance-quick-actions-mobile divide-y divide-[var(--chance-border)] md:hidden">
+            {games.map((game) => {
+              const Icon = iconForGame(game.name)
+              return (
+                <li key={game.id} className="flex flex-col gap-2 py-3 first:pt-0">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="inline-flex items-center gap-2 text-sm font-medium">
+                      <Icon className="size-4 text-[var(--chance-muted-fg)]" aria-hidden />
+                      {shortName(game.name)}
+                    </span>
+                    <span className="chance-text-mono chance-text-caption">
+                      {game.min_bet}–{game.max_bet}
+                    </span>
+                  </div>
+                  <div className="flex gap-2">
+                    <ChanceButton
+                      variant="brand"
+                      size="sm"
+                      className="flex-1"
+                      onClick={() => router.push(`/games/${game.id}`)}
+                    >
+                      Quick match
+                    </ChanceButton>
+                    <ChanceButton variant="outline" size="sm" className="flex-1" asChild>
+                      <Link href={`/games/${game.id}`}>Lobby</Link>
+                    </ChanceButton>
+                  </div>
+                </li>
+              )
+            })}
+          </ul>
+        </>
+      )}
     </div>
   )
 }

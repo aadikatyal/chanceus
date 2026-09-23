@@ -1,43 +1,30 @@
 "use client"
 
 import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Home, ArrowLeft } from "lucide-react"
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen bg-gray-950 relative flex items-center justify-center p-4">
-      {/* Subtle gradient overlay */}
-      
-      
-      <Card className="w-full max-w-md bg-gray-900/80 border-gray-800 relative z-10">
-        <CardHeader className="text-center">
-          <div className="text-6xl font-bold text-orange-500 mb-4">404</div>
-          <CardTitle className="text-white text-xl">Page Not Found</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-gray-300 text-center">
-            Sorry, we couldn't find the page you're looking for.
-          </p>
-          <div className="flex flex-col gap-2">
-            <Button asChild className="w-full bg-orange-500 hover:bg-orange-600 text-black font-semibold">
-              <Link href="/">
-                <Home className="mr-2 h-4 w-4" />
-                Go to Home
-              </Link>
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => window.history.back()}
-              className="w-full border-gray-600 text-gray-300 hover:bg-gray-800"
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Go Back
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+    <div className="chance-competitive-theme flex min-h-screen items-center justify-center bg-[var(--chance-bg)] p-4 text-[var(--chance-fg)]">
+      <section className="chance-premium-card w-full max-w-md p-6 text-center">
+        <p className="chance-text-mono text-5xl font-bold tabular-nums text-[var(--chance-brand)]">404</p>
+        <h1 className="mt-2 text-lg font-semibold">Page not found</h1>
+        <p className="chance-text-caption mt-2">We couldn&apos;t find that route.</p>
+        <div className="mt-6 flex flex-col gap-2">
+          <Link href="/dashboard" className="chance-hero-cta-primary chance-focus-ring inline-flex w-full items-center justify-center gap-2 py-2.5 text-sm">
+            <Home className="size-4 stroke-[1.75]" aria-hidden />
+            Go to home
+          </Link>
+          <button
+            type="button"
+            onClick={() => window.history.back()}
+            className="chance-hero-cta-ghost chance-focus-ring inline-flex w-full items-center justify-center gap-2 py-2.5 text-sm"
+          >
+            <ArrowLeft className="size-4 stroke-[1.75]" aria-hidden />
+            Go back
+          </button>
+        </div>
+      </section>
     </div>
   )
 }

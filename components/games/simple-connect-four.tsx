@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useLayoutEffect, useRef, type CSSProperties } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
 import { sendFriendRequest, getFriends, getSentRequests, getPendingRequests, acceptFriendRequest } from "@/lib/friends-actions"
@@ -17,9 +17,26 @@ interface SimpleConnectFourProps {
   player2Id?: string
   initialGameData?: { board?: (string | null)[]; winner?: string; currentPlayer?: "player1" | "player2" } | null
   isTournamentMatch?: boolean
+  /** Strip duplicate headers/instructions when wrapped in GameplayShell */
+  compactPresentation?: boolean
 }
 
-export default function SimpleConnectFour({ matchId, betAmount, status, currentUserId, player1Id, player2Id, initialGameData, isTournamentMatch: isTournamentMatchProp }: SimpleConnectFourProps) {
+function findSingleNewPieceIndex(prev: (string | null)[], next: (string | null)[]): number | null {
+  if (prev.length !== next.length) return null
+  let found: number | null = null
+  for (let i = 0; i < next.length; i++) {
+    if (prev[i] === next[i]) continue
+    if (prev[i] !== null && next[i] !== null) return null
+    if (prev[i] !== null && next[i] === null) return null
+    if (prev[i] === null && next[i] !== null) {
+      if (found !== null) return null
+      found = i
+    }
+  }
+  return found
+}
+
+export default function SimpleConnectFour({ matchId, betAmount, status, currentUserId, player1Id, player2Id, initialGameData, isTournamentMatch: isTournamentMatchProp, compactPresentation = false }: SimpleConnectFourProps) {
   const [isTournamentMatch, setIsTournamentMatch] = useState(!!isTournamentMatchProp)
   const router = useRouter()
   const initialBoard = initialGameData?.board && Array.isArray(initialGameData.board) && initialGameData.board.length === 42
@@ -59,6 +76,29 @@ export default function SimpleConnectFour({ matchId, betAmount, status, currentU
   const [friendStatus, setFriendStatus] = useState<'none' | 'friends' | 'request_sent' | 'request_received' | 'checking'>('checking')
   const [isLoadingFriend, setIsLoadingFriend] = useState(false)
   const [pendingRequestId, setPendingRequestId] = useState<string | null>(null)
+  const [droppingCell, setDroppingCell] = useState<number | null>(null)
+  const prevBoardAnimRef = useRef<(string | null)[]>(initialBoard)
+  const dropClearTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useLayoutEffect(() => {
+    const prev = prevBoardAnimRef.current
+    const newIndex = findSingleNewPieceIndex(prev, board)
+    prevBoardAnimRef.current = board
+
+    if (newIndex === null) return
+
+    const row = Math.floor(newIndex / 7)
+    const dropRows = row
+    if (dropRows <= 0) return
+
+    if (dropClearTimerRef.current) clearTimeout(dropClearTimerRef.current)
+    setDroppingCell(newIndex)
+    dropClearTimerRef.current = setTimeout(() => setDroppingCell(null), 520)
+
+    return () => {
+      if (dropClearTimerRef.current) clearTimeout(dropClearTimerRef.current)
+    }
+  }, [board])
 
   // Function to load move history from database
   const loadMoveHistoryFromDB = async () => {
@@ -690,6 +730,13 @@ export default function SimpleConnectFour({ matchId, betAmount, status, currentU
         // Place the piece locally first for immediate feedback
         const newBoard = [...currentBoard]
         newBoard[index] = currentPlayer
+        const dropRows = row
+        if (dropRows > 0) {
+          if (dropClearTimerRef.current) clearTimeout(dropClearTimerRef.current)
+          setDroppingCell(index)
+          dropClearTimerRef.current = setTimeout(() => setDroppingCell(null), 520)
+        }
+        prevBoardAnimRef.current = newBoard
         setBoard(newBoard)
         boardRef.current = newBoard // Update ref immediately
         
@@ -1223,19 +1270,24 @@ export default function SimpleConnectFour({ matchId, betAmount, status, currentU
     }
   }
 
+  const shellClass = compactPresentation ? "chance-c4-compact relative" : "bg-gray-950 relative"
+  const innerClass = compactPresentation ? "max-w-md mx-auto relative z-10" : "max-w-4xl mx-auto relative z-10"
+  const panelClass = compactPresentation ? "rounded-lg p-2 sm:p-3" : "bg-gray-900/80 rounded-lg p-4"
+  const boardWrapClass = compactPresentation ? "rounded-lg p-1 sm:p-2" : "bg-gray-800/80 rounded-lg p-4"
+
   return (
-    <div className="bg-gray-950 relative">
-      <div className="max-w-4xl mx-auto relative z-10">
-        <div className="bg-gray-900/80 rounded-lg p-4">          
+    <div className={shellClass}>
+      <div className={innerClass}>
+        <div className={panelClass}>          
           {/* Four in a Row Game */}
-          <div className="bg-gray-800/80 rounded-lg p-4">
+          <div className={boardWrapClass}>
             <div className="text-center">
               {currentStatus === 'cancelled' ? (
                 <div className="text-red-400 mb-6">
                   <p className="text-xl font-bold">Match Cancelled</p>
                   <p>This match has been cancelled and is no longer playable.</p>
                 </div>
-              ) : currentStatus === 'completed' ? (
+              ) : currentStatus === 'completed' && !compactPresentation ? (
                 <div className="text-blue-400 mb-3 sm:mb-6">
                   {winner ? (
                     <div>
@@ -1358,9 +1410,11 @@ export default function SimpleConnectFour({ matchId, betAmount, status, currentU
                 </div>
               ) : currentStatus === 'in_progress' ? (
                 <>
+                  {!compactPresentation ? (
                   <p className="text-gray-300 mb-6">Click on column arrows to place chips</p>
+                  ) : null}
                   
-                  <div className="mt-6 text-gray-300 text-center">
+                  <div className={`${compactPresentation ? "sr-only" : "mt-6"} text-gray-300 text-center`}>
                     {winner ? (
                       <div className="text-2xl font-bold">
                         {winner === 'draw' ? (
@@ -1472,16 +1526,17 @@ export default function SimpleConnectFour({ matchId, betAmount, status, currentU
                 </div>
               )}
               
-              <div className="grid grid-cols-7 gap-1.5 sm:gap-2 md:gap-1 max-w-md mx-auto">
+              <div className="chance-c4-board grid max-w-md grid-cols-7 gap-1.5 sm:gap-2 md:gap-1 mx-auto">
                 {Array.from({ length: 7 }, (_, col) => {
                   const canPlay = isMyTurn && !winner && currentStatus === 'in_progress' && !viewingHistory
                   
                   return (
                     <button
                       key={col}
+                      type="button"
                       onClick={() => dropPiece(col)}
                       disabled={!canPlay}
-                      className={`flex flex-col gap-1.5 sm:gap-2 md:gap-1 p-0.5 sm:p-1 rounded transition-colors ${
+                      className={`chance-c4-board-col flex flex-col gap-1.5 sm:gap-2 md:gap-1 p-0.5 sm:p-1 rounded transition-colors ${
                         canPlay
                           ? 'hover:bg-blue-500/10 cursor-pointer'
                           : 'cursor-not-allowed'
@@ -1505,16 +1560,28 @@ export default function SimpleConnectFour({ matchId, betAmount, status, currentU
                           pieceColor = 'bg-yellow-400 border-yellow-300'
                         }
                         
+                        const dropRows = row
+                        const isDropping = !viewingHistory && droppingCell === i && piece && dropRows > 0
+
                         return (
                           <div
                             key={i}
-                            className={`w-7 h-7 sm:w-9 sm:h-9 md:w-12 md:h-12 rounded-full border-2 transition-all duration-300 ${pieceColor} ${
-                              currentStatus === 'cancelled' 
-                                ? 'opacity-50' 
-                                : viewingHistory 
-                                  ? 'opacity-80' // Slightly dimmed when viewing history
-                                  : 'hover:scale-110'
+                            className={`chance-c4-cell w-7 h-7 sm:w-9 sm:h-9 md:w-12 md:h-12 rounded-full border-2 ${piece ? "chance-c4-piece" : ""} ${
+                              isDropping ? "chance-c4-piece--drop" : ""
+                            } ${pieceColor} ${
+                              currentStatus === 'cancelled'
+                                ? 'opacity-50'
+                                : viewingHistory
+                                  ? 'opacity-80'
+                                  : piece && !isDropping
+                                    ? 'hover:scale-110 transition-transform duration-300'
+                                    : ''
                             }`}
+                            style={
+                              isDropping
+                                ? ({ ["--drop-rows" as string]: dropRows } as CSSProperties)
+                                : undefined
+                            }
                           />
                         )
                       })}

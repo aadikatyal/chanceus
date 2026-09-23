@@ -20,6 +20,7 @@ import {
   markPlayerFinished,
   calculateMultiplayerResult
 } from "@/lib/game-logic"
+import { gameEmbedSurfaceClass } from "@/components/gameplay/gameplay-utils"
 
 interface MultiplayerMathBlitzProps {
   matchId: string
@@ -28,6 +29,7 @@ interface MultiplayerMathBlitzProps {
   player2Id: string
   onGameComplete?: (result: MultiplayerResult) => void
   isTournamentMatch?: boolean
+  compactPresentation?: boolean
 }
 
 export default function MultiplayerMathBlitz({ 
@@ -36,7 +38,8 @@ export default function MultiplayerMathBlitz({
   player1Id, 
   player2Id,
   onGameComplete,
-  isTournamentMatch: isTournamentMatchProp 
+  isTournamentMatch: isTournamentMatchProp,
+  compactPresentation = false,
 }: MultiplayerMathBlitzProps) {
   const [gameState, setGameState] = useState<MultiplayerGameState | null>(null)
   const [currentProblem, setCurrentProblem] = useState<MathProblem | null>(null)
@@ -1458,7 +1461,7 @@ export default function MultiplayerMathBlitz({
 
   if (showInstructions) {
     return (
-      <Card className="w-full max-w-4xl mx-auto bg-gray-900/50 border-gray-800">
+      <Card className={gameEmbedSurfaceClass(compactPresentation)}>
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
             <div className="p-3 bg-orange-500 rounded-full">
@@ -1537,7 +1540,7 @@ export default function MultiplayerMathBlitz({
     const isDraw = gameResult.winner === 'draw'
 
     return (
-      <Card className="w-full max-w-4xl mx-auto bg-gray-900/50 border-gray-800">
+      <Card className={gameEmbedSurfaceClass(compactPresentation)}>
         <CardHeader className="text-center pb-3 sm:pb-6">
           <div className="flex items-center justify-center gap-3 mb-2 sm:mb-4">
             <div className={`p-2 sm:p-3 rounded-full ${isWinner ? 'bg-yellow-500' : isDraw ? 'bg-gray-500' : 'bg-red-500'}`}>
@@ -1733,7 +1736,7 @@ export default function MultiplayerMathBlitz({
   if (!gameState) {
     console.log('🔄 No game state, showing loading...')
     return (
-      <Card className="w-full max-w-4xl mx-auto bg-gray-900/50 border-gray-800">
+      <Card className={gameEmbedSurfaceClass(compactPresentation)}>
         <CardContent className="text-center py-12">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
           <p className="text-gray-400">Loading game...</p>
@@ -1774,7 +1777,7 @@ export default function MultiplayerMathBlitz({
       const isDraw = result.winner === 'draw'
 
       return (
-        <Card className="w-full max-w-4xl mx-auto bg-gray-900/50 border-gray-800">
+        <Card className={gameEmbedSurfaceClass(compactPresentation)}>
           <CardHeader className="text-center">
             <div className="flex justify-center mb-4">
               <div className={`p-3 rounded-full ${isWinner ? 'bg-yellow-500' : isDraw ? 'bg-gray-500' : 'bg-red-500'}`}>
@@ -1849,7 +1852,7 @@ export default function MultiplayerMathBlitz({
       )
     } else {
       return (
-        <Card className="w-full max-w-4xl mx-auto bg-gray-900/50 border-gray-800">
+        <Card className={gameEmbedSurfaceClass(compactPresentation)}>
           <CardHeader className="text-center">
             <CardTitle className="text-2xl font-bold text-white">Calculating Results...</CardTitle>
             <p className="text-gray-400">Please wait while we calculate the final scores.</p>
@@ -1891,7 +1894,7 @@ export default function MultiplayerMathBlitz({
         const isDraw = result.winner === 'draw'
 
         return (
-          <Card className="w-full max-w-4xl mx-auto bg-gray-900/50 border-gray-800">
+          <Card className={gameEmbedSurfaceClass(compactPresentation)}>
             <CardHeader className="text-center">
               <div className="text-6xl mb-4">🏆</div>
               <h2 className="text-3xl font-bold text-white mb-2">
@@ -2055,7 +2058,7 @@ export default function MultiplayerMathBlitz({
       } else {
         console.log('⚠️ No game result available in past last question check')
         return (
-          <Card className="w-full max-w-4xl mx-auto bg-gray-900/50 border-gray-800">
+          <Card className={gameEmbedSurfaceClass(compactPresentation)}>
             <CardContent className="text-center py-12">
               <div className="text-6xl mb-4">🏆</div>
               <h2 className="text-2xl font-bold text-white mb-4">Game Complete!</h2>
@@ -2087,7 +2090,7 @@ export default function MultiplayerMathBlitz({
         totalProblems: gameState.problems.length
       })
       return (
-        <Card className="w-full max-w-4xl mx-auto bg-gray-900/50 border-gray-800">
+        <Card className={gameEmbedSurfaceClass(compactPresentation)}>
           <CardContent className="text-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
             <p className="text-gray-400">Waiting for your opponent to finish...</p>
@@ -2120,7 +2123,7 @@ export default function MultiplayerMathBlitz({
       bothPlayersReady 
     })
     return (
-      <Card className="w-full max-w-4xl mx-auto bg-gray-900/50 border-gray-800">
+      <Card className={gameEmbedSurfaceClass(compactPresentation)}>
         <CardContent className="text-center py-12">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
           <p className="text-gray-400">Waiting for game to start...</p>
@@ -2182,7 +2185,7 @@ export default function MultiplayerMathBlitz({
     // Show results screen
     if (gameResult) {
       return (
-        <Card className="w-full max-w-4xl mx-auto bg-gray-900/50 border-gray-800">
+        <Card className={gameEmbedSurfaceClass(compactPresentation)}>
           <CardHeader className="text-center">
             <CardTitle className="text-3xl font-bold text-white">Game Complete!</CardTitle>
             <p className="text-gray-400">Final Results</p>
@@ -2292,7 +2295,7 @@ export default function MultiplayerMathBlitz({
       )
     } else {
       return (
-        <Card className="w-full max-w-4xl mx-auto bg-gray-900/50 border-gray-800">
+        <Card className={gameEmbedSurfaceClass(compactPresentation)}>
           <CardHeader className="text-center">
             <CardTitle className="text-2xl font-bold text-white">Calculating Results...</CardTitle>
             <p className="text-gray-400">Please wait while we calculate the final scores.</p>
@@ -2321,7 +2324,7 @@ export default function MultiplayerMathBlitz({
     })
     
     return (
-      <Card className="w-full max-w-4xl mx-auto bg-gray-900/50 border-gray-800">
+      <Card className={gameEmbedSurfaceClass(compactPresentation)}>
         <CardContent className="text-center py-12">
           <div className="text-6xl mb-4">🎉</div>
           <p className="text-2xl font-bold text-green-400 mb-2">You've Finished!</p>
@@ -2354,7 +2357,7 @@ export default function MultiplayerMathBlitz({
     
     console.log('🎯 Showing main game screen')
     return (
-      <Card className="w-full max-w-4xl mx-auto bg-gray-900/50 border-gray-800">
+      <Card className={gameEmbedSurfaceClass(compactPresentation)}>
         <CardHeader className="text-center">
           {/* Game Progress */}
           <div className="flex justify-between items-center mb-4">
@@ -2479,7 +2482,7 @@ export default function MultiplayerMathBlitz({
     matchReady
   })
   return (
-    <Card className="w-full max-w-4xl mx-auto bg-black border-gray-800">
+    <Card className={gameEmbedSurfaceClass(compactPresentation)}>
       <CardContent className="text-center py-12">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
         <p className="text-gray-400">Preparing game...</p>

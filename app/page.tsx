@@ -89,7 +89,7 @@ export default async function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="chance-competitive-theme min-h-screen bg-background">
       <Header />
 
       {/* Hero Section */}
@@ -110,7 +110,7 @@ export default async function Home() {
             <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight">
               <span className="text-white">Skill-Based Gaming</span>
               <br />
-              <span className="bg-gradient-to-r from-orange-500 to-orange-600 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-[var(--chance-brand)] to-[color-mix(in_srgb,var(--chance-brand)_82%,black)] bg-clip-text text-transparent">
                 Where Talent Wins
               </span>
             </h1>
@@ -123,7 +123,7 @@ export default async function Home() {
               <Button
                 asChild
                 size="lg"
-                className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-8 py-6 text-lg font-semibold shadow-lg shadow-orange-500/50"
+                className="bg-gradient-to-r from-[var(--chance-brand)] to-[color-mix(in_srgb,var(--chance-brand)_82%,black)] hover:from-[color-mix(in_srgb,var(--chance-brand)_82%,black)] hover:to-[color-mix(in_srgb,var(--chance-brand)_70%,black)] text-white px-8 py-6 text-lg font-semibold shadow-lg shadow-[var(--chance-brand)]/50"
               >
                 <Link href="/auth/sign-up" className="flex items-center gap-2">
                   Get Started Free
@@ -150,7 +150,7 @@ export default async function Home() {
           <div className="text-center mb-16">
             <h2 className="text-4xl sm:text-5xl font-bold mb-4">
               <span className="text-white">Choose Your</span>{" "}
-              <span className="bg-gradient-to-r from-orange-500 to-orange-600 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-[var(--chance-brand)] to-[color-mix(in_srgb,var(--chance-brand)_82%,black)] bg-clip-text text-transparent">
                 Challenge
               </span>
             </h2>
@@ -165,7 +165,7 @@ export default async function Home() {
               return (
                 <Card
                   key={game.id}
-                  className="group bg-gray-900/80 border-gray-800 hover:border-orange-500/50 transition-all duration-300 overflow-hidden relative"
+                  className="group bg-gray-900/80 border-gray-800 hover:border-[var(--chance-brand)]/50 transition-all duration-300 overflow-hidden relative"
                 >
                   <div className={`absolute inset-0 bg-gradient-to-br ${game.color} opacity-0 group-hover:opacity-10 transition-opacity duration-300`}></div>
                   <CardHeader className="text-center pb-4 relative z-10">
@@ -191,11 +191,11 @@ export default async function Home() {
                   <CardContent className="space-y-4 relative z-10">
                     <div className="flex justify-between items-center text-sm">
                       <span className="text-gray-400">Min Bet</span>
-                      <span className="text-orange-500 font-semibold">{game.minBet} tokens</span>
+                      <span className="text-[var(--chance-brand)] font-semibold">{game.minBet} tokens</span>
                     </div>
                     <div className="flex justify-between items-center text-sm">
                       <span className="text-gray-400">Max Bet</span>
-                      <span className="text-orange-500 font-semibold">{game.maxBet} tokens</span>
+                      <span className="text-[var(--chance-brand)] font-semibold">{game.maxBet} tokens</span>
                     </div>
                     <Button
                       asChild
@@ -220,7 +220,7 @@ export default async function Home() {
           <div className="text-center mb-16">
             <h2 className="text-4xl sm:text-5xl font-bold mb-4">
               <span className="text-white">Why Choose</span>{" "}
-              <span className="bg-gradient-to-r from-orange-500 to-orange-600 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-[var(--chance-brand)] to-[color-mix(in_srgb,var(--chance-brand)_82%,black)] bg-clip-text text-transparent">
                 ChanceUS
               </span>
             </h2>
@@ -233,7 +233,7 @@ export default async function Home() {
             <Card className="bg-gradient-to-br from-blue-600/20 to-blue-700/10 border-blue-500/30 hover:border-blue-500/50 transition-all duration-300">
               <CardHeader>
                 <div className="flex justify-center mb-4">
-                  <div className="p-4 bg-gradient-to-r from-orange-500 to-orange-600 rounded-2xl shadow-lg">
+                  <div className="p-4 bg-gradient-to-r from-[var(--chance-brand)] to-[color-mix(in_srgb,var(--chance-brand)_82%,black)] rounded-2xl shadow-lg">
                     <Zap className="h-8 w-8 text-white" />
                   </div>
                 </div>
@@ -247,7 +247,7 @@ export default async function Home() {
             <Card className="bg-gradient-to-br from-purple-600/20 to-purple-700/10 border-purple-500/30 hover:border-purple-500/50 transition-all duration-300">
               <CardHeader>
                 <div className="flex justify-center mb-4">
-                  <div className="p-4 bg-gradient-to-r from-orange-500 to-orange-600 rounded-2xl shadow-lg">
+                  <div className="p-4 bg-gradient-to-r from-[var(--chance-brand)] to-[color-mix(in_srgb,var(--chance-brand)_82%,black)] rounded-2xl shadow-lg">
                     <Shield className="h-8 w-8 text-white" />
                   </div>
                 </div>
@@ -261,7 +261,7 @@ export default async function Home() {
             <Card className="bg-gradient-to-br from-cyan-600/20 to-cyan-700/10 border-cyan-500/30 hover:border-cyan-500/50 transition-all duration-300">
               <CardHeader>
                 <div className="flex justify-center mb-4">
-                  <div className="p-4 bg-gradient-to-r from-orange-500 to-orange-600 rounded-2xl shadow-lg">
+                  <div className="p-4 bg-gradient-to-r from-[var(--chance-brand)] to-[color-mix(in_srgb,var(--chance-brand)_82%,black)] rounded-2xl shadow-lg">
                     <Users className="h-8 w-8 text-white" />
                   </div>
                 </div>
@@ -281,7 +281,7 @@ export default async function Home() {
           <div className="text-center mb-16">
             <h2 className="text-4xl sm:text-5xl font-bold mb-4">
               <span className="text-white">How It</span>{" "}
-              <span className="bg-gradient-to-r from-orange-500 to-orange-600 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-[var(--chance-brand)] to-[color-mix(in_srgb,var(--chance-brand)_82%,black)] bg-clip-text text-transparent">
                 Works
               </span>
             </h2>
@@ -292,7 +292,7 @@ export default async function Home() {
 
           <div className="grid md:grid-cols-3 gap-8 relative">
             {/* Connection line for desktop */}
-            <div className="hidden md:block absolute top-12 left-1/4 right-1/4 h-0.5 bg-gradient-to-r from-orange-500/50 via-orange-500 to-orange-500/50"></div>
+            <div className="hidden md:block absolute top-12 left-1/4 right-1/4 h-0.5 bg-gradient-to-r from-[var(--chance-brand)]/50 via-[var(--chance-brand)] to-[var(--chance-brand)]/50"></div>
             
             {[
               { step: 1, title: "Choose Your Game", description: "Pick from Math Blitz, Four in a Row, or Trivia Challenge. Set your bet amount.", icon: Gamepad2 },
@@ -306,14 +306,14 @@ export default async function Home() {
                     <CardHeader>
                       <div className="flex justify-center mb-4">
                         <div className="relative">
-                          <div className="absolute inset-0 bg-gradient-to-r from-orange-500 to-orange-600 rounded-full blur-xl opacity-50"></div>
-                          <div className="relative p-4 bg-gradient-to-r from-orange-500 to-orange-600 rounded-full">
+                          <div className="absolute inset-0 bg-gradient-to-r from-[var(--chance-brand)] to-[color-mix(in_srgb,var(--chance-brand)_82%,black)] rounded-full blur-xl opacity-50"></div>
+                          <div className="relative p-4 bg-gradient-to-r from-[var(--chance-brand)] to-[color-mix(in_srgb,var(--chance-brand)_82%,black)] rounded-full">
                             <IconComponent className="h-8 w-8 text-white" />
                           </div>
                         </div>
                       </div>
                       <div className="flex justify-center mb-2">
-                        <span className="bg-orange-500/20 text-orange-500 px-3 py-1 rounded-full text-sm font-semibold">
+                        <span className="bg-[var(--chance-brand)]/20 text-[var(--chance-brand)] px-3 py-1 rounded-full text-sm font-semibold">
                           Step {item.step}
                         </span>
                       </div>
@@ -342,8 +342,8 @@ export default async function Home() {
               return (
                 <div key={index} className="text-center">
                   <div className="flex justify-center mb-3">
-                    <div className="p-3 bg-orange-500/20 rounded-lg">
-                      <IconComponent className="h-6 w-6 text-orange-500" />
+                    <div className="p-3 bg-[var(--chance-brand)]/20 rounded-lg">
+                      <IconComponent className="h-6 w-6 text-[var(--chance-brand)]" />
                     </div>
                   </div>
                   <div className="text-3xl sm:text-4xl font-bold text-white mb-1">{stat.value}</div>
@@ -358,10 +358,10 @@ export default async function Home() {
       {/* Final CTA Section */}
       <section className="relative py-24 z-10">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 border border-orange-500/30 rounded-2xl p-12 shadow-2xl">
+          <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 border border-[var(--chance-brand)]/30 rounded-2xl p-12 shadow-2xl">
             <h2 className="text-4xl sm:text-5xl font-bold mb-4">
               <span className="text-white">Ready to</span>{" "}
-              <span className="bg-gradient-to-r from-orange-500 to-orange-600 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-[var(--chance-brand)] to-[color-mix(in_srgb,var(--chance-brand)_82%,black)] bg-clip-text text-transparent">
                 Start Playing?
               </span>
             </h2>
@@ -372,7 +372,7 @@ export default async function Home() {
               <Button
                 asChild
                 size="lg"
-                className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-10 py-6 text-lg font-semibold shadow-lg shadow-orange-500/50"
+                className="bg-gradient-to-r from-[var(--chance-brand)] to-[color-mix(in_srgb,var(--chance-brand)_82%,black)] hover:from-[color-mix(in_srgb,var(--chance-brand)_82%,black)] hover:to-[color-mix(in_srgb,var(--chance-brand)_70%,black)] text-white px-10 py-6 text-lg font-semibold shadow-lg shadow-[var(--chance-brand)]/50"
               >
                 <Link href="/auth/sign-up" className="flex items-center gap-2">
                   Create Free Account

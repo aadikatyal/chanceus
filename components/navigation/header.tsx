@@ -11,10 +11,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { LogOut, Settings, User, Wallet, Coins, Gamepad2, Menu, Trophy, MessageSquare, Users, Video } from "lucide-react"
+import { LogOut, Settings, User, Coins, Menu, ChevronDown } from "lucide-react"
+import { isNavActive, MORE_NAV, PRIMARY_NAV } from "@/lib/navigation/app-nav"
 import CallInviteListener from "@/components/call/call-invite-listener"
 import ThemeToggle from "@/components/theme-toggle"
 import Link from "next/link"
+import { usePathname } from "next/navigation"
+import { cn } from "@/lib/utils"
 import { signOut } from "@/lib/actions"
 import type { User as UserType } from "@/lib/supabase/client"
 import { createClient } from "@/lib/supabase/client"
@@ -31,7 +34,17 @@ interface HeaderProps {
   user?: UserType | null
 }
 
+function primaryNavClass(active: boolean) {
+  return cn(
+    "whitespace-nowrap text-sm font-medium transition-colors duration-[var(--chance-duration-fast)]",
+    active
+      ? "text-[var(--chance-brand)]"
+      : "text-[var(--chance-fg)] hover:text-[var(--chance-brand)]"
+  )
+}
+
 export default function Header({ user }: HeaderProps) {
+  const pathname = usePathname()
   const [tokenCount, setTokenCount] = useState(user?.tokens || 0)
   
   // Debug logging (only log once)
@@ -98,10 +111,10 @@ export default function Header({ user }: HeaderProps) {
   const avatarUrl = user?.avatar_url ?? null // only truthy if user actually has an avatar
 
   return (
-    <header className="sticky top-0 z-50 bg-background/90 backdrop-blur-md border-b border-border">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          <Link href={user ? "/dashboard" : "/"} className="flex items-center space-x-3 hover-lift">
+    <header className="sticky top-0 z-50 border-b border-[var(--chance-border)] bg-[var(--chance-bg)]/90 backdrop-blur-md supports-[backdrop-filter]:bg-[var(--chance-bg)]/80">
+      <div className="mx-auto h-[var(--chance-header-h)] max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="chance-header-bar flex h-full items-center justify-between">
+          <Link href={user ? "/dashboard" : "/"} className="flex shrink-0 items-center space-x-3 hover-lift">
             <Image
               src="/chanceus-eagle.png"
               alt="ChanceUS"
@@ -113,73 +126,73 @@ export default function Header({ user }: HeaderProps) {
           </Link>
 
           {user && (
-            <nav className="hidden md:flex items-center space-x-8">
-              <Link
-                href="/dashboard"
-                className="text-foreground hover:text-accent transition-colors duration-150 font-medium text-sm whitespace-nowrap"
-              >
-                Dashboard
-              </Link>
-              <Link
-                href="/games"
-                className="text-foreground hover:text-accent transition-colors duration-150 font-medium text-sm whitespace-nowrap"
-              >
-                Games
-              </Link>
-              <Link
-                href="/call"
-                className="text-foreground hover:text-accent transition-colors duration-150 font-medium text-sm inline-flex items-center gap-1 whitespace-nowrap"
-              >
-                <Video className="h-4 w-4 shrink-0" />
-                Live Call
-              </Link>
-              <Link
-                href="/matches"
-                className="text-foreground hover:text-accent transition-colors duration-150 font-medium text-sm whitespace-nowrap"
-              >
-                Matches
-              </Link>
-              <Link
-                href="/wallet"
-                className="text-foreground hover:text-accent transition-colors duration-150 font-medium text-sm whitespace-nowrap"
-              >
-                Wallet
-              </Link>
-              <Link
-                href="/bars"
-                className="text-foreground hover:text-accent transition-colors duration-150 font-medium text-sm whitespace-nowrap"
-              >
-                Bar Trivia
-              </Link>
-              <Link
-                href="/tournaments"
-                className="text-foreground hover:text-accent transition-colors duration-150 font-medium text-sm whitespace-nowrap"
-              >
-                Tournaments
-              </Link>
-              <Link
-                href="/chat"
-                className="text-foreground hover:text-accent transition-colors duration-150 font-medium text-sm whitespace-nowrap"
-              >
-                Chat
-              </Link>
+            <nav
+              className="chance-nav-desktop hidden items-center gap-6 md:flex lg:gap-8"
+              aria-label="Main"
+            >
+              {PRIMARY_NAV.map(({ href, label, matchPrefix }) => (
+                <Link
+                  key={href}
+                  href={href}
+                  className={primaryNavClass(isNavActive(pathname, matchPrefix))}
+                  aria-current={isNavActive(pathname, matchPrefix) ? "page" : undefined}
+                >
+                  {label}
+                </Link>
+              ))}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    type="button"
+                    className={cn(
+                      "inline-flex items-center gap-1 whitespace-nowrap text-sm font-medium transition-colors duration-[var(--chance-duration-fast)]",
+                      MORE_NAV.some((item) => isNavActive(pathname, item.matchPrefix))
+                        ? "text-[var(--chance-brand)]"
+                        : "text-[var(--chance-fg)] hover:text-[var(--chance-brand)]"
+                    )}
+                  >
+                    More
+                    <ChevronDown className="size-4 opacity-70" aria-hidden />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-48 rounded-xl">
+                  {MORE_NAV.map(({ href, label, icon: Icon }) => (
+                    <DropdownMenuItem key={href} asChild className="rounded-lg m-1">
+                      <Link href={href}>
+                        <Icon className="mr-2 h-4 w-4" aria-hidden />
+                        {label}
+                      </Link>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
             </nav>
           )}
 
-          <div className="flex items-center space-x-3">
+          <div className="chance-header-actions flex items-center space-x-3">
             {user && (
               <>
                 <ThemeToggle />
-                <div className="hidden sm:flex items-center space-x-2 bg-secondary border border-border rounded-lg px-3 py-2">
-                  <Coins className="h-4 w-4 text-accent" />
-                  <span className="text-foreground font-semibold">{tokenCount.toLocaleString()}</span>
-                  <span className="text-muted-foreground text-sm">tokens</span>
-                </div>
+                <Link
+                  href="/wallet"
+                  className="chance-token-pill hidden items-center space-x-2 rounded-[var(--chance-radius-md)] border border-[var(--chance-border)] bg-[var(--chance-muted)] px-3 py-2 transition-colors hover:border-[var(--chance-border-strong)] hover:bg-[var(--chance-surface-inset)] sm:flex"
+                  aria-label={`Token balance: ${tokenCount.toLocaleString()}. Go to wallet`}
+                >
+                  <Coins className="h-4 w-4 text-[var(--chance-brand)]" aria-hidden />
+                  <span className="font-mono text-sm font-semibold tabular-nums text-[var(--chance-fg)]">
+                    {tokenCount.toLocaleString()}
+                  </span>
+                  <span className="text-sm text-[var(--chance-muted-fg)]">tokens</span>
+                </Link>
 
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="relative h-10 w-10 rounded-full hover:bg-white/10">
-                      <Avatar className="h-10 w-10 ring-2 ring-orange-500/50">
+                    <Button
+                      variant="ghost"
+                      className="relative h-10 w-10 rounded-full hover:bg-[var(--chance-muted)]"
+                      aria-label="Open account menu"
+                    >
+                      <Avatar className="h-10 w-10 ring-2 ring-[var(--chance-brand)]/40">
                         {/* Only render the image if we truly have a user avatar */}
                         {avatarUrl ? (
                           <AvatarImage
@@ -188,7 +201,7 @@ export default function Header({ user }: HeaderProps) {
                             className="transition-opacity duration-200 data-[loaded=false]:opacity-0 data-[loaded=true]:opacity-100"
                           />
                         ) : null}
-                        <AvatarFallback className="bg-orange-500 text-black font-bold">
+                        <AvatarFallback className="bg-[var(--chance-brand)] font-bold text-[var(--chance-brand-fg)]">
                           {displayName.charAt(0).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
@@ -210,18 +223,6 @@ export default function Header({ user }: HeaderProps) {
                       <Link href="/profile">
                         <User className="mr-2 h-4 w-4" />
                         Profile
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild className="rounded-lg m-1">
-                      <Link href="/games">
-                        <Gamepad2 className="mr-2 h-4 w-4" />
-                        Games
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild className="rounded-lg m-1">
-                      <Link href="/wallet">
-                        <Wallet className="mr-2 h-4 w-4" />
-                        Wallet
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild className="rounded-lg m-1">
@@ -247,7 +248,7 @@ export default function Header({ user }: HeaderProps) {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="md:hidden"
+                      className="chance-nav-mobile-only md:hidden"
                     >
                       <Menu className="h-6 w-6" />
                       <span className="sr-only">Open menu</span>
@@ -257,64 +258,36 @@ export default function Header({ user }: HeaderProps) {
                     <SheetHeader>
                       <SheetTitle className="text-left">Navigation</SheetTitle>
                     </SheetHeader>
-                    <nav className="flex flex-col space-y-2 mt-6">
-                      <Link
-                        href="/dashboard"
-                        className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-secondary transition-colors"
-                      >
-                        <User className="h-5 w-5" />
-                        <span>Dashboard</span>
-                      </Link>
-                      <Link
-                        href="/games"
-                        className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-secondary transition-colors"
-                      >
-                        <Gamepad2 className="h-5 w-5" />
-                        <span>Games</span>
-                      </Link>
-                      <Link
-                        href="/call"
-                        className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-secondary transition-colors"
-                      >
-                        <Video className="h-5 w-5" />
-                        <span>Live Call</span>
-                      </Link>
-                      <Link
-                        href="/matches"
-                        className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-secondary transition-colors"
-                      >
-                        <Trophy className="h-5 w-5" />
-                        <span>Matches</span>
-                      </Link>
-                      <Link
-                        href="/wallet"
-                        className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-secondary transition-colors"
-                      >
-                        <Wallet className="h-5 w-5" />
-                        <span>Wallet</span>
-                      </Link>
-                      <Link
-                        href="/bars"
-                        className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-secondary transition-colors"
-                      >
-                        <Users className="h-5 w-5" />
-                        <span>Bar Trivia</span>
-                      </Link>
-                      <Link
-                        href="/tournaments"
-                        className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-secondary transition-colors"
-                      >
-                        <Trophy className="h-5 w-5" />
-                        <span>Tournaments</span>
-                      </Link>
-                      <Link
-                        href="/chat"
-                        className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-secondary transition-colors"
-                      >
-                        <MessageSquare className="h-5 w-5" />
-                        <span>Chat</span>
-                      </Link>
-                      <div className="border-t border-gray-700 my-2"></div>
+                    <nav className="mt-6 flex flex-col space-y-1">
+                      <p className="px-4 pb-1 chance-text-label">Main</p>
+                      {PRIMARY_NAV.map(({ href, label, matchPrefix, icon: Icon }) => (
+                        <Link
+                          key={href}
+                          href={href}
+                          className={cn(
+                            "flex items-center space-x-3 rounded-lg px-4 py-3 transition-colors",
+                            isNavActive(pathname, matchPrefix)
+                              ? "bg-[var(--chance-muted)] text-[var(--chance-brand)]"
+                              : "hover:bg-secondary"
+                          )}
+                          aria-current={isNavActive(pathname, matchPrefix) ? "page" : undefined}
+                        >
+                          <Icon className="h-5 w-5 shrink-0" aria-hidden />
+                          <span>{label}</span>
+                        </Link>
+                      ))}
+                      <p className="px-4 pb-1 pt-4 chance-text-label">More</p>
+                      {MORE_NAV.map(({ href, label, icon: Icon }) => (
+                        <Link
+                          key={href}
+                          href={href}
+                          className="flex items-center space-x-3 rounded-lg px-4 py-3 transition-colors hover:bg-secondary"
+                        >
+                          <Icon className="h-5 w-5 shrink-0" aria-hidden />
+                          <span>{label}</span>
+                        </Link>
+                      ))}
+                      <div className="my-2 border-t border-[var(--chance-border)]" />
                       <Link
                         href="/profile"
                         className="flex items-center space-x-3 px-4 py-3 rounded-lg hover:bg-secondary transition-colors"
