@@ -1,4 +1,5 @@
 // Simple script to clean up matches
+throw new Error("Legacy token cleanup is disabled. Refunds go through the wallet ledger.")
 // Run with: node scripts/cleanup-matches.js
 
 const { createClient } = require('@supabase/supabase-js')

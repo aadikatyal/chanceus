@@ -60,6 +60,10 @@ export default function MatchPage({ params }: MatchPageProps) {
         }
 
         const { data: userData } = await supabase.from("users").select("*").eq("id", authUser.id).single()
+        if (userData) {
+          const { spendable } = await import("@/lib/wallet/server")
+          userData.tokens = await spendable(authUser.id).catch(() => 0)
+        }
         if (!userData) {
           router.push("/auth/login")
           return

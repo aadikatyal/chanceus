@@ -1,3 +1,4 @@
+throw new Error("Legacy token cleanup is disabled. Refunds go through the wallet ledger.")
 const { createClient } = require('@supabase/supabase-js')
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL

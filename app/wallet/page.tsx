@@ -8,6 +8,7 @@ import StripeCheckoutSuccess from "@/components/wallet/stripe-checkout-success"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Wallet, TrendingUp, ArrowUpRight, ArrowDownLeft } from "lucide-react"
 import BuyButtons from './BuyButtons'
+import { spendable } from "@/lib/wallet/server"
 
 export default async function WalletPage() {
   // If Supabase is not configured, show setup message
@@ -36,6 +37,8 @@ export default async function WalletPage() {
   if (!user) {
     redirect("/auth/login")
   }
+
+  user.tokens = await spendable(authUser.id).catch(() => 0)
 
   // Get transaction history
   const { data: transactions = [] } = await supabase

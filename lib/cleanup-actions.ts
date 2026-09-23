@@ -3,6 +3,7 @@
 import { createServerActionClient } from "@supabase/auth-helpers-nextjs"
 import { cookies } from "next/headers"
 import { revalidatePath } from "next/cache"
+import { walletRelease } from "@/lib/wallet/server"
 
 // Clean up expired matches and matchmaking queues
 export async function cleanupExpiredMatches() {
@@ -97,27 +98,9 @@ export async function cleanupExpiredMatches() {
       // Cancel old matches and refund tokens
       for (const match of oldMatches) {
         // Refund the bet to player 1
-        const { data: userData } = await supabase
-          .from("users")
-          .select("tokens")
-          .eq("id", match.player1_id)
-          .single()
-
-        if (userData) {
-          await supabase
-            .from("users")
-            .update({ tokens: userData.tokens + match.bet_amount })
-            .eq("id", match.player1_id)
-
-          // Create refund transaction record
-          await supabase.from("transactions").insert({
-            user_id: match.player1_id,
-            match_id: match.id,
-            amount: match.bet_amount,
-            type: "bonus",
-            description: `Match expired - refund of ${match.bet_amount} tokens`
-          })
-        }
+        await walletRelease(match.player1_id, match.id, `release:${match.id}:${match.player1_id}`).catch((error) => {
+          console.error("Refund failed:", error)
+        })
 
         // Update match status to cancelled and set completion time
         await supabase

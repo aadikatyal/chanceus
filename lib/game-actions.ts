@@ -4,6 +4,8 @@ import { createServerActionClient } from "@supabase/auth-helpers-nextjs"
 import { cookies } from "next/headers"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
+import { spendable, walletHold, walletRelease } from "@/lib/wallet/server"
+import { deductMatchTokens } from "@/lib/deduct-match-tokens"
 
 // Create a new match
 export async function createMatch(prevState: any, formData: FormData) {
@@ -36,14 +38,9 @@ export async function createMatch(prevState: any, formData: FormData) {
     }
 
     // Check if user has enough tokens
-    const { data: userData, error: userError } = await supabase.from("users").select("tokens").eq("id", user.id).single()
-
-    if (userError) {
-      console.error("Error fetching user data:", userError)
-      return { error: "Failed to fetch user data" }
-    }
-
-    if (!userData || userData.tokens < betAmountNum) {
+    const balance = await spendable(user.id).catch(() => null)
+    if (balance === null) return { error: "Wallet is unavailable" }
+    if (balance < betAmountNum) {
       return { error: "Insufficient token balance" }
     }
 
@@ -80,29 +77,11 @@ export async function createMatch(prevState: any, formData: FormData) {
       return { error: "Failed to create match" }
     }
 
-    // Deduct tokens from user
-    const { error: updateError } = await supabase
-      .from("users")
-      .update({ tokens: userData.tokens - betAmountNum })
-      .eq("id", user.id)
-
-    if (updateError) {
-      console.error("Error updating user tokens:", updateError)
-      return { error: "Failed to update user tokens" }
-    }
-
-    // Create transaction record
-    const { error: transactionError } = await supabase.from("transactions").insert({
-      user_id: user.id,
-      match_id: matchData.id,
-      amount: -betAmountNum,
-      type: "bet",
-      description: `Bet ${betAmountNum} tokens on ${gameData.name}`,
-    })
-
-    if (transactionError) {
-      console.error("Transaction creation error:", transactionError)
-      return { error: "Failed to create transaction record" }
+    try {
+      await walletHold(user.id, betAmountNum, matchData.id, `hold:${matchData.id}:${user.id}`)
+    } catch (holdError) {
+      console.error("Error holding tokens:", holdError)
+      return { error: "Failed to escrow entry fee" }
     }
 
     revalidatePath("/matches")
@@ -146,9 +125,8 @@ export async function joinMatch(matchId: string) {
     }
 
     // Check if user has enough tokens
-    const { data: userData } = await supabase.from("users").select("tokens").eq("id", user.id).single()
-
-    if (!userData || userData.tokens < matchData.bet_amount) {
+    const joinBalance = await spendable(user.id).catch(() => null)
+    if (joinBalance === null || joinBalance < matchData.bet_amount) {
       throw new Error("Insufficient token balance")
     }
 
@@ -184,18 +162,7 @@ export async function joinMatch(matchId: string) {
     }
 
     // Create bet transaction for player 2
-    const { error: transactionError } = await supabase.from("transactions").insert({
-      user_id: user.id,
-      match_id: matchId,
-      type: "bet",
-      amount: -matchData.bet_amount,
-      description: `Bet placed for ${matchData.games.name} match - ${matchData.bet_amount} tokens`,
-    })
-
-    if (transactionError) {
-      console.error("Transaction error:", transactionError)
-      throw new Error("Failed to process bet transaction")
-    }
+    await walletHold(user.id, matchData.bet_amount, matchId, `hold:${matchId}:${user.id}`)
 
     revalidatePath("/games")
     revalidatePath("/matches")
@@ -263,19 +230,9 @@ export async function cancelMatch(matchId: string) {
 
     // Refund the bet to player 1
     console.log("🚫 Processing refund for amount:", matchData.bet_amount)
-    const { error: refundError } = await supabase.from("transactions").insert({
-      user_id: user.id,
-      match_id: matchId,
-      type: "bonus",
-      amount: matchData.bet_amount,
-      description: `Match cancelled - refund of ${matchData.bet_amount} tokens`,
-    })
-
-    console.log("🚫 Refund result:", { refundError })
-
-    if (refundError) {
-      console.error("🚫 Refund error:", refundError)
-      throw new Error("Failed to process refund")
+    await walletRelease(matchData.player1_id, matchId, `release:${matchId}:${matchData.player1_id}`)
+    if (matchData.player2_id) {
+      await walletRelease(matchData.player2_id, matchId, `release:${matchId}:${matchData.player2_id}`)
     }
 
     console.log("🚫 Revalidating paths...")
@@ -333,31 +290,13 @@ export async function createRematchWithDeduction(
 
     const gameName = (gameRow.name || ((originalMatch as any)?.games?.name) || "").toLowerCase()
 
-    // Verify both players have sufficient tokens
-    const { data: player1Data, error: player1Error } = await supabase
-      .from('users')
-      .select('tokens')
-      .eq('id', player1Id)
-      .single()
-
-    const { data: player2Data, error: player2Error } = await supabase
-      .from('users')
-      .select('tokens')
-      .eq('id', player2Id)
-      .single()
-
-    if (player1Error || player2Error) {
-      console.error('❌ Error fetching player tokens:', { player1Error, player2Error })
+    const player1Balance = await spendable(player1Id).catch(() => null)
+    const player2Balance = await spendable(player2Id).catch(() => null)
+    if (player1Balance === null || player2Balance === null) {
       return { success: false, error: 'Failed to fetch player token balances' }
     }
-
-    if (!player1Data || player1Data.tokens < betAmount) {
-      return { success: false, error: 'Player 1 has insufficient tokens' }
-    }
-
-    if (!player2Data || player2Data.tokens < betAmount) {
-      return { success: false, error: 'Player 2 has insufficient tokens' }
-    }
+    if (player1Balance < betAmount) return { success: false, error: 'Player 1 has insufficient tokens' }
+    if (player2Balance < betAmount) return { success: false, error: 'Player 2 has insufficient tokens' }
 
     const isConnectFour = /4 in a row|four in a row|connect/.test(gameName)
     const isTrivia = gameName.includes("trivia")
@@ -398,87 +337,16 @@ export async function createRematchWithDeduction(
 
     console.log('✅ Rematch match created:', newMatch.id)
 
-    // Check if tokens were already deducted (prevent duplicate deductions)
-    const { data: existingTransactions } = await supabase
-      .from('transactions')
-      .select('id, user_id')
-      .eq('match_id', newMatch.id)
-      .eq('type', 'bet')
-      .in('user_id', [player1Id, player2Id])
-
-    if (existingTransactions && existingTransactions.length >= 2) {
-      console.log('⚠️ Tokens already deducted for this match, skipping duplicate deduction')
-      return { success: true, matchId: newMatch.id, alreadyDeducted: true }
-    }
-
-    // Deduct from player1
-    const { error: player1UpdateError } = await supabase
-      .from('users')
-      .update({ tokens: player1Data.tokens - betAmount })
-      .eq('id', player1Id)
-
-    if (player1UpdateError) {
-      console.error('❌ Error deducting tokens from player1:', player1UpdateError)
-      // Try to delete the match if token deduction fails
+    const held = await deductMatchTokens(newMatch.id, player1Id, player2Id, betAmount)
+    if (!held.success) {
       await supabase.from('matches').delete().eq('id', newMatch.id)
-      return { success: false, error: 'Failed to deduct tokens from player 1' }
+      return { success: false, error: held.error }
     }
-
-    // Deduct from player2
-    const { error: player2UpdateError } = await supabase
-      .from('users')
-      .update({ tokens: player2Data.tokens - betAmount })
-      .eq('id', player2Id)
-
-    if (player2UpdateError) {
-      console.error('❌ Error deducting tokens from player2:', player2UpdateError)
-      // Try to refund player1 if player2 deduction fails
-      await supabase
-        .from('users')
-        .update({ tokens: player1Data.tokens })
-        .eq('id', player1Id)
-      // Try to delete the match if token deduction fails
-      await supabase.from('matches').delete().eq('id', newMatch.id)
-      return { success: false, error: 'Failed to deduct tokens from player 2' }
-    }
-
-    // Create transaction records (database trigger will update balances)
-    const { error: transaction1Error } = await supabase.from('transactions').insert({
-      user_id: player1Id,
-      match_id: newMatch.id,
-      amount: -betAmount,
-      type: 'bet',
-      description: `Rematch bet - ${betAmount} tokens`
-    })
-
-    const { error: transaction2Error } = await supabase.from('transactions').insert({
-      user_id: player2Id,
-      match_id: newMatch.id,
-      amount: -betAmount,
-      type: 'bet',
-      description: `Rematch bet - ${betAmount} tokens`
-    })
-
-    if (transaction1Error || transaction2Error) {
-      console.error('❌ Error creating transaction records:', { transaction1Error, transaction2Error })
-      // Don't fail - tokens are already deducted
-    }
-
-    console.log('✅ Rematch created and tokens deducted successfully:', {
-      matchId: newMatch.id,
-      player1: { previous: player1Data.tokens, new: player1Data.tokens - betAmount },
-      player2: { previous: player2Data.tokens, new: player2Data.tokens - betAmount }
-    })
 
     revalidatePath('/games')
     revalidatePath('/matches')
 
-    return {
-      success: true,
-      matchId: newMatch.id,
-      player1Balance: player1Data.tokens - betAmount,
-      player2Balance: player2Data.tokens - betAmount
-    }
+    return { success: true, matchId: newMatch.id }
   } catch (error: any) {
     console.error('❌ Unexpected error creating rematch with deduction:', error)
     return { success: false, error: error?.message || 'An unexpected error occurred' }
@@ -522,33 +390,12 @@ export async function createFriendMatch(
     }
 
     // Check if both users have enough tokens
-    const { data: userData, error: userError } = await supabase
-      .from("users")
-      .select("tokens")
-      .eq("id", user.id)
-      .single()
-
-    const { data: friendData, error: friendError } = await supabase
-      .from("users")
-      .select("tokens")
-      .eq("id", friendId)
-      .single()
-
-    if (userError || !userData) {
-      return { error: "Failed to fetch your token balance" }
-    }
-
-    if (friendError || !friendData) {
-      return { error: "Failed to fetch friend's token balance" }
-    }
-
-    if (userData.tokens < betAmount) {
-      return { error: "You have insufficient tokens" }
-    }
-
-    if (friendData.tokens < betAmount) {
-      return { error: "Friend has insufficient tokens" }
-    }
+    const userBalance = await spendable(user.id).catch(() => null)
+    const friendBalance = await spendable(friendId).catch(() => null)
+    if (userBalance === null) return { error: "Failed to fetch your token balance" }
+    if (friendBalance === null) return { error: "Failed to fetch friend's token balance" }
+    if (userBalance < betAmount) return { error: "You have insufficient tokens" }
+    if (friendBalance < betAmount) return { error: "Friend has insufficient tokens" }
 
     // Verify game exists
     const { data: gameData, error: gameError } = await supabase
@@ -634,34 +481,12 @@ export async function acceptFriendMatchRequest(matchId: string) {
     }
 
     // Check if user has enough tokens
-    const { data: userData, error: userError } = await supabase
-      .from("users")
-      .select("tokens")
-      .eq("id", user.id)
-      .single()
-
-    if (userError || !userData) {
-      return { error: "Failed to fetch your token balance" }
-    }
-
-    if (userData.tokens < matchData.bet_amount) {
-      return { error: "You have insufficient tokens" }
-    }
-
-    // Check player1 still has enough tokens
-    const { data: player1Data, error: player1Error } = await supabase
-      .from("users")
-      .select("tokens")
-      .eq("id", matchData.player1_id)
-      .single()
-
-    if (player1Error || !player1Data) {
-      return { error: "Failed to verify opponent's token balance" }
-    }
-
-    if (player1Data.tokens < matchData.bet_amount) {
-      return { error: "Opponent has insufficient tokens" }
-    }
+    const userBalance = await spendable(user.id).catch(() => null)
+    const opponentBalance = await spendable(matchData.player1_id).catch(() => null)
+    if (userBalance === null) return { error: "Failed to fetch your token balance" }
+    if (userBalance < matchData.bet_amount) return { error: "You have insufficient tokens" }
+    if (opponentBalance === null) return { error: "Failed to verify opponent's token balance" }
+    if (opponentBalance < matchData.bet_amount) return { error: "Opponent has insufficient tokens" }
 
     // Update match to show it's accepted (but still waiting for both to be ready)
     const { error: updateError } = await supabase
@@ -738,57 +563,16 @@ export async function markPlayerReady(matchId: string) {
 
     if (bothReady && matchData.status === "waiting") {
       // Both ready - deduct tokens and start match
-      const { data: player1Data } = await supabase
-        .from("users")
-        .select("tokens")
-        .eq("id", matchData.player1_id)
-        .single()
-
-      const { data: player2Data } = await supabase
-        .from("users")
-        .select("tokens")
-        .eq("id", matchData.player2_id)
-        .single()
-
-      if (player1Data && player2Data) {
-        // Deduct tokens from both players
-        await supabase
-          .from("users")
-          .update({ tokens: player1Data.tokens - matchData.bet_amount })
-          .eq("id", matchData.player1_id)
-
-        await supabase
-          .from("users")
-          .update({ tokens: player2Data.tokens - matchData.bet_amount })
-          .eq("id", matchData.player2_id)
-
-        // Create transaction records
-        await supabase.from("transactions").insert({
-          user_id: matchData.player1_id,
-          match_id: matchData.id,
-          amount: -matchData.bet_amount,
-          type: "bet",
-          description: `Friend match bet - ${matchData.bet_amount} tokens`,
+      const held = await deductMatchTokens(matchData.id, matchData.player1_id, matchData.player2_id, matchData.bet_amount)
+      if (!held.success) return { error: held.error || "Failed to escrow entry fee" }
+      await supabase
+        .from("matches")
+        .update({
+          status: "in_progress",
+          started_at: new Date().toISOString(),
+          game_data: updatedGameData
         })
-
-        await supabase.from("transactions").insert({
-          user_id: matchData.player2_id,
-          match_id: matchData.id,
-          amount: -matchData.bet_amount,
-          type: "bet",
-          description: `Friend match bet - ${matchData.bet_amount} tokens`,
-        })
-
-        // Start the match
-        await supabase
-          .from("matches")
-          .update({
-            status: "in_progress",
-            started_at: new Date().toISOString(),
-            game_data: updatedGameData
-          })
-          .eq("id", matchId)
-      }
+        .eq("id", matchId)
     } else {
       // Just update ready status
       await supabase

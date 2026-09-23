@@ -6,6 +6,7 @@
     "build": "next build",
     "dev": "next dev",
     "lint": "next lint",
+    "test": "node --experimental-strip-types --test services/ledger/engine.test.ts services/ledger/cutover.test.ts",
     "start": "next start"
   },
   "dependencies": {
