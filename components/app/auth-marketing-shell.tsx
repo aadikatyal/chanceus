@@ -13,7 +13,22 @@ type AuthMarketingShellProps = {
   live: LandingLiveMetrics
 }
 
-export default function AuthMarketingShell({ children, live }: AuthMarketingShellProps) {
+const COPY: Record<AuthShellVariant, { eyebrow: string; headline: string; sub: string }> = {
+  login: {
+    eyebrow: "Welcome back",
+    headline: "Your next match is waiting.",
+    sub: "Continue your climb. Every match counts.",
+  },
+  signup: {
+    eyebrow: "Enter the arena",
+    headline: "Ready to prove yourself?",
+    sub: "Build your reputation from match one.",
+  },
+}
+
+export default function AuthMarketingShell({ children, variant, live }: AuthMarketingShellProps) {
+  const copy = COPY[variant]
+
   return (
     <div className="chance-auth-marketing-shell chance-competitive-theme min-h-screen min-h-[100dvh] text-[var(--chance-fg)]">
       <div className="chance-auth-ambient" aria-hidden />
@@ -27,21 +42,27 @@ export default function AuthMarketingShell({ children, live }: AuthMarketingShel
         </Link>
       </header>
 
-      <div className="chance-auth-stack">
-        <div className="chance-auth-live-top chance-auth-enter" aria-label="Platform at a glance">
-          <LandingLiveArena live={live} variant="strip" animate={false} />
-        </div>
+      <div className="chance-auth-grid">
+        <section className="chance-auth-aside chance-auth-enter" aria-label="ChanceUS competitive platform">
+          <div className="chance-auth-story-copy">
+            <p className="chance-auth-eyebrow">{copy.eyebrow}</p>
+            <h2 className="chance-auth-headline">{copy.headline}</h2>
+            <p className="chance-auth-subline">{copy.sub}</p>
+          </div>
+          <div className="chance-auth-live-top" aria-label="Platform at a glance">
+            <LandingLiveArena live={live} variant="strip" animate={false} />
+          </div>
+          <div className="chance-auth-preview chance-auth-enter--delayed">
+            <LandingMockup
+              variant="compact"
+              live={{ playersOnline: live.playersOnline, matchesLive: live.matchesLive, inQueue: live.inQueue }}
+            />
+          </div>
+        </section>
 
         <main className="chance-auth-main chance-auth-enter chance-auth-enter--panel">
           <div className="chance-auth-panel-wrap">{children}</div>
         </main>
-
-        <div className="chance-auth-preview chance-auth-enter chance-auth-enter--delayed">
-          <LandingMockup
-            variant="compact"
-            live={{ playersOnline: live.playersOnline, matchesLive: live.matchesLive, inQueue: live.inQueue }}
-          />
-        </div>
       </div>
     </div>
   )

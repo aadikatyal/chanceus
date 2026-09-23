@@ -75,7 +75,7 @@
   letter-spacing: -0.02em;
 }
 
-.chance-auth-stack {
+.chance-auth-grid {
   position: relative;
   z-index: 1;
   display: flex;
@@ -90,11 +90,119 @@
   padding: clamp(4.25rem, 10vh, 5rem) clamp(1.25rem, 4vw, 2rem) max(2rem, env(safe-area-inset-bottom));
 }
 
-@media (min-width: 768px) {
-  .chance-auth-stack {
+@media (min-width: 768px) and (max-width: 1023.98px) {
+  .chance-auth-grid {
     max-width: 32rem;
-    gap: clamp(1.5rem, 3vh, 2rem);
   }
+}
+
+@media (max-width: 1023.98px) {
+  .chance-auth-aside {
+    display: contents;
+  }
+
+  .chance-auth-story-copy {
+    display: none;
+  }
+
+  .chance-auth-live-top {
+    order: 1;
+    width: 100%;
+  }
+
+  .chance-auth-main {
+    order: 2;
+    width: 100%;
+  }
+
+  .chance-auth-preview {
+    order: 3;
+    width: 100%;
+  }
+}
+
+@media (min-width: 1024px) {
+  .chance-auth-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(380px, 440px);
+    align-items: center;
+    gap: clamp(2rem, 5vw, 4rem);
+    max-width: none;
+    width: 100%;
+    margin-inline: 0;
+    padding: clamp(5rem, 10vh, 6.5rem) clamp(2rem, 5vw, 4rem) max(2rem, env(safe-area-inset-bottom));
+  }
+
+  .chance-auth-aside {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(1rem, 2.5vh, 1.5rem);
+    max-width: 40rem;
+  }
+
+  .chance-auth-story-copy {
+    display: block;
+  }
+
+  .chance-auth-main {
+    display: flex;
+    justify-content: flex-end;
+    width: 100%;
+  }
+
+  .chance-auth-preview {
+    max-width: 36rem;
+    margin-top: clamp(0.5rem, 2vh, 1rem);
+  }
+
+  .chance-auth-live-top .chance-landing-live--strip {
+    border-radius: 9999px;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    padding: 0.55rem 1rem;
+  }
+
+  .chance-auth-live-top .chance-landing-live--strip .chance-landing-live-list--showcase {
+    display: flex;
+    flex-wrap: wrap;
+    grid-template-columns: unset;
+    gap: 0.5rem 1.25rem;
+  }
+
+  .chance-auth-live-top .chance-landing-live--strip .chance-landing-live-item {
+    flex-direction: row;
+    align-items: baseline;
+    gap: 0.35rem;
+  }
+}
+
+.chance-auth-story-copy {
+  text-align: start;
+}
+
+.chance-auth-eyebrow {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--chance-brand);
+}
+
+.chance-auth-headline {
+  font-size: clamp(2rem, 6vw, 3.25rem);
+  font-weight: 800;
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+  margin-top: clamp(0.75rem, 2vh, 1rem);
+}
+
+.chance-auth-subline {
+  font-size: clamp(1rem, 2vw, 1.125rem);
+  line-height: 1.55;
+  color: var(--chance-muted-fg);
+  max-width: 32rem;
+  margin-top: clamp(0.75rem, 2vh, 1rem);
 }
 
 .chance-auth-preview {
@@ -121,6 +229,13 @@
 
 .chance-auth-main {
   width: 100%;
+}
+
+@media (min-width: 1024px) {
+  .chance-auth-panel-wrap {
+    max-width: 440px;
+    width: 100%;
+  }
 }
 
 .chance-auth-panel-wrap {
