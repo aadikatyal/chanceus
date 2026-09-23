@@ -2,12 +2,15 @@
 
 import Image from "next/image"
 import Link from "next/link"
-import { ArrowLeft, Clock, Eye, MessageSquare, Shield, Swords, Trophy, Users } from "lucide-react"
+import { ArrowLeft, Clock, Copy, Eye, MessageSquare, Share2, Shield, Swords, Trophy, Users } from "lucide-react"
 import EnhancedMatchInterface from "@/components/games/enhanced-match-interface"
 import ChatWindow from "@/components/chat/chat-window"
 import SpectatorMode from "@/components/games/spectator-mode"
 import ChancePlayerAvatar from "@/components/dashboard/chance-player-avatar"
 import { getGameDisplayName, getGameThumbnail } from "@/lib/games/game-visuals"
+import { useEffect, useState } from "react"
+import { createClient } from "@/lib/supabase/client"
+import { useToast } from "@/hooks/use-toast"
 import {
   gameRulesBlurb,
   lobbyDisplayName,
@@ -28,7 +31,134 @@ type MatchLobbyPageViewProps = {
   onMatchComplete: (winnerId: string | null) => void
 }
 
-function ReadyRing({ ready }: { ready: boolean }) {
+function LobbyShare({
+  matchId,
+  gameName,
+  fromName,
+  userId,
+}: {
+  matchId: string
+  gameName: string
+  fromName: string
+  userId: string
+}) {
+  const { toast } = useToast()
+  const [url, setUrl] = useState("")
+  const [open, setOpen] = useState(false)
+  const [friends, setFriends] = useState<{ id: string; name: string }[]>([])
+  const [sendingId, setSendingId] = useState<string | null>(null)
+  const canShare = typeof navigator !== "undefined" && typeof navigator.share === "function"
+
+  useEffect(() => {
+    setUrl(window.location.href)
+  }, [])
+
+  useEffect(() => {
+    if (!open) return
+    const supabase = createClient()
+    void supabase
+      .from("friends")
+      .select(`
+        user_id,
+        friend_id,
+        user:users!friends_user_id_fkey(id, display_name, username),
+        friend:users!friends_friend_id_fkey(id, display_name, username)
+      `)
+      .eq("status", "accepted")
+      .or(`user_id.eq.${userId},friend_id.eq.${userId}`)
+      .then(({ data }) => {
+        const mapped =
+          (data ?? []).map((row: any) => {
+            const other = row.user_id === userId ? row.friend : row.user
+            return { id: other?.id as string, name: (other?.display_name || other?.username || "Friend") as string }
+          }).filter((friend: { id: string }) => friend.id) || []
+        setFriends(mapped)
+      })
+  }, [open, userId])
+
+  const copyLink = async () => {
+    if (!url) return
+    await navigator.clipboard.writeText(url)
+    toast({ title: "Link copied" })
+  }
+
+  const shareSheet = async () => {
+    if (!url) return
+    if (!canShare) {
+      await copyLink()
+      return
+    }
+    await navigator.share({
+      title: `${gameName} invite`,
+      text: `${gameName} invite from @${fromName.replace(/^@/, "")}`,
+      url,
+    })
+  }
+
+  const sendToFriend = async (friendId: string) => {
+    setSendingId(friendId)
+    const supabase = createClient()
+    const channel = supabase.channel(`call-invite:${friendId}`)
+    await channel.subscribe()
+    await channel.send({
+      type: "broadcast",
+      event: "match-invite",
+      payload: { matchId, gameName, fromName },
+    })
+    await supabase.removeChannel(channel)
+    setSendingId(null)
+    toast({ title: "Invite sent" })
+  }
+
+  return (
+    <div className="mt-4">
+      <div className="flex flex-wrap justify-center gap-2">
+        <button type="button" className="chance-secondary-btn chance-focus-ring px-4 py-2 text-sm" onClick={() => setOpen(true)}>
+          <Users className="mr-1.5 inline size-4" aria-hidden />
+          Share to friends
+        </button>
+        <button type="button" className="chance-secondary-btn chance-focus-ring px-4 py-2 text-sm" onClick={() => void copyLink()}>
+          <Copy className="mr-1.5 inline size-4" aria-hidden />
+          Copy link
+        </button>
+        <button type="button" className="chance-hero-cta-primary chance-focus-ring px-4 py-2 text-sm" onClick={() => void shareSheet()}>
+          <Share2 className="mr-1.5 inline size-4" aria-hidden />
+          Share
+        </button>
+      </div>
+      {open ? (
+        <div className="chance-dm-compose" role="dialog" aria-label="Share to friends" onClick={() => setOpen(false)}>
+          <div className="chance-dm-compose-card" onClick={(event) => event.stopPropagation()}>
+            <div className="flex items-center justify-between border-b border-[var(--chance-border)] px-4 py-3">
+              <h2 className="text-base font-semibold">Share to friends</h2>
+              <button type="button" className="chance-text-caption text-sm" onClick={() => setOpen(false)}>
+                Close
+              </button>
+            </div>
+            <ul className="max-h-80 overflow-y-auto px-2 py-2">
+              {friends.length === 0 ? (
+                <li className="chance-text-caption px-3 py-6 text-center text-sm">No friends to invite yet.</li>
+              ) : (
+                friends.map((friend) => (
+                  <li key={friend.id}>
+                    <button
+                      type="button"
+                      className="chance-dm-thread-row w-full text-left"
+                      disabled={sendingId === friend.id}
+                      onClick={() => void sendToFriend(friend.id)}
+                    >
+                      <span className="truncate text-sm font-semibold">{sendingId === friend.id ? "Sending…" : friend.name}</span>
+                    </button>
+                  </li>
+                ))
+              )}
+            </ul>
+          </div>
+        </div>
+      ) : null}
+    </div>
+  )
+}
   return (
     <span
       className={`inline-flex size-3 rounded-full ${ready ? "bg-[var(--chance-yes)] shadow-[0_0_10px_var(--chance-yes)]" : "bg-[var(--chance-border-strong)]"}`}
@@ -348,8 +478,14 @@ export default function MatchLobbyPageView({
               <p className="font-semibold">Waiting for an opponent</p>
               <p className="chance-text-caption mt-1">Share this link — they’ll land in this lobby.</p>
               <p className="chance-text-mono chance-text-caption mt-3 break-all rounded-md border border-[var(--chance-border)] bg-[var(--chance-surface-inset)] px-3 py-2">
-                {typeof window !== "undefined" ? window.location.href : ""}
+                {typeof window !== "undefined" ? window.location.href : `/games/match/${match.id}`}
               </p>
+              <LobbyShare
+                matchId={match.id}
+                gameName={displayGame}
+                fromName={user.username || lobbyDisplayName(user)}
+                userId={user.id}
+              />
             </div>
           ) : null}
         </>
