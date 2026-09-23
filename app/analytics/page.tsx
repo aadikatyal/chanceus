@@ -1,31 +1,38 @@
-import { createClient } from "@/lib/supabase/server"
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
-import AnalyticsDashboard from "@/components/dashboard/analytics-dashboard"
+import CompetitiveShell from "@/components/app/competitive-shell"
+import CompetitivePageFeed from "@/components/app/competitive-page-feed"
+import LeaderboardsPageClient from "@/components/competition/leaderboards-page-client"
+import { ChanceText } from "@/components/design-system/typography"
 
+/** Legacy `/analytics` route — same ladder data, competition presentation. */
 export default async function AnalyticsPage() {
+  if (!isSupabaseConfigured) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[var(--chance-bg)] px-4">
+        <ChanceText as="h1" variant="h2">
+          Connect Supabase to get started
+        </ChanceText>
+      </div>
+    )
+  }
+
   const supabase = await createClient()
   const {
-    data: { user },
+    data: { user: authUser },
   } = await supabase.auth.getUser()
 
-  if (!user) {
-    redirect("/auth/login")
-  }
+  if (!authUser) redirect("/auth/login")
 
-  const { data: userData } = await supabase
-    .from("users")
-    .select("*")
-    .eq("id", user.id)
-    .single()
-
-  if (!userData) {
-    redirect("/auth/login")
-  }
+  const { data: user } = await supabase.from("users").select("*").eq("id", authUser.id).single()
+  if (!user) redirect("/auth/login")
 
   return (
-    <div className="container mx-auto p-4 max-w-7xl">
-      <AnalyticsDashboard currentUser={userData} />
-    </div>
+    <CompetitiveShell user={user}>
+      <CompetitivePageFeed className="chance-competition-feed">
+        <LeaderboardsPageClient user={user} />
+      </CompetitivePageFeed>
+    </CompetitiveShell>
   )
 }
 

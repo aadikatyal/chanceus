@@ -7,7 +7,7 @@ import { BarTriviaSession, BarTriviaParticipant, Bar } from "@/lib/bar-actions"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Trophy, Users, Clock, RefreshCw, CheckCircle } from "lucide-react"
-import Header from "@/components/navigation/header"
+import VenuesPageChrome from "@/components/venues/venues-page-chrome"
 import type { User } from "@/lib/supabase/client"
 import { getCompleteUserData } from "@/lib/user-utils"
 
@@ -96,8 +96,8 @@ export default function SessionPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-950 relative">
-        <Header user={user} />
+      <VenuesPageChrome user={user}>
+        
         
         {/* Subtle gradient overlay */}
         
@@ -112,14 +112,14 @@ export default function SessionPage() {
             </CardContent>
           </Card>
         </div>
-      </div>
+      </VenuesPageChrome>
     )
   }
 
   if (error || !session) {
     return (
-      <div className="min-h-screen bg-gray-950 relative">
-        <Header user={user} />
+      <VenuesPageChrome user={user}>
+        
         
         {/* Subtle gradient overlay */}
         
@@ -136,13 +136,13 @@ export default function SessionPage() {
             </CardContent>
           </Card>
         </div>
-      </div>
+      </VenuesPageChrome>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 relative">
-      <Header user={user} />
+    <VenuesPageChrome user={user}>
+      
       
       {/* Subtle gradient overlay */}
       
@@ -308,6 +308,6 @@ export default function SessionPage() {
           </Card>
         </div>
       </div>
-    </div>
+    </VenuesPageChrome>
   )
 }

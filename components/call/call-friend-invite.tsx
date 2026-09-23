@@ -79,21 +79,21 @@ export default function CallFriendInvite({
   }
 
   if (friends.length === 0) {
-    return <p className="text-sm text-gray-400">Add friends to invite them into this call.</p>
+    return <p className="chance-text-caption text-sm">Add friends to invite them into this call.</p>
   }
 
   return (
-    <div className="space-y-2 max-h-56 overflow-y-auto">
+    <div className="max-h-56 space-y-2 overflow-y-auto">
       {friends.map((friend) => (
         <div key={friend.id} className="flex items-center justify-between gap-2">
-          <span className="text-sm text-white truncate">{friend.name}</span>
+          <span className="truncate text-sm font-medium">{friend.name}</span>
           <Button
             size="sm"
-            className="bg-orange-500 hover:bg-orange-600 text-black"
+            className="chance-hero-cta-primary chance-focus-ring shrink-0 px-3 text-xs"
             disabled={sendingId === friend.id}
             onClick={() => invite(friend)}
           >
-            <Video className="h-3 w-3 mr-1" />
+            <Video className="mr-1 size-3" aria-hidden />
             Invite
           </Button>
         </div>

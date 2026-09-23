@@ -16,7 +16,7 @@ import {
 } from "@/lib/bar-actions"
 import { createClient } from "@/lib/supabase/client"
 import type { Bar, BarTriviaSession, BarTriviaParticipant } from "@/lib/bar-actions"
-import Header from "@/components/navigation/header"
+import VenuesPageChrome from "@/components/venues/venues-page-chrome"
 import type { User } from "@/lib/supabase/client"
 
 export default function BarTriviaSessionPage() {
@@ -330,8 +330,8 @@ export default function BarTriviaSessionPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-950 relative">
-        <Header user={user} />
+      <VenuesPageChrome user={user}>
+        
         
         {/* Subtle gradient overlay */}
         
@@ -346,14 +346,14 @@ export default function BarTriviaSessionPage() {
             </CardContent>
           </Card>
         </div>
-      </div>
+      </VenuesPageChrome>
     )
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-950 relative">
-        <Header user={user} />
+      <VenuesPageChrome user={user}>
+        
         
         {/* Subtle gradient overlay */}
         
@@ -377,16 +377,16 @@ export default function BarTriviaSessionPage() {
             </CardContent>
           </Card>
         </div>
-      </div>
+      </VenuesPageChrome>
     )
   }
 
   if (!session || !bar) {
     return (
-      <div className="min-h-screen bg-gray-950 relative">
+      <VenuesPageChrome user={user}>
         {/* Subtle gradient overlay */}
         
-        <Header user={user} />
+        
         <div className="flex items-center justify-center p-4 pt-20">
           <Card className="w-full max-w-md bg-gray-900/80 border-gray-800">
             <CardContent className="p-6 text-center">
@@ -402,14 +402,13 @@ export default function BarTriviaSessionPage() {
             </CardContent>
           </Card>
         </div>
-      </div>
+      </VenuesPageChrome>
     )
   }
 
   return (
-    <div className="min-h-screen bg-black">
-      <Header user={user} />
-      <div className="max-w-4xl mx-auto p-4 pt-8 space-y-6">
+    <VenuesPageChrome user={user}>
+      <div className="chance-venues-live mx-auto max-w-4xl space-y-6">
         {/* Header */}
         <div className="flex items-center gap-4">
           <Button
@@ -421,7 +420,7 @@ export default function BarTriviaSessionPage() {
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-3xl font-bold text-white">{bar.name}</h1>
+            <h1 className="chance-hero-title text-2xl sm:text-3xl">{bar.name}</h1>
             <p className="text-white/80 mt-1">Trivia Session {session.session_code}</p>
           </div>
         </div>
@@ -621,6 +620,6 @@ export default function BarTriviaSessionPage() {
           </CardContent>
         </Card>
       </div>
-    </div>
+    </VenuesPageChrome>
   )
 }
