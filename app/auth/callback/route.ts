@@ -1,55 +1,81 @@
-import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs"
-import { cookies } from "next/headers"
+import { createServerClient } from "@supabase/ssr"
 import { type NextRequest, NextResponse } from "next/server"
+import { ensurePublicUserProfile } from "@/lib/ensure-public-user-profile"
+import { safeAppPath } from "@/lib/safe-redirect"
+
+function callbackRedirectPath(request: NextRequest) {
+  const params = request.nextUrl.searchParams
+  const raw = params.get("redirect") ?? params.get("next")
+  return safeAppPath(raw, "/dashboard")
+}
 
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url)
+  const oauthError = requestUrl.searchParams.get("error")
+  const oauthErrorDescription = requestUrl.searchParams.get("error_description")
   const code = requestUrl.searchParams.get("code")
-  const next = requestUrl.searchParams.get("next")
-  const redirect = requestUrl.searchParams.get("redirect")
-  
-  console.log("🔍 DEBUG: Auth callback received:", { code: code ? "present" : "missing", next, redirect })
-  
-  // Use redirect parameter if available, otherwise next, otherwise dashboard
-  const redirectUrl = redirect || next || "/dashboard"
+  const redirectPath = callbackRedirectPath(request)
+  const redirectTo = new URL(redirectPath, requestUrl.origin)
 
-  if (code) {
-    const cookieStore = await cookies()
-    const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
-
-    try {
-      console.log("🔍 DEBUG: Exchanging code for session...")
-      const { data, error } = await supabase.auth.exchangeCodeForSession(code)
-      
-      if (error) {
-        console.error("🔍 DEBUG: Error exchanging code for session:", error)
-        
-        // Handle specific error types
-        if (error.message?.includes('rate limit') || error.status === 429) {
-          console.log("🔍 DEBUG: Rate limit detected, redirecting to login with retry message")
-          return NextResponse.redirect(new URL("/auth/login?error=rate_limit", request.url))
-        } else if (error.message?.includes('invalid_grant') || error.message?.includes('code')) {
-          console.log("🔍 DEBUG: Invalid code, redirecting to login")
-          return NextResponse.redirect(new URL("/auth/login?error=invalid_code", request.url))
-        } else {
-          console.log("🔍 DEBUG: Generic auth error")
-          return NextResponse.redirect(new URL("/auth/login?error=auth_error", request.url))
-        }
-      }
-      
-      console.log("🔍 DEBUG: Successfully exchanged code for session:", { 
-        user: data.user ? "present" : "missing", 
-        session: data.session ? "present" : "missing" 
-      })
-    } catch (error) {
-      console.error("🔍 DEBUG: Exception during code exchange:", error)
-      return NextResponse.redirect(new URL("/auth/login?error=auth_error", request.url))
+  if (oauthError) {
+    console.error("Auth callback provider error:", oauthError, oauthErrorDescription)
+    const login = new URL("/auth/login", requestUrl.origin)
+    if (oauthErrorDescription?.toLowerCase().includes("rate") || oauthError === "too_many_requests") {
+      login.searchParams.set("error", "rate_limit")
+    } else {
+      login.searchParams.set("error", "auth_error")
     }
-  } else {
-    console.log("🔍 DEBUG: No code provided in callback")
+    return NextResponse.redirect(login)
   }
 
-  console.log("🔍 DEBUG: Redirecting to:", redirectUrl)
-  // Redirect to the specified URL
-  return NextResponse.redirect(new URL(redirectUrl, request.url))
+  if (!code) {
+    return NextResponse.redirect(new URL("/auth/login?error=missing_code", request.url))
+  }
+
+  const response = NextResponse.redirect(redirectTo)
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll()
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            response.cookies.set(name, value, options)
+          })
+        },
+      },
+    }
+  )
+
+  const {
+    data: { session: existingSession },
+  } = await supabase.auth.getSession()
+
+  if (existingSession?.user) {
+    await ensurePublicUserProfile(existingSession.user, supabase)
+    return response
+  }
+
+  const { data, error } = await supabase.auth.exchangeCodeForSession(code)
+
+  if (error) {
+    console.error("Auth callback exchangeCodeForSession:", error.message)
+    if (error.message?.includes("rate limit") || error.status === 429) {
+      return NextResponse.redirect(new URL("/auth/login?error=rate_limit", request.url))
+    }
+    if (error.message?.includes("invalid_grant") || error.message?.includes("code")) {
+      return NextResponse.redirect(new URL("/auth/login?error=invalid_code", request.url))
+    }
+    return NextResponse.redirect(new URL("/auth/login?error=auth_error", request.url))
+  }
+
+  if (data.user) {
+    await ensurePublicUserProfile(data.user, supabase)
+  }
+
+  return response
 }

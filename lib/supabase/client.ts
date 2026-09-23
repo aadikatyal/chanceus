@@ -1,28 +1,27 @@
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
+import { createBrowserClient } from "@supabase/ssr"
+import type { SupabaseClient } from "@supabase/supabase-js"
 
-// Check if Supabase environment variables are available
 export const isSupabaseConfigured =
   typeof process.env.NEXT_PUBLIC_SUPABASE_URL === "string" &&
   process.env.NEXT_PUBLIC_SUPABASE_URL.length > 0 &&
   typeof process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY === "string" &&
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY.length > 0
 
-// Create a singleton instance of the Supabase client for Client Components
-// Enable real-time functionality with proper configuration
-export const supabase = createClientComponentClient({
-  realtime: {
-    params: {
-      eventsPerSecond: 5, // Reduced to prevent binding issues
-      heartbeatIntervalMs: 30000, // Add heartbeat
-      reconnectAfterMs: (tries: number) => Math.min(tries * 1000, 30000) // Exponential backoff
-    }
-  }
-})
+function createBrowserSupabaseClient(): SupabaseClient {
+  return createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
+    realtime: {
+      params: {
+        eventsPerSecond: 5,
+      },
+    },
+  })
+}
 
-// Export createClient function for compatibility
+/** Browser Supabase client — use @supabase/ssr so OAuth PKCE matches /auth/callback. */
+export const supabase = createBrowserSupabaseClient()
+
 export const createClient = () => supabase
 
-// Database types
 export interface User {
   id: string
   username: string
@@ -56,7 +55,7 @@ export interface Match {
   bet_amount: number
   status: "waiting" | "in_progress" | "completed" | "cancelled"
   winner_id?: string
-  game_data?: any
+  game_data?: unknown
   started_at?: string
   completed_at?: string
   created_at: string
@@ -77,7 +76,7 @@ export interface MatchHistory {
   match_id: string
   user_id: string
   action_type: string
-  action_data?: any
+  action_data?: unknown
   timestamp: string
 }
 
@@ -91,7 +90,6 @@ export interface Message {
   recipient_id?: string
   is_read: boolean
   created_at: string
-  // Joined data
   sender?: User
   recipient?: User
 }

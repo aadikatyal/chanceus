@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { Gamepad2, Phone } from "lucide-react"
+import PlayFriendMenu from "@/components/friends/play-friend-menu"
 import { useEffect, useState } from "react"
 import { supabase } from "@/lib/supabase/client"
 import { EmptyState, SkeletonRows } from "@/components/dashboard/chance-craft"
@@ -111,13 +112,15 @@ export default function FriendsRail() {
                   <p className="chance-text-caption truncate">@{friend.username}</p>
                 </div>
                 <div className="flex shrink-0 gap-1">
-                  <Link
-                    href="/games"
-                    className="chance-icon-action chance-focus-ring size-8"
-                    aria-label={`Challenge ${friend.display_name}`}
-                  >
-                    <Gamepad2 className="size-3.5 stroke-[1.75]" />
-                  </Link>
+                  <PlayFriendMenu friend={{ id: friend.id, display_name: friend.display_name }}>
+                    <button
+                      type="button"
+                      className="chance-icon-action chance-focus-ring size-8"
+                      aria-label={`Play with ${friend.display_name}`}
+                    >
+                      <Gamepad2 className="size-3.5 stroke-[1.75]" />
+                    </button>
+                  </PlayFriendMenu>
                   <Link
                     href="/call"
                     className="chance-icon-action chance-focus-ring size-8"

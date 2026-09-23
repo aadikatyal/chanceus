@@ -1,20 +1,13 @@
-import { createMiddlewareClient } from "@supabase/auth-helpers-nextjs"
+import { createServerClient } from "@supabase/ssr"
 import { NextResponse, type NextRequest } from "next/server"
 
-// Specify Edge Runtime
-export const runtime = 'edge'
-
 export async function updateSession(request: NextRequest) {
-  const res = NextResponse.next()
+  let response = NextResponse.next({ request })
 
-  // Define auth routes that should bypass session checks
   const isAuthRoute = request.nextUrl.pathname.startsWith("/auth/")
-  
-  // CRITICAL: All auth routes (including /auth/callback) must bypass session checks
-  // This allows Supabase to set the session cookie during OAuth callbacks
+
   if (isAuthRoute) {
-    console.log("🔍 DEBUG: Bypassing middleware for auth route:", request.nextUrl.pathname)
-    return res
+    return response
   }
 
   // Define protected routes that require authentication
@@ -37,13 +30,30 @@ export async function updateSession(request: NextRequest) {
     request.nextUrl.pathname.startsWith("/bar") ||
     request.nextUrl.pathname.startsWith("/session")
 
-  try {
-    // Only check session for protected routes
-    if (isProtectedRoute) {
-    // Create a Supabase client configured to use cookies
-    const supabase = createMiddlewareClient({ req: request, res })
+  if (!isProtectedRoute) {
+    return response
+  }
 
-    // Refresh session if expired - required for Server Components
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  if (!supabaseUrl || !supabaseKey) {
+    return response
+  }
+
+  const supabase = createServerClient(supabaseUrl, supabaseKey, {
+    cookies: {
+      getAll() {
+        return request.cookies.getAll()
+      },
+      setAll(cookiesToSet) {
+        cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
+        response = NextResponse.next({ request })
+        cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options))
+      },
+    },
+  })
+
+  try {
     const {
       data: { user },
     } = await supabase.auth.getUser()
@@ -52,12 +62,10 @@ export async function updateSession(request: NextRequest) {
       const redirectUrl = `/auth/login?redirect=${encodeURIComponent(request.nextUrl.pathname)}`
       return NextResponse.redirect(new URL(redirectUrl, request.url))
     }
-    }
 
-    return res
+    return response
   } catch (error) {
-    // If there's an error (e.g., Supabase not configured), just continue
-    console.warn("🔍 DEBUG: Middleware error:", error)
-    return res
+    console.warn("Middleware auth error:", error)
+    return response
   }
 }
