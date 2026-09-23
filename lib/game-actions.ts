@@ -18,9 +18,9 @@ export async function createMatch(prevState: any, formData: FormData) {
     return { error: "Game and bet amount are required" }
   }
 
-  const betAmountNum = Number.parseInt(betAmount.toString())
-  if (betAmountNum < 1) {
-    return { error: "Bet amount must be at least 1 token" }
+  const betAmountNum = Number.parseInt(betAmount.toString(), 10)
+  if (Number.isNaN(betAmountNum) || betAmountNum < 0) {
+    return { error: "Invalid bet amount" }
   }
 
   const cookieStore = await cookies()
@@ -35,16 +35,17 @@ export async function createMatch(prevState: any, formData: FormData) {
       return { error: "User not authenticated" }
     }
 
-    // Check if user has enough tokens
-    const { data: userData, error: userError } = await supabase.from("users").select("tokens").eq("id", user.id).single()
+    if (betAmountNum > 0) {
+      const { data: userData, error: userError } = await supabase.from("users").select("tokens").eq("id", user.id).single()
 
-    if (userError) {
-      console.error("Error fetching user data:", userError)
-      return { error: "Failed to fetch user data" }
-    }
+      if (userError) {
+        console.error("Error fetching user data:", userError)
+        return { error: "Failed to fetch user data" }
+      }
 
-    if (!userData || userData.tokens < betAmountNum) {
-      return { error: "Insufficient token balance" }
+      if (!userData || userData.tokens < betAmountNum) {
+        return { error: "Insufficient token balance" }
+      }
     }
 
     // Verify game exists and get min/max bet limits
@@ -59,7 +60,7 @@ export async function createMatch(prevState: any, formData: FormData) {
       return { error: "Game not found" }
     }
 
-    if (betAmountNum < gameData.min_bet || betAmountNum > gameData.max_bet) {
+    if (betAmountNum > 0 && (betAmountNum < gameData.min_bet || betAmountNum > gameData.max_bet)) {
       return { error: `Bet amount must be between ${gameData.min_bet} and ${gameData.max_bet} tokens` }
     }
 
@@ -80,29 +81,21 @@ export async function createMatch(prevState: any, formData: FormData) {
       return { error: "Failed to create match" }
     }
 
-    // Deduct tokens from user
-    const { error: updateError } = await supabase
-      .from("users")
-      .update({ tokens: userData.tokens - betAmountNum })
-      .eq("id", user.id)
+    // Escrow via transactions — DB trigger updates users.tokens (do not write tokens column directly).
+    if (betAmountNum > 0) {
+      const { error: transactionError } = await supabase.from("transactions").insert({
+        user_id: user.id,
+        match_id: matchData.id,
+        amount: -betAmountNum,
+        type: "bet",
+        description: `Bet ${betAmountNum} tokens on ${gameData.name}`,
+      })
 
-    if (updateError) {
-      console.error("Error updating user tokens:", updateError)
-      return { error: "Failed to update user tokens" }
-    }
-
-    // Create transaction record
-    const { error: transactionError } = await supabase.from("transactions").insert({
-      user_id: user.id,
-      match_id: matchData.id,
-      amount: -betAmountNum,
-      type: "bet",
-      description: `Bet ${betAmountNum} tokens on ${gameData.name}`,
-    })
-
-    if (transactionError) {
-      console.error("Transaction creation error:", transactionError)
-      return { error: "Failed to create transaction record" }
+      if (transactionError) {
+        console.error("Transaction creation error:", transactionError)
+        await supabase.from("matches").delete().eq("id", matchData.id)
+        return { error: "Failed to escrow match tokens" }
+      }
     }
 
     revalidatePath("/matches")
