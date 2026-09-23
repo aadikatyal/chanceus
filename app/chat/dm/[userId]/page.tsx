@@ -1,7 +1,10 @@
+import Link from "next/link"
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/server"
 import { redirect, notFound } from "next/navigation"
-import Header from "@/components/navigation/header"
+import CompetitiveShell from "@/components/app/competitive-shell"
 import ChatWindow from "@/components/chat/chat-window"
+import { ChanceText } from "@/components/design-system/typography"
+import { ArrowLeft } from "lucide-react"
 
 interface DMPageProps {
   params: Promise<{ userId: string }>
@@ -12,8 +15,10 @@ export default async function DMPage({ params }: DMPageProps) {
 
   if (!isSupabaseConfigured) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[var(--chance-bg)] text-[var(--chance-fg)] chance-competitive-theme">
-        <h1 className="text-2xl font-bold mb-4 text-white">Connect Supabase to get started</h1>
+      <div className="flex min-h-screen items-center justify-center bg-[var(--chance-bg)] px-4">
+        <ChanceText as="h1" variant="h2">
+          Connect Supabase to get started
+        </ChanceText>
       </div>
     )
   }
@@ -27,17 +32,12 @@ export default async function DMPage({ params }: DMPageProps) {
     redirect("/auth/login")
   }
 
-  const { data: user } = await supabase
-    .from("users")
-    .select("*")
-    .eq("id", authUser.id)
-    .single()
+  const { data: user } = await supabase.from("users").select("*").eq("id", authUser.id).single()
 
   if (!user) {
     redirect("/auth/login")
   }
 
-  // Get recipient info
   const { data: recipient } = await supabase
     .from("users")
     .select("id, username, display_name, avatar_url")
@@ -49,28 +49,33 @@ export default async function DMPage({ params }: DMPageProps) {
   }
 
   const displayName = recipient.display_name || recipient.username
+  const handle = recipient.username ? `@${recipient.username}` : displayName
 
   return (
-    <div className="min-h-screen bg-[var(--chance-bg)] text-[var(--chance-fg)] relative chance-competitive-theme">
-      <Header user={user} />
-      
-      
-
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
-        <div className="mb-8">
-          <h1 className="chance-hero-title text-2xl sm:text-3xl mb-2">Direct Message</h1>
-          <p className="text-gray-400">Chatting with {displayName}</p>
-        </div>
-
-        <ChatWindow
-          messageType="dm"
-          currentUser={user}
-          recipientId={resolvedParams.userId}
-          title={`Chat with ${displayName}`}
-          maxHeight="600px"
-        />
-      </main>
-    </div>
+    <CompetitiveShell user={user}>
+      <div className="chance-home-feed flex min-h-0 flex-1 flex-col">
+        <section className="chance-premium-card chance-social-chat-panel flex min-h-[32rem] flex-1 flex-col">
+          <div className="chance-rail-card-head shrink-0 border-b border-[var(--chance-border)] px-4 py-3 sm:px-5">
+            <div className="min-w-0">
+              <Link href="/chat" className="chance-link-subtle mb-1 inline-flex items-center gap-1 text-xs">
+                <ArrowLeft className="size-3.5" aria-hidden />
+                Social
+              </Link>
+              <h1 className="chance-section-title truncate text-base">{displayName}</h1>
+              <p className="chance-text-caption truncate">{handle}</p>
+            </div>
+          </div>
+          <div className="chance-social-chat-body min-h-0 flex-1">
+            <ChatWindow
+              messageType="dm"
+              currentUser={user}
+              recipientId={resolvedParams.userId}
+              maxHeight="100%"
+              appearance="chance"
+            />
+          </div>
+        </section>
+      </div>
+    </CompetitiveShell>
   )
 }
-

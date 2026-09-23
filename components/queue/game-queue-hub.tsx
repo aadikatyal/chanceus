@@ -7,6 +7,7 @@ import { useEffect, useMemo, useState } from "react"
 import { ArrowLeft, Coins, Clock, Users, Zap } from "lucide-react"
 import type { Game } from "@/lib/supabase/client"
 import MatchmakingInterface from "@/components/games/matchmaking-interface"
+import { createMatch } from "@/lib/game-actions"
 import { getGameDisplayName, getGameThumbnail } from "@/lib/games/game-visuals"
 import { formatQueueEstimate, type GameLiveStats } from "@/lib/games/play-catalog"
 
@@ -58,6 +59,8 @@ export default function GameQueueHub({
 
   const [selectedStakeId, setSelectedStakeId] = useState(stakes[1]?.id ?? stakes[0]?.id ?? "free")
   const [inQueue, setInQueue] = useState(false)
+  const [hosting, setHosting] = useState(false)
+  const [hostError, setHostError] = useState<string | null>(null)
 
   const selected = stakes.find((s) => s.id === selectedStakeId) ?? stakes[0]
 
@@ -67,8 +70,26 @@ export default function GameQueueHub({
     if (tier === "tokens" && stakes[1]) setSelectedStakeId(stakes[1].id)
   }, [searchParams, stakes])
 
+  const hostAmount = selected.matchType === "free" ? Math.max(1, game.min_bet ?? 1) : selected.betAmount
+  const canHost = tokens >= hostAmount
   const canAfford =
     selected.matchType === "free" || tokens >= selected.betAmount
+
+  const hostLobby = async () => {
+    if (!canHost || hosting) return
+    setHosting(true)
+    setHostError(null)
+    const formData = new FormData()
+    formData.set("gameId", game.id)
+    formData.set("betAmount", String(hostAmount))
+    const result = await createMatch(null, formData)
+    if (result?.error || !result?.matchId) {
+      setHostError(result?.error || "Could not open a lobby")
+      setHosting(false)
+      return
+    }
+    router.push(`/games/match/${result.matchId}`)
+  }
 
   return (
     <div className="chance-home-feed mx-auto w-full max-w-none">
@@ -154,6 +175,7 @@ export default function GameQueueHub({
                   </Link>
                 </p>
               ) : null}
+              {hostError ? <p className="chance-text-caption mt-3 text-[var(--chance-no)]">{hostError}</p> : null}
 
               <div className="chance-hero-cta-row mt-6">
                 <button
@@ -164,9 +186,14 @@ export default function GameQueueHub({
                 >
                   Enter queue
                 </button>
-                <Link href={`/games/${game.id}`} className="chance-hero-cta-ghost chance-focus-ring">
-                  Custom lobby
-                </Link>
+                <button
+                  type="button"
+                  className="chance-hero-cta-ghost chance-focus-ring disabled:opacity-50"
+                  disabled={!canHost || hosting}
+                  onClick={() => void hostLobby()}
+                >
+                  {hosting ? "Opening…" : "Custom lobby"}
+                </button>
               </div>
             </>
           ) : (

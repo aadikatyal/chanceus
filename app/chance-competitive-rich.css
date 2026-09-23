@@ -2091,10 +2091,12 @@
 }
 
 .chance-match-player-avatar {
-  size: 4.5rem;
+  display: flex;
   width: 4.5rem;
   height: 4.5rem;
+  margin-top: 1rem;
   font-size: 1.125rem;
+  line-height: 1;
 }
 
 .chance-match-status-badge {
