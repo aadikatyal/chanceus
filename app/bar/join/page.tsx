@@ -13,7 +13,8 @@ import { toast } from "sonner"
 import QRCodeScanner from "@/components/bar/qr-code-scanner"
 import { getBarByCode, joinBarTriviaSession, getActiveBarSessions, getMyBars } from "@/lib/bar-actions"
 import type { Bar, BarTriviaSession } from "@/lib/bar-actions"
-import Header from "@/components/navigation/header"
+import VenuesPageChrome from "@/components/venues/venues-page-chrome"
+import VenuesHero from "@/components/venues/venues-hero"
 import { createClient } from "@/lib/supabase/client"
 import type { User } from "@/lib/supabase/client"
 import { getCompleteUserData } from "@/lib/user-utils"
@@ -313,133 +314,73 @@ function BarJoinPageContent() {
     }
   }
 
-  if (userLoading) {
+  if (userLoading || isLoading) {
     return (
-      <div className="min-h-screen bg-gray-950 relative">
-        <Header user={user} />
-        
-        {/* Subtle gradient overlay */}
-        
-        
-        <div className="flex items-center justify-center p-4 pt-20 relative z-10">
-          <Card className="w-full max-w-md bg-gray-900/80 border-gray-800">
-            <CardContent className="p-6">
-              <div className="text-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto mb-4"></div>
-                <p className="text-white">Checking authentication...</p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    )
-  }
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-950 relative">
-        <Header user={user} />
-        
-        {/* Subtle gradient overlay */}
-        
-        
-        <div className="flex items-center justify-center p-4 pt-20 relative z-10">
-          <Card className="w-full max-w-md bg-gray-900/80 border-gray-800">
-            <CardContent className="p-6">
-              <div className="text-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto mb-4"></div>
-                <p className="text-white">Loading...</p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+      <VenuesPageChrome user={user}>
+        <section className="chance-premium-card mx-auto max-w-md p-8 text-center">
+          <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-[var(--chance-border)] border-t-[var(--chance-brand)]" />
+          <p className="chance-text-caption">{userLoading ? "Checking you in…" : "Loading venue…"}</p>
+        </section>
+      </VenuesPageChrome>
     )
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-950 relative">
-        <Header user={user} />
-        
-        {/* Subtle gradient overlay */}
-        
-        
-        <div className="flex items-center justify-center p-4 pt-20 relative z-10">
-          <Card className="w-full max-w-md bg-gray-900/80 border-gray-800">
-            <CardHeader>
-              <CardTitle className="text-center text-red-400">Error</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Alert variant="destructive" className="bg-red-500/20 border-red-500/40">
-                <AlertDescription className="text-red-200">{error}</AlertDescription>
-              </Alert>
-              <QRCodeScanner 
-                onCodeScanned={handleCodeScanned}
-                onManualCode={handleManualCode}
-                onSessionCode={handleSessionCode}
-              />
-            </CardContent>
-          </Card>
+      <VenuesPageChrome user={user}>
+        <div className="chance-venues-join mx-auto max-w-lg space-y-4">
+          <VenuesHero kicker="Check-in" title="Couldn’t find that event" subtitle="Try scanning again or enter the code from the host." />
+          <section className="chance-premium-card p-4 sm:p-5">
+            <Alert variant="destructive">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+            <div className="mt-4">
+              <QRCodeScanner onCodeScanned={handleCodeScanned} onManualCode={handleManualCode} onSessionCode={handleSessionCode} />
+            </div>
+          </section>
         </div>
-      </div>
+      </VenuesPageChrome>
     )
   }
 
-
   if (!bar) {
     return (
-      <div className="min-h-screen bg-gray-950 relative">
-        <Header user={user} />
-        
-        {/* Subtle gradient overlay */}
-        
-        
-        <div className="flex items-center justify-center p-4 pt-20 relative z-10">
-          <Card className="w-full max-w-md bg-gray-900/80 border-gray-800">
-            <CardHeader>
-              <CardTitle className="text-center text-white">Join Bar Trivia</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <QRCodeScanner 
-                onCodeScanned={handleCodeScanned}
-                onManualCode={handleManualCode}
-                onSessionCode={handleSessionCode}
-              />
-            </CardContent>
-          </Card>
+      <VenuesPageChrome user={user}>
+        <div className="chance-venues-join mx-auto max-w-lg space-y-4">
+          <VenuesHero
+            kicker="Live events"
+            title="Check in"
+            subtitle="Scan the QR at the venue or enter the code to see what’s happening tonight."
+          />
+          <section className="chance-premium-card chance-venues-panel p-4 sm:p-5">
+            <QRCodeScanner onCodeScanned={handleCodeScanned} onManualCode={handleManualCode} onSessionCode={handleSessionCode} />
+          </section>
         </div>
-      </div>
+      </VenuesPageChrome>
     )
   }
 
   console.log("Rendering with user:", user, "userLoading:", userLoading)
 
   return (
-    <div className="min-h-screen bg-gray-950 relative">
-      <Header user={user} />
-      
-      {/* Subtle gradient overlay */}
-      
-      
-      <div className="max-w-4xl mx-auto p-4 pt-8 space-y-6 relative z-10">
-        {/* Bar Information */}
-        <Card className="bg-gray-900/80 border-gray-800">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-white text-2xl">{bar.name}</CardTitle>
-                {bar.description && (
-                  <p className="text-white/80 mt-1">{bar.description}</p>
-                )}
-              </div>
-              <Badge variant="secondary" className="bg-green-500/20 text-green-400 border-green-500/30">
-                Active
-              </Badge>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-white/80">
+    <VenuesPageChrome user={user}>
+      <div className="chance-venues-join mx-auto max-w-3xl space-y-6">
+        <VenuesHero
+          kicker="Live event"
+          title={bar.name}
+          subtitle={bar.description || "Check in, pick tonight's session, and compete for the in-room board."}
+          live={sessions.some((s) => s.status === "active")}
+          stats={[{ label: "sessions open", value: sessions.length }]}
+        />
+        <section className="chance-premium-card chance-venues-panel p-4 sm:p-5">
+          <div className="chance-rail-card-head mb-3">
+            <h2 className="chance-section-title text-base">Venue details</h2>
+            <Badge variant="secondary" className="chance-venues-live-pill border-0">
+              Active
+            </Badge>
+          </div>
+          <div>
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3 text-[var(--chance-muted-fg)]">
               {bar.address && (
                 <div className="flex items-center gap-2">
                   <MapPin className="h-4 w-4" />
@@ -466,23 +407,17 @@ function BarJoinPageContent() {
                 </div>
               )}
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Debug info */}
-        <div className="text-white text-sm">
-          Debug: sessions.length = {sessions.length}
-          {sessions.map(s => <div key={s.id}>Session: {s.session_code}, Status: {s.status}</div>)}
-        </div>
+          </div>
+        </section>
 
         {/* Available Sessions */}
         {sessions.length > 0 ? (
-          <Card className="bg-gray-900/80 border-gray-800">
-            <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
-                <Trophy className="h-5 w-5" />
-                Available Trivia Sessions
-              </CardTitle>
+          <section className="chance-premium-card chance-venues-panel p-4 sm:p-5">
+            <div className="mb-4">
+              <h2 className="chance-section-title flex items-center gap-2 text-base">
+                <Trophy className="h-5 w-5 text-[var(--chance-brand)]" />
+                Tonight&apos;s sessions
+              </h2>
               {userParticipant && (
                 <div className="bg-green-500/20 border border-green-500/30 rounded-lg p-3 mt-2">
                   <div className="flex items-center gap-2 text-green-400">
@@ -496,42 +431,37 @@ function BarJoinPageContent() {
                   </div>
                 </div>
               )}
-            </CardHeader>
-            <CardContent>
+            </div>
               <form onSubmit={handleJoinSession} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="display-name" className="text-white">
-                    Your Display Name
-                  </Label>
+                  <Label htmlFor="display-name">Your display name</Label>
                   <Input
                     id="display-name"
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
-                    placeholder="Enter your name for the leaderboard"
-                    className="bg-gray-800 border-gray-600 text-white placeholder:text-white/60"
+                    placeholder="Name on the live leaderboard"
+                    className="chance-input"
                     required
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-white">Select a Session</Label>
+                  <Label>Pick a session</Label>
                   <div className="space-y-2">
                     {sessions.map((session) => (
                       <div
                         key={session.id}
-                        className={`p-3 rounded-lg border cursor-pointer transition-colors ${
-                          selectedSession === session.id
-                            ? "bg-purple-500/30 border-purple-400"
-                            : "bg-gray-800 border-gray-600 hover:bg-gray-950 relative/40"
+                        className={`chance-venues-session-pick cursor-pointer ${
+                          selectedSession === session.id ? "is-selected" : ""
                         }`}
                         onClick={() => setSelectedSession(session.id)}
                       >
                         <div className="flex items-center justify-between">
                           <div>
-                            <p className="text-white font-medium">
+                            <p className="text-sm font-semibold">
                               Session {session.session_code}
                             </p>
-                            <div className="flex items-center gap-4 text-white/60 text-sm mt-1">
+                            <div className="chance-text-caption mt-1 flex flex-wrap items-center gap-4">
                               <div className="flex items-center gap-1">
                                 <Users className="h-3 w-3" />
                                 {session.total_players} players
@@ -558,79 +488,60 @@ function BarJoinPageContent() {
                   </div>
                 </div>
 
-                <Button 
-                  type="submit" 
-                  className={`w-full text-white ${
-                    userParticipant 
-                      ? "bg-green-600 hover:bg-green-700" 
-                      : "bg-blue-600 hover:bg-blue-700"
-                  }`}
+                <Button
+                  type="submit"
+                  className="chance-hero-cta-primary chance-focus-ring w-full"
                   disabled={!selectedSession || !displayName.trim()}
                 >
-                  {userParticipant ? "Rejoin Trivia Session" : "Join Trivia Session"}
+                  {userParticipant ? "Rejoin live session" : "Join live session"}
                 </Button>
               </form>
-            </CardContent>
-          </Card>
+          </section>
         ) : (
-          <Card className="bg-gray-900/80 border-gray-800">
-            <CardContent className="p-6 text-center">
-              <Trophy className="h-12 w-12 text-white/40 mx-auto mb-4" />
-              <h3 className="text-white text-lg font-medium mb-2">No Active Sessions</h3>
-              <p className="text-white/60">
-                There are no trivia sessions available at {bar.name} right now.
-                Check back later or ask the staff to start a session!
+          <section className="chance-premium-card chance-venues-panel p-6 text-center">
+              <Trophy className="mx-auto mb-4 h-12 w-12 text-[var(--chance-muted-fg)] opacity-60" />
+              <h3 className="text-lg font-medium mb-2">Doors closed for now</h3>
+              <p className="chance-text-caption">
+                No sessions are open at {bar.name}. Check back later or ask the host to start the floor.
               </p>
-            </CardContent>
-          </Card>
+          </section>
         )}
 
-        {/* Instructions */}
-        <Card className="bg-gray-900/80 border-gray-800">
-          <CardContent className="p-6">
-            <h3 className="text-white font-medium mb-3">How to Play</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-white/80 text-sm">
+        <section className="chance-premium-card chance-venues-panel p-4 sm:p-6">
+            <h3 className="chance-section-title text-base mb-3">How the night works</h3>
+            <div className="grid grid-cols-1 gap-4 text-sm md:grid-cols-2">
               <div>
-                <h4 className="font-medium text-white mb-2">Getting Started</h4>
-                <ul className="space-y-1">
-                  <li>• Scan QR code or enter venue code</li>
-                  <li>• Enter your display name</li>
-                  <li>• Join an available session</li>
+                <h4 className="mb-2 font-medium">Check in</h4>
+                <ul className="chance-text-caption space-y-1">
+                  <li>Scan QR or enter venue code</li>
+                  <li>Claim your leaderboard name</li>
+                  <li>Join the active session</li>
                 </ul>
               </div>
               <div>
-                <h4 className="font-medium text-white mb-2">Winning Drinks</h4>
-                <ul className="space-y-1">
-                  <li>• Beat the high score to win a drink</li>
-                  <li>• Answer questions quickly for bonus points</li>
-                  <li>• Show your reward to bar staff</li>
+                <h4 className="mb-2 font-medium">Compete & return</h4>
+                <ul className="chance-text-caption space-y-1">
+                  <li>Climb the live in-room board</li>
+                  <li>Rewards per venue rules</li>
+                  <li>Come back next week to defend rank</li>
                 </ul>
               </div>
             </div>
-          </CardContent>
-        </Card>
+        </section>
       </div>
-    </div>
+    </VenuesPageChrome>
   )
 }
 
 export default function BarJoinPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-gray-950 relative">
-        <Header />
-        <div className="flex items-center justify-center p-4 pt-20">
-          <Card className="w-full max-w-md bg-gray-900/80 border-gray-800">
-            <CardContent className="p-6">
-              <div className="text-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto mb-4"></div>
-                <p className="text-white">Loading...</p>
-              </div>
-            </CardContent>
-          </Card>
+    <Suspense
+      fallback={
+        <div className="chance-competitive-theme flex min-h-screen items-center justify-center bg-[var(--chance-bg)] p-4">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--chance-border)] border-t-[var(--chance-brand)]" />
         </div>
-      </div>
-    }>
+      }
+    >
       <BarJoinPageContent />
     </Suspense>
   )

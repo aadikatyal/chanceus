@@ -41,20 +41,20 @@ export default function CallInviteListener({ userId }: { userId?: string | null 
   const gameName = CALL_GAMES.find((game) => game.id === invite.game)?.name || "a game"
 
   return (
-    <div className="fixed bottom-4 left-1/2 z-[60] w-[min(92vw,420px)] -translate-x-1/2 rounded-xl border border-orange-500/40 bg-gray-900 p-4 shadow-xl">
+    <div className="chance-call-invite-toast chance-premium-card fixed bottom-4 left-1/2 z-[60] w-[min(92vw,420px)] -translate-x-1/2 p-4 shadow-[var(--chance-shadow-elevated)]">
       <div className="flex items-start gap-3">
-        <Video className="h-5 w-5 text-orange-400 mt-0.5" />
-        <div className="flex-1">
-          <p className="text-white font-medium">{invite.fromName} invited you to a Live Call</p>
-          <p className="text-sm text-gray-400">Play {gameName} together on video.</p>
-          <div className="mt-3 flex gap-2">
+        <Video className="mt-0.5 size-5 stroke-[1.75] text-[var(--chance-brand)]" aria-hidden />
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-semibold">{invite.fromName} invited you to a live call</p>
+          <p className="chance-text-caption mt-0.5 text-sm">Play {gameName} together on video.</p>
+          <div className="mt-3 flex flex-wrap gap-2">
             <Button
-              className="bg-orange-500 hover:bg-orange-600 text-black"
+              className="chance-hero-cta-primary chance-focus-ring px-4 py-2 text-sm"
               onClick={() => router.push(`/call/${invite.roomCode}?game=${invite.game}`)}
             >
               Join call
             </Button>
-            <Button variant="ghost" className="text-gray-300" onClick={() => setInvite(null)}>
+            <Button variant="ghost" className="chance-text-caption hover:bg-[var(--chance-surface-inset)]" onClick={() => setInvite(null)}>
               Dismiss
             </Button>
           </div>

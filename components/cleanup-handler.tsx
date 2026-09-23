@@ -1,11 +1,14 @@
 "use client"
 
-import { useEffect } from 'react'
-import { cleanupExpiredMatches } from '@/lib/cleanup-actions'
+import { useEffect, useRef } from "react"
+import { cleanupExpiredMatches } from "@/lib/cleanup-actions"
+
+const CLEANUP_INTERVAL_MS = 5 * 60 * 1000
 
 export default function CleanupHandler() {
+  const ranRef = useRef(false)
+
   useEffect(() => {
-    // Run cleanup when component mounts (client-side)
     const runCleanup = async () => {
       try {
         await cleanupExpiredMatches()
@@ -14,12 +17,14 @@ export default function CleanupHandler() {
       }
     }
 
-    // Run cleanup immediately and then every 10 seconds
-    runCleanup() // Run immediately
-    const interval = setInterval(runCleanup, 10000) // Every 10 seconds
-    
+    if (!ranRef.current) {
+      ranRef.current = true
+      void runCleanup()
+    }
+
+    const interval = setInterval(runCleanup, CLEANUP_INTERVAL_MS)
     return () => clearInterval(interval)
   }, [])
 
-  return null // This component doesn't render anything
+  return null
 }

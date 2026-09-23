@@ -19,12 +19,7 @@ const gameIcons = {
   "Trivia Challenge": "🧠",
 }
 
-const gameThumbnails = {
-  "Math Blitz": "/math-blitz.JPG",
-  "Four in a Row": "/4-in-a-row.JPG",
-  "4 In a Row": "/4-in-a-row.JPG",
-  "Trivia Challenge": "/trivia-blitz.JPG",
-}
+import { getGameDisplayName, getGameThumbnail } from "@/lib/games/game-visuals"
 
 const gameColors = {
   "Math Blitz": {
@@ -49,20 +44,10 @@ const gameColors = {
   },
 }
 
-// Function to override game names
-const getDisplayName = (gameName: string) => {
-  if (gameName === "Connect 4") return "Four in a Row"
-  return gameName
-}
-
 export default function GameCard({ game, activeMatches = 0, onlineUsers = 0 }: GameCardProps) {
   const colors = gameColors[game.name as keyof typeof gameColors] || gameColors["Math Blitz"]
-  const displayName = getDisplayName(game.name)
-  
-  // Get thumbnail using display name instead of original name
-  const thumbnailSrc = gameThumbnails[displayName as keyof typeof gameThumbnails] || "/placeholder.jpg"
-  
-  console.log("🎮 GameCard rendering for:", { id: game.id, name: game.name, displayName, thumbnailSrc })
+  const displayName = getGameDisplayName(game.name)
+  const thumbnailSrc = getGameThumbnail(game.name)
 
   return (
     <Card className="bg-gray-900/80 border-gray-800 hover:border-gray-700 transition-colors mx-1 sm:mx-0 group">
@@ -116,7 +101,7 @@ export default function GameCard({ game, activeMatches = 0, onlineUsers = 0 }: G
             size="sm"
             className="flex-1 bg-orange-600 hover:bg-orange-700 text-white font-semibold"
           >
-            <Link href={`/games/${game.id}/create`}>
+            <Link href={`/games/${game.id}`}>
               Create Match
             </Link>
           </Button>

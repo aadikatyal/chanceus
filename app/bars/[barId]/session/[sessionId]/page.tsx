@@ -38,7 +38,7 @@ import {
   startBarTriviaSession
 } from "@/lib/bar-actions"
 import type { Bar, BarTriviaSession, BarTriviaParticipant } from "@/lib/bar-actions"
-import Header from "@/components/navigation/header"
+import VenuesPageChrome from "@/components/venues/venues-page-chrome"
 import type { User } from "@/lib/supabase/client"
 
 export default function LiveSessionPage() {
@@ -269,7 +269,7 @@ export default function LiveSessionPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-950 relative flex items-center justify-center p-4">
+      <div className="min-h-screen bg-[var(--chance-bg)] text-[var(--chance-fg)] relative chance-competitive-theme flex items-center justify-center p-4">
         {/* Subtle gradient overlay */}
         
         
@@ -287,7 +287,7 @@ export default function LiveSessionPage() {
 
   if (!session || !bar) {
     return (
-      <div className="min-h-screen bg-gray-950 relative flex items-center justify-center p-4">
+      <div className="min-h-screen bg-[var(--chance-bg)] text-[var(--chance-fg)] relative chance-competitive-theme flex items-center justify-center p-4">
         {/* Subtle gradient overlay */}
         
         
@@ -309,8 +309,8 @@ export default function LiveSessionPage() {
   const isActive = session.status === "active"
 
   return (
-    <div className="min-h-screen bg-gray-950 relative">
-      <Header user={user} />
+    <VenuesPageChrome user={user}>
+      
       
       {/* Subtle gradient overlay */}
       
@@ -328,7 +328,7 @@ export default function LiveSessionPage() {
               <ArrowLeft className="h-4 w-4" />
             </Button>
             <div>
-              <h1 className="text-3xl font-bold text-white">{bar.name}</h1>
+              <h1 className="chance-hero-title text-2xl sm:text-3xl">{bar.name}</h1>
               <p className="text-white/80 mt-1">Session {session.session_code}</p>
             </div>
           </div>
@@ -709,6 +709,6 @@ export default function LiveSessionPage() {
           </CardContent>
         </Card>
       </div>
-    </div>
+    </VenuesPageChrome>
   )
 }

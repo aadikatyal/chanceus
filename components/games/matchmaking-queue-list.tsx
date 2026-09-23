@@ -1,10 +1,11 @@
 "use client"
 
-import { Button } from "@/components/ui/button"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { joinMatchmakingQueue } from "@/lib/matchmaking-actions"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
+import { EmptyState } from "@/components/dashboard/chance-craft"
+import ChancePlayerAvatar from "@/components/dashboard/chance-player-avatar"
+import { getGameDisplayName } from "@/lib/games/game-visuals"
 
 interface MatchmakingQueue {
   id: string
@@ -26,9 +27,10 @@ interface MatchmakingQueue {
 
 interface MatchmakingQueueListProps {
   queues: MatchmakingQueue[]
+  variant?: "legacy" | "competitive"
 }
 
-export default function MatchmakingQueueList({ queues }: MatchmakingQueueListProps) {
+export default function MatchmakingQueueList({ queues, variant = "legacy" }: MatchmakingQueueListProps) {
   const router = useRouter()
   const [joiningQueue, setJoiningQueue] = useState<string | null>(null)
 
@@ -103,6 +105,13 @@ export default function MatchmakingQueueList({ queues }: MatchmakingQueueListPro
   }
 
   if (queues.length === 0) {
+    if (variant === "competitive") {
+      return (
+        <EmptyState className="py-6">
+          <p className="chance-text-caption">No one searching — be first in queue.</p>
+        </EmptyState>
+      )
+    }
     return (
       <div className="text-center py-8">
         <div className="text-gray-400 mb-2">No active matchmaking</div>
@@ -111,44 +120,78 @@ export default function MatchmakingQueueList({ queues }: MatchmakingQueueListPro
     )
   }
 
+  if (variant === "competitive") {
+    return (
+      <ul className="space-y-2">
+        {queues.map((queue) => {
+          const name =
+            queue.users?.display_name || queue.users?.username || `Player ${queue.user_id?.slice(0, 8) ?? ""}`
+          const timer = formatTimeRemaining(queue.expires_at)
+          return (
+            <li key={queue.id} className="chance-play-queue-row flex-col items-stretch gap-2 sm:flex-row sm:items-center">
+              <div className="flex min-w-0 flex-1 items-center gap-2.5">
+                <ChancePlayerAvatar name={name} className="size-8 text-xs" />
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium">{name}</p>
+                  <p className="chance-text-caption truncate">
+                    {getGameDisplayName(queue.games?.name ?? "Game")} ·{" "}
+                    {getMatchTypeDisplay(queue.match_type, queue.bet_amount)}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="chance-text-mono chance-text-caption tabular-nums">{timer}</span>
+                <button
+                  type="button"
+                  className="chance-hero-cta-primary chance-focus-ring px-3 py-1.5 text-xs"
+                  onClick={() => handleJoinQueue(queue)}
+                  disabled={joiningQueue === queue.id}
+                >
+                  {joiningQueue === queue.id ? "Joining…" : "Match"}
+                </button>
+              </div>
+            </li>
+          )
+        })}
+      </ul>
+    )
+  }
+
   return (
     <div className="space-y-3">
       {queues.map((queue) => {
-        console.log('🔍 Queue data:', queue) // Debug log
-        const [minutes, seconds] = formatTimeRemaining(queue.expires_at).split(':').map(Number)
-        
+        const [minutes, seconds] = formatTimeRemaining(queue.expires_at).split(":").map(Number)
+
         return (
           <div key={queue.id} className="bg-gray-800/50 border border-gray-700 rounded-lg p-4">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center space-x-3">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src={queue.users?.avatar_url} />
-                  <AvatarFallback className="bg-gray-700 text-gray-300 text-xs">
-                    {queue.users?.username?.charAt(0).toUpperCase() || '?'}
-                  </AvatarFallback>
-                </Avatar>
+                <ChancePlayerAvatar
+                  name={queue.users?.username || queue.users?.display_name || "?"}
+                  className="size-8 text-xs"
+                />
                 <div>
                   <div className="text-white font-medium text-sm">
                     {queue.users?.username || queue.users?.display_name || `Player ${queue.user_id.slice(0, 8)}`}
                   </div>
                   <div className="text-gray-400 text-xs">
-                    {queue.games?.name || 'Unknown Game'} • {getMatchTypeDisplay(queue.match_type, queue.bet_amount)}
+                    {queue.games?.name || "Unknown Game"} • {getMatchTypeDisplay(queue.match_type, queue.bet_amount)}
                   </div>
                 </div>
               </div>
               <div className="text-right">
                 <div className="text-orange-400 font-bold text-sm">
-                  {minutes}:{seconds.toString().padStart(2, '0')}
+                  {minutes}:{seconds.toString().padStart(2, "0")}
                 </div>
                 <div className="text-gray-400 text-xs">Time left</div>
               </div>
             </div>
-            <button 
+            <button
               className="w-full bg-orange-500 hover:bg-orange-600 text-black font-semibold py-2 px-4 rounded-lg text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={() => handleJoinQueue(queue)}
               disabled={joiningQueue === queue.id}
             >
-              {joiningQueue === queue.id ? 'Joining...' : 'Join Matchmaking'}
+              {joiningQueue === queue.id ? "Joining..." : "Join Matchmaking"}
             </button>
           </div>
         )

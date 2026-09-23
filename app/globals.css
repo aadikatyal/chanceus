@@ -87,6 +87,42 @@
   }
 }
 
+/* Theme toggle: crossfade via View Transitions (see theme-toggle + start-theme-transition) */
+@supports (view-transition-name: root) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 420ms;
+    animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  ::view-transition-old(root) {
+    animation-name: chance-theme-fade-out;
+  }
+
+  ::view-transition-new(root) {
+    animation-name: chance-theme-fade-in;
+  }
+}
+
+@keyframes chance-theme-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes chance-theme-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none !important;
+  }
+}
+
 /* Light mode: invert hardcoded "white on near-black" chrome */
 html:not(.dark) .text-white {
   color: var(--foreground);

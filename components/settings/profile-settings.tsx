@@ -4,8 +4,7 @@ import { useActionState } from "react"
 import { useFormStatus } from "react-dom"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import ChancePlayerAvatar from "@/components/dashboard/chance-player-avatar"
 import { Loader2, User, Save } from "lucide-react"
 import { updateProfile } from "@/lib/settings-actions"
 import type { User as UserType } from "@/lib/supabase/client"
@@ -17,7 +16,7 @@ function SubmitButton() {
     <Button
       type="submit"
       disabled={pending}
-      className="bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 text-black font-semibold"
+      className="chance-hero-cta-primary chance-focus-ring"
     >
       {pending ? (
         <>
@@ -42,15 +41,15 @@ export default function ProfileSettings({ user }: ProfileSettingsProps) {
   const [state, formAction] = useActionState(updateProfile, null)
 
   return (
-    <Card className="bg-gray-900/80 border-gray-800">
-      <CardHeader>
-        <CardTitle className="text-white flex items-center">
-          <User className="mr-2 h-5 w-5 text-cyan-400" />
-          Profile Settings
-        </CardTitle>
-        <CardDescription className="text-gray-400">Update your profile information and preferences</CardDescription>
-      </CardHeader>
-      <CardContent>
+    <section className="chance-premium-card p-4 sm:p-6">
+      <div className="mb-4">
+        <h2 className="chance-section-title flex items-center gap-2">
+          <User className="size-4 stroke-[1.75] text-[var(--chance-brand)]" aria-hidden />
+          Profile
+        </h2>
+        <p className="chance-text-caption">Update your profile information</p>
+      </div>
+      <div>
         <form action={formAction} className="space-y-6">
           {state?.error && (
             <div className="bg-red-500/10 border border-red-500/50 text-red-400 px-4 py-3 rounded-lg text-center">
@@ -66,32 +65,27 @@ export default function ProfileSettings({ user }: ProfileSettingsProps) {
 
           {/* Avatar Section */}
           <div className="flex items-center space-x-6">
-            <Avatar className="h-20 w-20">
-              <AvatarImage src={user.avatar_url || ""} alt={user.display_name || user.username} />
-              <AvatarFallback className="bg-gradient-to-br from-cyan-500 to-yellow-500 text-black font-semibold text-2xl">
-                {(user.display_name || user.username).charAt(0).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
+            <ChancePlayerAvatar name={user.display_name || user.username} className="size-20 text-xl" />
             <div className="flex-1">
-              <h3 className="text-white font-semibold mb-1">Profile Picture</h3>
-              <p className="text-gray-400 text-sm mb-3">Upload a new avatar to personalize your profile</p>
+              <h3 className="text-sm font-semibold text-[var(--chance-fg)] mb-1">Profile picture</h3>
+              <p className="chance-text-caption mb-3">Upload a new avatar to personalize your profile</p>
               <div className="flex justify-center">
                 <Input
                   id="avatar"
                   name="avatar"
                   type="file"
                   accept="image/*"
-                  className="bg-gray-800/50 border-gray-700 text-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-cyan-500 file:text-black hover:file:bg-cyan-600 cursor-pointer px-3 py-2 w-full"
+                  className="chance-input w-full cursor-pointer file:mr-4 file:rounded-lg file:border-0 file:bg-[var(--chance-brand)] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-[var(--chance-brand-fg)]"
                 />
               </div>
-              <p className="text-xs text-gray-500 mt-1 text-center">Max file size: 5MB</p>
+              <p className="chance-text-caption mt-1 text-center">Max file size: 5MB</p>
             </div>
           </div>
 
           {/* Profile Form */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <label htmlFor="displayName" className="block text-sm font-medium text-gray-300">
+              <label htmlFor="displayName" className="chance-text-label block">
                 Display Name
               </label>
               <Input
@@ -100,12 +94,12 @@ export default function ProfileSettings({ user }: ProfileSettingsProps) {
                 type="text"
                 defaultValue={user.display_name || ""}
                 required
-                className="bg-gray-800/50 border-gray-700 text-white placeholder:text-gray-500 focus:border-cyan-500 focus:ring-cyan-500/20 rounded-lg h-12"
+                className="chance-input h-11"
               />
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="username" className="block text-sm font-medium text-gray-300">
+              <label htmlFor="username" className="chance-text-label block">
                 Username
               </label>
               <Input
@@ -114,13 +108,13 @@ export default function ProfileSettings({ user }: ProfileSettingsProps) {
                 type="text"
                 defaultValue={user.username}
                 required
-                className="bg-gray-800/50 border-gray-700 text-white placeholder:text-gray-500 focus:border-cyan-500 focus:ring-cyan-500/20 rounded-lg h-12"
+                className="chance-input h-11"
               />
-              <p className="text-xs text-gray-500">Your unique gaming identity</p>
+              <p className="chance-text-caption">Your unique gaming identity</p>
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="email" className="block text-sm font-medium text-gray-300">
+              <label htmlFor="email" className="chance-text-label block">
                 Email Address
               </label>
               <Input
@@ -129,14 +123,14 @@ export default function ProfileSettings({ user }: ProfileSettingsProps) {
                 type="email"
                 defaultValue={user.email}
                 disabled
-                className="bg-gray-800/30 border-gray-700 text-gray-400 rounded-lg h-12"
+                className="chance-input h-11 opacity-70"
               />
-              <p className="text-xs text-gray-500">Email cannot be changed from this page</p>
+              <p className="chance-text-caption">Email cannot be changed from this page</p>
             </div>
 
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-300">Member Since</label>
-              <div className="bg-gray-800/30 border border-gray-700 rounded-lg h-12 flex items-center px-3 text-gray-400">
+              <label className="chance-text-label block">Member since</label>
+              <div className="chance-input flex h-11 items-center opacity-80">
                 {new Date(user.created_at).toLocaleDateString("en-US", {
                   year: "numeric",
                   month: "long",
@@ -150,7 +144,7 @@ export default function ProfileSettings({ user }: ProfileSettingsProps) {
             <SubmitButton />
           </div>
         </form>
-      </CardContent>
-    </Card>
+      </div>
+    </section>
   )
 }

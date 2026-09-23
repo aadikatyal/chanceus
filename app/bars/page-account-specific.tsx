@@ -103,7 +103,7 @@ export default function BarsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 relative">
+    <div className="min-h-screen bg-[var(--chance-bg)] text-[var(--chance-fg)] relative chance-competitive-theme">
       <Header user={user} />
       
       {/* Subtle gradient overlay */}
@@ -114,7 +114,7 @@ export default function BarsPage() {
           {/* Header */}
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-white">Bar Trivia</h1>
+              <h1 className="chance-hero-title text-2xl sm:text-3xl">Bar Trivia</h1>
               <p className="text-gray-300 mt-1">
                 {bars.length > 0 
                   ? "Manage your bar trivia venues" 

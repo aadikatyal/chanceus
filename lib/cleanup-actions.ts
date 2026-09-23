@@ -4,18 +4,28 @@ import { createServerActionClient } from "@supabase/auth-helpers-nextjs"
 import { cookies } from "next/headers"
 import { revalidatePath } from "next/cache"
 
-// Clean up expired matches and matchmaking queues
+/** Expire/cancel the signed-in user's stale queue rows and old waiting matches (RLS-safe). */
 export async function cleanupExpiredMatches() {
   const cookieStore = await cookies()
   const supabase = createServerActionClient({ cookies: () => cookieStore })
 
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    return { error: "Unauthorized" }
+  }
+
   try {
     const now = new Date().toISOString()
-    
-    // Clean up expired matchmaking queue entries
+    let cleanedQueues = 0
+
+    // Expire this user's waiting queue rows past expires_at
     const { data: expiredQueues, error: queueError } = await supabase
       .from("matchmaking_queue")
-      .select("*")
+      .select("id")
+      .eq("user_id", user.id)
       .eq("status", "waiting")
       .lt("expires_at", now)
 
@@ -25,12 +35,10 @@ export async function cleanupExpiredMatches() {
     }
 
     if (expiredQueues && expiredQueues.length > 0) {
-      console.log(`🧹 Cleaning up ${expiredQueues.length} expired matchmaking queue entries`)
-      
-      // First, mark as expired
       const { error: updateQueueError } = await supabase
         .from("matchmaking_queue")
         .update({ status: "expired" })
+        .eq("user_id", user.id)
         .eq("status", "waiting")
         .lt("expires_at", now)
 
@@ -39,50 +47,46 @@ export async function cleanupExpiredMatches() {
         return { error: "Failed to update expired queues" }
       }
 
-      // Then delete the expired entries
-      const { error: deleteError } = await supabase
-        .from("matchmaking_queue")
-        .delete()
-        .eq("status", "expired")
-
-      if (deleteError) {
-        console.error("Error deleting expired queues:", deleteError)
-        return { error: "Failed to delete expired queues" }
-      }
-
-      console.log(`✅ Deleted ${expiredQueues.length} expired queue entries`)
+      cleanedQueues += expiredQueues.length
     }
 
-    // Also clean up old expired entries (older than 1 hour)
+    // Expire this user's stale waiting rows (older than 1 hour) — no DELETE (no RLS delete policy)
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString()
     const { data: oldQueues, error: oldQueueError } = await supabase
       .from("matchmaking_queue")
       .select("id")
+      .eq("user_id", user.id)
+      .eq("status", "waiting")
       .lt("created_at", oneHourAgo)
 
     if (oldQueueError) {
       console.error("Error fetching old queues:", oldQueueError)
     } else if (oldQueues && oldQueues.length > 0) {
-      console.log(`🧹 Cleaning up ${oldQueues.length} old queue entries`)
-      
-      const { error: deleteOldError } = await supabase
+      const { error: updateOldError } = await supabase
         .from("matchmaking_queue")
-        .delete()
+        .update({ status: "expired" })
+        .eq("user_id", user.id)
+        .eq("status", "waiting")
         .lt("created_at", oneHourAgo)
 
-      if (deleteOldError) {
-        console.error("Error deleting old queues:", deleteOldError)
+      if (updateOldError) {
+        console.error("Error expiring old queues:", updateOldError)
       } else {
-        console.log(`✅ Deleted ${oldQueues.length} old queue entries`)
+        cleanedQueues += oldQueues.length
       }
     }
 
-    // Clean up very old waiting matches (older than 2 minutes)
+    if (cleanedQueues > 0) {
+      console.log(`🧹 Expired ${cleanedQueues} queue entries for user ${user.id}`)
+    }
+
+    // Cancel this user's very old waiting matches (player1 only — they hold the stake)
     const twoMinutesAgoForMatches = new Date(Date.now() - 2 * 60 * 1000).toISOString()
-    
+
     const { data: oldMatches, error: oldMatchesError } = await supabase
       .from("matches")
       .select("*")
+      .eq("player1_id", user.id)
       .in("status", ["waiting", "in_progress"])
       .lt("created_at", twoMinutesAgoForMatches)
 
@@ -92,11 +96,9 @@ export async function cleanupExpiredMatches() {
     }
 
     if (oldMatches && oldMatches.length > 0) {
-      console.log(`🧹 Cleaning up ${oldMatches.length} old waiting matches`)
-      
-      // Cancel old matches and refund tokens
+      console.log(`🧹 Cleaning up ${oldMatches.length} old matches for user ${user.id}`)
+
       for (const match of oldMatches) {
-        // Refund the bet to player 1
         const { data: userData } = await supabase
           .from("users")
           .select("tokens")
@@ -109,37 +111,34 @@ export async function cleanupExpiredMatches() {
             .update({ tokens: userData.tokens + match.bet_amount })
             .eq("id", match.player1_id)
 
-          // Create refund transaction record
           await supabase.from("transactions").insert({
             user_id: match.player1_id,
             match_id: match.id,
             amount: match.bet_amount,
             type: "bonus",
-            description: `Match expired - refund of ${match.bet_amount} tokens`
+            description: `Match expired - refund of ${match.bet_amount} tokens`,
           })
         }
 
-        // Update match status to cancelled and set completion time
         await supabase
           .from("matches")
-          .update({ 
+          .update({
             status: "cancelled",
-            completed_at: new Date().toISOString()
+            completed_at: new Date().toISOString(),
           })
           .eq("id", match.id)
+          .eq("player1_id", user.id)
       }
     }
 
-    // Revalidate paths to refresh the UI
     revalidatePath("/games")
     revalidatePath("/matches")
-    
-    return { 
-      success: true, 
-      cleanedQueues: expiredQueues?.length || 0,
-      cleanedMatches: oldMatches?.length || 0
-    }
 
+    return {
+      success: true,
+      cleanedQueues,
+      cleanedMatches: oldMatches?.length || 0,
+    }
   } catch (error) {
     console.error("Unexpected error in cleanupExpiredMatches:", error)
     return { error: "An unexpected error occurred during cleanup." }
@@ -176,10 +175,9 @@ export async function getMatchStats() {
         waitingMatches: waitingMatches?.length || 0,
         activeQueues: activeQueues?.length || 0,
         expiredQueues: expiredQueues?.length || 0,
-        totalIssues: (waitingMatches?.length || 0) + (expiredQueues?.length || 0)
-      }
+        totalIssues: (waitingMatches?.length || 0) + (expiredQueues?.length || 0),
+      },
     }
-
   } catch (error) {
     console.error("Error getting match stats:", error)
     return { error: "Failed to get match statistics" }

@@ -1,14 +1,17 @@
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import SignUpForm from "@/components/sign-up-form"
-import Header from "@/components/navigation/header"
+import AuthMarketingShell from "@/components/app/auth-marketing-shell"
+import { ChanceText } from "@/components/design-system/typography"
 
 export default async function SignUpPage() {
   // If Supabase is not configured, show setup message directly
   if (!isSupabaseConfigured) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-950">
-        <h1 className="text-2xl font-bold mb-4 text-white">Connect Supabase to get started</h1>
+      <div className="flex min-h-screen items-center justify-center bg-[var(--chance-bg)] px-4">
+        <ChanceText as="h1" variant="h2">
+          Connect Supabase to get started
+        </ChanceText>
       </div>
     )
   }
@@ -25,15 +28,8 @@ export default async function SignUpPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 relative">
-      <Header />
-      
-      {/* Subtle gradient overlay */}
-      
-      
-      <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center relative z-10 px-4 py-12 sm:px-6 lg:px-8">
-        <SignUpForm />
-      </div>
-    </div>
+    <AuthMarketingShell>
+      <SignUpForm />
+    </AuthMarketingShell>
   )
 }

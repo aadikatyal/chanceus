@@ -30,7 +30,7 @@ function SubmitButton() {
     <Button
       type="submit"
       disabled={pending}
-      className="w-full bg-orange-500 hover:bg-orange-600 text-white"
+      className="chance-hero-cta-primary chance-focus-ring w-full"
     >
       {pending ? (
         <>
@@ -94,7 +94,7 @@ export default function FeedbackModal({ isOpen, onClose }: FeedbackModalProps) {
       <DialogContent className="sm:max-w-[500px] bg-gray-900 border-gray-800">
         <DialogHeader>
           <DialogTitle className="text-white flex items-center gap-2">
-            <MessageSquare className="h-5 w-5 text-orange-500" />
+            <MessageSquare className="h-5 w-5 text-[var(--chance-brand)]" />
             Leave Feedback
           </DialogTitle>
           <DialogDescription className="text-gray-400">
@@ -153,7 +153,7 @@ export default function FeedbackModal({ isOpen, onClose }: FeedbackModalProps) {
               placeholder="Tell us what you think..."
               required
               rows={5}
-              className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500 focus:border-orange-500 focus:ring-orange-500/20 rounded-lg resize-none"
+              className="resize-none rounded-lg border-[var(--chance-border)] bg-[var(--chance-surface-inset)] text-[var(--chance-fg)] placeholder:text-[var(--chance-muted-fg)] focus:border-[var(--chance-brand)] focus:ring-[color-mix(in_srgb,var(--chance-brand)_25%,transparent)]"
             />
           </div>
 

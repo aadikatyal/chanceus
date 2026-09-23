@@ -30,6 +30,7 @@ interface MatchmakingInterfaceProps {
   onMatchFound?: (matchId: string, matchType: string) => void
   onCancel?: () => void
   autoStart?: boolean
+  variant?: "legacy" | "competitive"
 }
 
 type MatchmakingStatus = 
@@ -48,8 +49,10 @@ export default function MatchmakingInterface({
   category,
   onMatchFound,
   onCancel,
-  autoStart = false
+  autoStart = false,
+  variant = "legacy",
 }: MatchmakingInterfaceProps) {
+  const competitive = variant === "competitive"
   const [status, setStatus] = useState<MatchmakingStatus>('idle')
   const [timeRemaining, setTimeRemaining] = useState(180) // 3 minutes in seconds
   const [queueId, setQueueId] = useState<string | null>(null)
@@ -241,12 +244,25 @@ export default function MatchmakingInterface({
   // When match is found, show loading while redirecting
   if (status === 'found_live' && matchId) {
     return (
-      <Card className="w-full max-w-2xl mx-auto bg-gray-900/50 border-gray-700/50 backdrop-blur-sm">
-        <CardContent className="text-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
-          <p className="text-gray-400">Match found! Redirecting to game...</p>
-        </CardContent>
-      </Card>
+      <div className={competitive ? "py-8 text-center" : ""}>
+        {competitive ? (
+          <>
+            <div className="chance-play-live-badge mx-auto mb-4 w-fit">
+              <span className="chance-play-live-dot" aria-hidden />
+              Match found
+            </div>
+            <div className="mx-auto mb-4 size-10 animate-spin rounded-full border-2 border-[var(--chance-border)] border-t-[var(--chance-brand)]" />
+            <p className="chance-text-caption">Heading to lobby…</p>
+          </>
+        ) : (
+          <Card className="w-full max-w-2xl mx-auto bg-gray-900/50 border-gray-700/50 backdrop-blur-sm">
+            <CardContent className="text-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
+              <p className="text-gray-400">Match found! Redirecting to game...</p>
+            </CardContent>
+          </Card>
+        )}
+      </div>
     )
   }
 
@@ -318,19 +334,39 @@ export default function MatchmakingInterface({
     )
   }
 
+  const shellClass = competitive
+    ? "space-y-6"
+    : "w-full max-w-2xl mx-auto bg-gray-900/50 border-gray-700/50 backdrop-blur-sm"
+  const Shell = competitive ? "div" : Card
+  const Body = competitive ? "div" : CardContent
+  const Head = competitive ? "div" : CardHeader
+
   return (
-    <Card className="w-full max-w-2xl mx-auto bg-gray-900/50 border-gray-700/50 backdrop-blur-sm">
-      <CardHeader className="text-center">
-        <div className="flex justify-center mb-4">
-          <div className="p-3 bg-orange-500 rounded-full">
-            <Users className="h-8 w-8 text-black" />
-          </div>
-        </div>
-        <CardTitle className="text-3xl font-bold text-white">Matchmaking</CardTitle>
-        <p className="text-gray-400 text-lg">Find your perfect opponent!</p>
-      </CardHeader>
-      
-      <CardContent className="space-y-6">
+    <Shell className={shellClass}>
+      <Head className={competitive ? "text-center" : "text-center"}>
+        {competitive ? (
+          <>
+            <div className="chance-play-live-badge mx-auto mb-3 w-fit">
+              <span className="chance-play-live-dot" aria-hidden />
+              In queue
+            </div>
+            <h2 className="text-lg font-semibold tracking-tight">Finding your opponent</h2>
+            <p className="chance-text-caption mt-1">Stay on this screen — we&apos;ll route you when someone matches.</p>
+          </>
+        ) : (
+          <>
+            <div className="flex justify-center mb-4">
+              <div className="p-3 bg-orange-500 rounded-full">
+                <Users className="h-8 w-8 text-black" />
+              </div>
+            </div>
+            <CardTitle className="text-3xl font-bold text-white">Matchmaking</CardTitle>
+            <p className="text-gray-400 text-lg">Find your perfect opponent!</p>
+          </>
+        )}
+      </Head>
+
+      <Body className="space-y-6">
         {/* Match Type Display */}
         <div className="text-center">
           <div className={`inline-flex items-center space-x-2 px-4 py-2 rounded-lg bg-gray-800/50 ${matchTypeInfo.color}`}>
@@ -354,38 +390,51 @@ export default function MatchmakingInterface({
         {status === 'searching' && (
           <div className="space-y-4">
             <div className="text-center">
-              <div className="flex items-center justify-center space-x-2 mb-4">
-                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-orange-500"></div>
-                <span className="text-white font-semibold">Searching for opponent...</span>
+              <div className="mb-4 flex items-center justify-center gap-2">
+                <div
+                  className={`size-6 animate-spin rounded-full border-2 border-t-transparent ${competitive ? "border-[var(--chance-brand)]" : "border-b-2 border-orange-500"}`}
+                />
+                <span className={competitive ? "font-semibold" : "text-white font-semibold"}>
+                  Searching…
+                </span>
               </div>
-              
-              <div className="text-3xl font-bold text-orange-500 mb-2">
+
+              <div
+                className={`chance-text-mono mb-2 text-3xl font-bold tabular-nums ${competitive ? "text-[var(--chance-brand)]" : "text-orange-500"}`}
+              >
                 {formatTime(timeRemaining)}
               </div>
-              <p className="text-gray-400">Time remaining</p>
+              <p className={competitive ? "chance-text-caption" : "text-gray-400"}>Time remaining</p>
             </div>
 
-            <Progress 
-              value={((180 - timeRemaining) / 180) * 100} 
-              className="h-2"
-            />
+            <Progress value={((180 - timeRemaining) / 180) * 100} className="h-2" />
 
-            <div className="text-center space-y-2">
-              <p className="text-gray-300">
-                We'll wait up to 3 minutes to find you a live opponent
+            <div className="space-y-2 text-center">
+              <p className={competitive ? "text-sm text-[var(--chance-fg)]" : "text-gray-300"}>
+                We&apos;ll search up to 3 minutes for a live opponent
               </p>
-              <p className="text-sm text-gray-400">
-                If no one joins, you'll play solo and become a "priority match"
+              <p className={competitive ? "chance-text-caption" : "text-sm text-gray-400"}>
+                No match in time? You&apos;ll enter priority mode for the next player in this pool.
               </p>
             </div>
 
-            <Button 
-              onClick={cancelMatchmaking}
-              variant="outline"
-              className="w-full border-gray-600 text-gray-300 hover:bg-gray-800"
-            >
-              Cancel Search
-            </Button>
+            {competitive ? (
+              <button
+                type="button"
+                onClick={cancelMatchmaking}
+                className="chance-secondary-btn chance-focus-ring w-full py-2.5 text-sm"
+              >
+                Leave queue
+              </button>
+            ) : (
+              <Button
+                onClick={cancelMatchmaking}
+                variant="outline"
+                className="w-full border-gray-600 text-gray-300 hover:bg-gray-800"
+              >
+                Cancel Search
+              </Button>
+            )}
           </div>
         )}
 
@@ -456,7 +505,7 @@ export default function MatchmakingInterface({
             </Button>
           </div>
         )}
-      </CardContent>
-    </Card>
+      </Body>
+    </Shell>
   )
 }
