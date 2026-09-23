@@ -4,6 +4,7 @@ import { createServerActionClient } from "@supabase/auth-helpers-nextjs"
 import { cookies } from "next/headers"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
+import { spendable, walletHold, walletSettle } from "@/lib/wallet/server"
 
 // Join matchmaking queue with 3-minute wait
 export async function joinMatchmakingQueue(
@@ -26,15 +27,8 @@ export async function joinMatchmakingQueue(
 
     // Check if user has enough tokens for the bet
     if (matchType !== 'free') {
-      const { data: userData } = await supabase
-        .from("users")
-        .select("tokens")
-        .eq("id", user.id)
-        .single()
-
-      if (!userData || userData.tokens < betAmount) {
-        return { error: "Insufficient token balance" }
-      }
+      const balance = await spendable(user.id).catch(() => null)
+      if (balance === null || balance < betAmount) return { error: "Insufficient token balance" }
     }
 
     // First, try to find an existing priority match to join
@@ -102,24 +96,12 @@ export async function joinMatchmakingQueue(
 
       // Deduct tokens for player2 if not free
       if (matchType !== 'free') {
-        const { error: tokenError } = await supabase
-          .from("users")
-          .update({ tokens: userData.tokens - betAmount })
-          .eq("id", user.id)
-
-        if (tokenError) {
+        try {
+          await walletHold(user.id, betAmount, priorityMatch.original_match_id, `hold:${priorityMatch.original_match_id}:${user.id}`)
+        } catch (tokenError) {
           console.error("Failed to deduct tokens:", tokenError)
           return { error: "Failed to process bet" }
         }
-
-        // Create transaction record
-        await supabase.from("transactions").insert({
-          user_id: user.id,
-          match_id: priorityMatch.original_match_id,
-          amount: -betAmount,
-          type: "bet",
-          description: `Bet ${betAmount} tokens on priority match`
-        })
       }
 
       revalidatePath("/games")
@@ -216,48 +198,8 @@ export async function joinMatchmakingQueue(
       // Deduct tokens for both players if not free
       if (matchType !== 'free') {
         // Deduct for player1 (existing queue user)
-        const { data: player1Data } = await supabase
-          .from("users")
-          .select("tokens")
-          .eq("id", existingQueue.user_id)
-          .single()
-
-        if (player1Data) {
-          await supabase
-            .from("users")
-            .update({ tokens: player1Data.tokens - betAmount })
-            .eq("id", existingQueue.user_id)
-
-          await supabase.from("transactions").insert({
-            user_id: existingQueue.user_id,
-            match_id: matchData.id,
-            amount: -betAmount,
-            type: "bet",
-            description: `Bet ${betAmount} tokens on match`
-          })
-        }
-
-        // Deduct for player2 (current user)
-        const { data: player2Data } = await supabase
-          .from("users")
-          .select("tokens")
-          .eq("id", user.id)
-          .single()
-
-        if (player2Data) {
-          await supabase
-            .from("users")
-            .update({ tokens: player2Data.tokens - betAmount })
-            .eq("id", user.id)
-        }
-
-        await supabase.from("transactions").insert({
-          user_id: user.id,
-          match_id: matchData.id,
-          amount: -betAmount,
-          type: "bet",
-          description: `Bet ${betAmount} tokens on match`
-        })
+        await walletHold(existingQueue.user_id, betAmount, matchData.id, `hold:${matchData.id}:${existingQueue.user_id}`)
+        await walletHold(user.id, betAmount, matchData.id, `hold:${matchData.id}:${user.id}`)
       }
 
       revalidatePath("/games")
@@ -393,27 +335,7 @@ async function handleMatchmakingTimeout(queueId: string, supabase: any) {
 
     // Deduct tokens if not free
     if (queueEntry.match_type !== 'free') {
-      const { data: userData } = await supabase
-        .from("users")
-        .select("tokens")
-        .eq("id", queueEntry.user_id)
-        .single()
-
-      if (userData) {
-        await supabase
-          .from("users")
-          .update({ tokens: userData.tokens - queueEntry.bet_amount })
-          .eq("id", queueEntry.user_id)
-
-        // Create transaction record
-        await supabase.from("transactions").insert({
-          user_id: queueEntry.user_id,
-          match_id: matchData.id,
-          amount: -queueEntry.bet_amount,
-          type: "bet",
-          description: `Bet ${queueEntry.bet_amount} tokens on priority match`
-        })
-      }
+      await walletHold(queueEntry.user_id, queueEntry.bet_amount, matchData.id, `hold:${matchData.id}:${queueEntry.user_id}`)
     }
 
     console.log(`✅ Created priority match for user ${queueEntry.user_id}`)
@@ -566,19 +488,8 @@ export async function submitPriorityMatchResult(
           const winnings = matchData.bet_amount * 2 // Both players' bets
           
           // Add winnings to winner
-          await supabase
-            .from("users")
-            .update({ tokens: supabase.raw(`tokens + ${winnings}`) })
-            .eq("id", winnerId)
-
-          // Create transaction record
-          await supabase.from("transactions").insert({
-            user_id: winnerId,
-            match_id: priorityMatch.original_match_id,
-            amount: winnings,
-            type: "win",
-            description: `Won priority match - ${winnings} tokens`
-          })
+          const loserId = winnerId === priorityMatch.player1_id ? priorityMatch.player2_id : priorityMatch.player1_id
+          if (loserId) await walletSettle(winnerId, loserId, matchData.bet_amount, priorityMatch.original_match_id)
         }
       }
     }

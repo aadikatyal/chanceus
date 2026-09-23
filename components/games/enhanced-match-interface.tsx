@@ -1122,23 +1122,10 @@ export default function EnhancedMatchInterface({
         try {
           console.log('💰 Processing winner payout:', { winnerId, betAmount: match.bet_amount })
           
-          const winnings = match.bet_amount * 2 // Both players' bets
-          
-          // IMPORTANT: Only create transaction record - the database trigger will automatically update the user's token balance
-          // This prevents double-payout (direct update + trigger update)
-          const { error: transactionError } = await supabase.from('transactions').insert({
-                user_id: winnerId,
-                match_id: match.id,
-                amount: winnings,
-                type: 'win',
-                description: `Won match - ${winnings} tokens`
-              })
-          
-          if (transactionError) {
-            console.error('❌ Failed to create winner transaction:', transactionError)
-          } else {
-            console.log('✅ Winner transaction created successfully - trigger will update balance')
-          }
+          const loserId = match.player1_id === winnerId ? match.player2_id : match.player1_id
+          if (!loserId) throw new Error("Missing opponent")
+          const { settleMatchStake } = await import("@/lib/wallet/actions")
+          await settleMatchStake(match.id, winnerId, loserId, match.bet_amount)
         } catch (payoutError) {
           console.error('❌ Failed to process winner payout:', payoutError)
           // Don't fail the entire completion process

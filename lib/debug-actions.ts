@@ -2,6 +2,7 @@
 
 import { createServerActionClient } from "@supabase/auth-helpers-nextjs"
 import { cookies } from "next/headers"
+import { walletRelease } from "@/lib/wallet/server"
 
 // Debug function to check match statuses
 export async function debugMatches() {
@@ -119,27 +120,7 @@ export async function forceCancelAllUserMatches() {
       }
 
       // Refund the bet
-      const { data: userData } = await supabase
-        .from("users")
-        .select("tokens")
-        .eq("id", user.id)
-        .single()
-
-      if (userData) {
-        await supabase
-          .from("users")
-          .update({ tokens: userData.tokens + match.bet_amount })
-          .eq("id", user.id)
-
-        // Create refund transaction
-        await supabase.from("transactions").insert({
-          user_id: user.id,
-          match_id: match.id,
-          amount: match.bet_amount,
-          type: "bonus",
-          description: `Force cancelled match - refund of ${match.bet_amount} tokens`
-        })
-      }
+      await walletRelease(user.id, match.id, `release:${match.id}:${user.id}`)
     }
 
     return { 
@@ -207,32 +188,11 @@ export async function forceCancelAllActiveMatches() {
 
       // Refund tokens to player1 if they exist
       if (match.player1_id) {
-        const { data: userData } = await supabase
-          .from("users")
-          .select("tokens")
-          .eq("id", match.player1_id)
-          .single()
-
-        if (userData) {
-          const { error: refundError } = await supabase
-            .from("users")
-            .update({ tokens: userData.tokens + match.bet_amount })
-            .eq("id", match.player1_id)
-
-          if (refundError) {
-            console.error(`Refund error for match ${match.id}:`, refundError)
-          } else {
-            totalRefunded += match.bet_amount
-
-            // Create refund transaction
-            await supabase.from("transactions").insert({
-              user_id: match.player1_id,
-              match_id: match.id,
-              amount: match.bet_amount,
-              type: "bonus",
-              description: `Match force cancelled - refund of ${match.bet_amount} tokens`
-            })
-          }
+        try {
+          await walletRelease(match.player1_id, match.id, `release:${match.id}:${match.player1_id}`)
+          totalRefunded += match.bet_amount
+        } catch (refundError) {
+          console.error(`Refund error for match ${match.id}:`, refundError)
         }
       }
     }
