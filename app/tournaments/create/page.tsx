@@ -7,7 +7,7 @@ import TournamentPasswordGate from "@/components/tournaments/tournament-password
 export default async function CreateTournamentPage() {
   if (!isSupabaseConfigured) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-950">
+      <div className="flex min-h-screen items-center justify-center bg-[var(--chance-bg)] text-[var(--chance-fg)] chance-competitive-theme">
         <h1 className="text-2xl font-bold mb-4 text-white">Connect Supabase to get started</h1>
       </div>
     )
@@ -36,7 +36,7 @@ export default async function CreateTournamentPage() {
     .order("name")
 
   return (
-    <div className="min-h-screen bg-gray-950 relative">
+    <div className="min-h-screen bg-[var(--chance-bg)] text-[var(--chance-fg)] relative chance-competitive-theme">
       <Header user={user} />
 
       
@@ -44,7 +44,7 @@ export default async function CreateTournamentPage() {
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
         <TournamentPasswordGate>
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-white mb-2">Create Tournament</h1>
+            <h1 className="chance-hero-title text-2xl sm:text-3xl mb-2">Create Tournament</h1>
             <p className="text-gray-400">Power of 2 players (4, 8, 16, … 512). No byes.</p>
           </div>
 

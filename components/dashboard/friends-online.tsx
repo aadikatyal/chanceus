@@ -36,7 +36,13 @@ interface Friend {
 
 type TabType = 'friends' | 'add' | 'requests'
 
-export default function FriendsOnline() {
+type FriendsOnlineProps = {
+  /** `legacy` preserves styling on non-dashboard routes (e.g. /games). */
+  appearance?: 'legacy' | 'chance'
+}
+
+export default function FriendsOnline({ appearance = 'legacy' }: FriendsOnlineProps) {
+  const isChance = appearance === 'chance'
   const [friends, setFriends] = useState<Friend[]>([])
   const [loading, setLoading] = useState(true)
   const [open, setOpen] = useState(false)
@@ -338,19 +344,38 @@ export default function FriendsOnline() {
 
   if (loading) {
     return (
-      <div className="flex items-center space-x-2 text-gray-400">
-        <Users className="h-4 w-4" />
-        <span className="text-sm">Loading...</span>
+      <div
+        className={
+          isChance
+            ? "flex items-center gap-2 text-[var(--chance-muted-fg)]"
+            : "flex items-center space-x-2 text-gray-400"
+        }
+        aria-live="polite"
+      >
+        <Users className="h-4 w-4" aria-hidden />
+        <span className="text-sm">Loading…</span>
       </div>
     )
   }
+
+  const tabActiveClass = isChance
+    ? 'text-[var(--chance-fg)] border-b-2 border-[var(--chance-brand)]'
+    : 'text-white border-b-2 border-orange-500'
+  const tabIdleClass = isChance
+    ? 'text-[var(--chance-muted-fg)] hover:text-[var(--chance-fg)]'
+    : 'text-gray-400 hover:text-white'
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
         <Button 
           variant="ghost" 
-          className="flex items-center space-x-2 text-gray-300 hover:text-white hover:bg-gray-800/50 px-3 py-2 rounded-lg transition-colors"
+          className={
+            isChance
+              ? "flex items-center gap-2 rounded-[var(--chance-radius-md)] border border-[var(--chance-border)] bg-[var(--chance-surface)] px-3 py-2 text-sm font-medium text-[var(--chance-fg)] hover:bg-[var(--chance-muted)]"
+              : "flex items-center space-x-2 text-gray-300 hover:text-white hover:bg-gray-800/50 px-3 py-2 rounded-lg transition-colors"
+          }
+          aria-label="Friends and online status"
         >
           <Users className="h-4 w-4" />
           <span className="text-sm font-medium">
@@ -362,16 +387,18 @@ export default function FriendsOnline() {
       
       <DropdownMenuContent 
         align="end" 
-        className="w-80 bg-gray-900 border-gray-700 text-white"
+        className={
+          isChance
+            ? "w-80 border-[var(--chance-border)] bg-[var(--chance-surface)] text-[var(--chance-fg)]"
+            : "w-80 bg-gray-900 border-gray-700 text-white"
+        }
       >
         {/* Tabs */}
-        <div className="flex border-b border-gray-700">
+        <div className={`flex border-b ${isChance ? 'border-[var(--chance-border)]' : 'border-gray-700'}`}>
           <button
             onClick={() => setActiveTab('friends')}
             className={`flex-1 px-3 py-2 text-sm font-medium transition-colors ${
-              activeTab === 'friends'
-                ? 'text-white border-b-2 border-orange-500'
-                : 'text-gray-400 hover:text-white'
+              activeTab === 'friends' ? tabActiveClass : tabIdleClass
             }`}
           >
             Friends ({friends.length})
@@ -379,24 +406,26 @@ export default function FriendsOnline() {
           <button
             onClick={() => setActiveTab('add')}
             className={`flex-1 px-3 py-2 text-sm font-medium transition-colors ${
-              activeTab === 'add'
-                ? 'text-white border-b-2 border-orange-500'
-                : 'text-gray-400 hover:text-white'
+              activeTab === 'add' ? tabActiveClass : tabIdleClass
             }`}
           >
             Add Friends
           </button>
           <button
             onClick={() => setActiveTab('requests')}
-            className={`flex-1 px-3 py-2 text-sm font-medium transition-colors relative ${
-              activeTab === 'requests'
-                ? 'text-white border-b-2 border-orange-500'
-                : 'text-gray-400 hover:text-white'
+            className={`relative flex-1 px-3 py-2 text-sm font-medium transition-colors ${
+              activeTab === 'requests' ? tabActiveClass : tabIdleClass
             }`}
           >
             Requests
             {pendingRequests.length > 0 && (
-              <span className="absolute top-1 right-2 h-4 w-4 bg-orange-500 rounded-full text-xs flex items-center justify-center text-black font-bold">
+              <span
+                className={`absolute top-1 right-2 flex h-4 w-4 items-center justify-center rounded-full text-xs font-bold ${
+                  isChance
+                    ? "bg-[var(--chance-brand)] text-[var(--chance-brand-fg)]"
+                    : "bg-orange-500 text-black"
+                }`}
+              >
                 {pendingRequests.length}
               </span>
             )}

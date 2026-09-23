@@ -1,19 +1,22 @@
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
-import Header from "@/components/navigation/header"
+import CompetitiveShell from "@/components/app/competitive-shell"
+import CompetitivePageFeed from "@/components/app/competitive-page-feed"
+import CompetitionHero, { CompetitionHeroLink } from "@/components/competition/competition-hero"
+import CompetitionTournamentArenaCard from "@/components/competition/competition-tournament-arena-card"
 import { getAllTournaments } from "@/lib/tournament-actions"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Trophy, Users, Calendar, Coins, ArrowRight } from "lucide-react"
+import { Trophy } from "lucide-react"
 import Link from "next/link"
-import { Badge } from "@/components/ui/badge"
 import TournamentPasswordGate from "@/components/tournaments/tournament-password-gate"
+import { ChanceText } from "@/components/design-system/typography"
 
 export default async function TournamentsPage() {
   if (!isSupabaseConfigured) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-950">
-        <h1 className="text-2xl font-bold mb-4 text-white">Connect Supabase to get started</h1>
+      <div className="flex min-h-screen items-center justify-center bg-[var(--chance-bg)] px-4">
+        <ChanceText as="h1" variant="h2">
+          Connect Supabase to get started
+        </ChanceText>
       </div>
     )
   }
@@ -36,118 +39,46 @@ export default async function TournamentsPage() {
   const tournaments = await getAllTournaments()
 
   return (
-    <div className="min-h-screen bg-gray-950 relative">
-      <Header user={user} />
-
-      
-
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
+    <CompetitiveShell user={user}>
+      <CompetitivePageFeed className="chance-competition-feed">
         <TournamentPasswordGate>
-          <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="text-3xl font-bold text-white mb-2">Tournaments</h1>
-              <p className="text-gray-400">Compete in skill-based tournaments (power of 2 players, up to 512)</p>
+          <CompetitionHero
+            kicker="Competition"
+            title="Tournaments"
+            subtitle="Bracket arenas for reputation spikes — register, climb rounds, take the pool."
+            stats={[
+              { label: "open arenas", value: tournaments.filter((t) => t.status !== "completed").length, mono: true },
+              { label: "live brackets", value: tournaments.filter((t) => t.status === "in_progress").length, mono: true },
+            ]}
+            actions={
+              <>
+                <CompetitionHeroLink href="/leaderboards">Ladder</CompetitionHeroLink>
+                <CompetitionHeroLink href="/tournaments/create" primary>
+                  Host arena
+                </CompetitionHeroLink>
+              </>
+            }
+          />
+
+          {tournaments.length === 0 ? (
+            <section className="chance-premium-card py-12 text-center">
+              <Trophy className="mx-auto mb-4 size-12 stroke-[1.5] text-[var(--chance-muted-fg)] opacity-60" aria-hidden />
+              <h3 className="text-lg font-semibold">No arenas live</h3>
+              <p className="chance-text-caption mt-1 mb-6">Open the first bracket and set the tone.</p>
+              <Link href="/tournaments/create" className="chance-hero-cta-primary chance-focus-ring inline-flex px-4 py-2.5 text-sm">
+                Create tournament
+              </Link>
+            </section>
+          ) : (
+            <div className="chance-competition-arena-grid">
+              {tournaments.map((tournament) => (
+                <CompetitionTournamentArenaCard key={tournament.id} tournament={tournament} />
+              ))}
             </div>
-            <Button asChild className="bg-orange-500 hover:bg-orange-600">
-              <Link href="/tournaments/create">Create Tournament</Link>
-            </Button>
-          </div>
-        </div>
-
-        {tournaments.length === 0 ? (
-          <Card className="bg-gray-900/80 border-gray-800">
-            <CardContent className="pt-6">
-              <div className="text-center py-12">
-                <Trophy className="h-16 w-16 text-gray-600 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-white mb-2">No tournaments yet</h3>
-                <p className="text-gray-400 mb-6">Be the first to create a tournament!</p>
-                <Button asChild className="bg-orange-500 hover:bg-orange-600">
-                  <Link href="/tournaments/create">Create Tournament</Link>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {tournaments.map((tournament) => {
-              const statusColors: Record<string, string> = {
-                registration: "bg-blue-500/20 text-blue-400 border-blue-500/30",
-                brackets_generated: "bg-purple-500/20 text-purple-400 border-purple-500/30",
-                in_progress: "bg-green-500/20 text-green-400 border-green-500/30",
-                completed: "bg-gray-500/20 text-gray-400 border-gray-500/30",
-                cancelled: "bg-red-500/20 text-red-400 border-red-500/30",
-              }
-
-              return (
-                <Card
-                  key={tournament.id}
-                  className="bg-gray-900/80 border-gray-800 card-hover group"
-                >
-                  <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <CardTitle className="text-white text-xl mb-2">{tournament.name}</CardTitle>
-                        <CardDescription className="text-gray-400">
-                          {tournament.games?.name || "Game"}
-                        </CardDescription>
-                      </div>
-                      <Badge
-                        variant="outline"
-                        className={statusColors[tournament.status] || statusColors.registration}
-                      >
-                        {tournament.status.replace("_", " ")}
-                      </Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div>
-                        <p className="text-gray-400 mb-1">Prize Pool</p>
-                        <p className="text-white font-semibold flex items-center gap-1">
-                          <Coins className="h-4 w-4 text-yellow-400" />
-                          {tournament.prize_pool.toLocaleString()} tokens
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-gray-400 mb-1">Entry Fee</p>
-                        <p className="text-white font-semibold">{tournament.entry_fee} tokens</p>
-                      </div>
-                      <div>
-                        <p className="text-gray-400 mb-1">Max Players</p>
-                        <p className="text-white font-semibold flex items-center gap-1">
-                          <Users className="h-4 w-4" />
-                          {tournament.max_participants}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-gray-400 mb-1">Current Round</p>
-                        <p className="text-white font-semibold">
-                          {tournament.current_round === 0
-                            ? "Registration"
-                            : `Round ${tournament.current_round}/${tournament.total_rounds}`}
-                        </p>
-                      </div>
-                    </div>
-
-                    <Button
-                      asChild
-                      className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-black font-semibold"
-                    >
-                      <Link href={`/tournaments/${tournament.id}`}>
-                        View Tournament
-                        <ArrowRight className="ml-2 h-4 w-4" />
-                      </Link>
-                    </Button>
-                  </CardContent>
-                </Card>
-              )
-            })}
-          </div>
-        )}
+          )}
         </TournamentPasswordGate>
-      </main>
-    </div>
+      </CompetitivePageFeed>
+    </CompetitiveShell>
   )
 }
 

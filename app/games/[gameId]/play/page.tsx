@@ -18,7 +18,7 @@ export default async function GamePlayPage({ params }: GamePlayPageProps) {
   const resolvedParams = await params
   if (!isSupabaseConfigured) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-950">
+      <div className="flex min-h-screen items-center justify-center bg-[var(--chance-bg)] text-[var(--chance-fg)] chance-competitive-theme">
         <h1 className="text-2xl font-bold mb-4 text-white">Connect Supabase to get started</h1>
       </div>
     )
@@ -79,7 +79,7 @@ export default async function GamePlayPage({ params }: GamePlayPageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-950">
+    <div className="min-h-screen bg-[var(--chance-bg)] text-[var(--chance-fg)] chance-competitive-theme">
       <Header user={user} />
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -112,7 +112,7 @@ export default async function GamePlayPage({ params }: GamePlayPageProps) {
         <div className="mt-8 text-center">
           <div className="space-x-4">
             <Button asChild className="bg-orange-500 hover:bg-orange-600 text-black font-semibold">
-              <Link href={`/games/${resolvedParams.gameId}/create?tier=free`}>
+              <Link href={`/games/${resolvedParams.gameId}?tier=free`}>
                 Play for Real
               </Link>
             </Button>

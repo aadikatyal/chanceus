@@ -1,8 +1,9 @@
 "use client"
 
-import { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase/client'
-import { Trophy, Clock } from 'lucide-react'
+import { useState, useEffect } from "react"
+import { supabase } from "@/lib/supabase/client"
+import { ChanceBadge } from "@/components/design-system/badge"
+import { EmptyState, SkeletonRows } from "@/components/dashboard/chance-craft"
 
 interface Winner {
   id: string
@@ -20,7 +21,6 @@ export default function WinningList() {
   useEffect(() => {
     const fetchRecentWinners = async () => {
       try {
-        // Fetch recent completed matches with winners
         const { data: matchesData, error } = await supabase
           .from("matches")
           .select(`
@@ -37,21 +37,21 @@ export default function WinningList() {
           .limit(10)
 
         if (error) {
-          console.error('Error fetching winners:', error)
+          console.error("Error fetching winners:", error)
           setWinners([])
         } else if (matchesData) {
           const formattedWinners: Winner[] = matchesData.map((match: any) => ({
             id: match.id,
-            username: match.winner?.username || 'Unknown',
-            display_name: match.winner?.display_name || match.winner?.username || 'Unknown',
-            amount: match.bet_amount * 2, // Winner gets both bets
+            username: match.winner?.username || "Unknown",
+            display_name: match.winner?.display_name || match.winner?.username || "Unknown",
+            amount: match.bet_amount * 2,
             won_at: match.completed_at,
-            game_name: match.games?.name || 'Unknown Game'
+            game_name: match.games?.name || "Unknown Game",
           }))
           setWinners(formattedWinners)
         }
       } catch (error) {
-        console.error('Error fetching winners:', error)
+        console.error("Error fetching winners:", error)
         setWinners([])
       } finally {
         setLoading(false)
@@ -59,94 +59,77 @@ export default function WinningList() {
     }
 
     fetchRecentWinners()
-    
-    // Set up realtime subscription for new completed matches
+
     const subscription = supabase
-      .channel('global-winners')
+      .channel("global-winners")
       .on(
-        'postgres_changes',
+        "postgres_changes",
         {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'matches',
-          filter: 'status=eq.completed'
+          event: "UPDATE",
+          schema: "public",
+          table: "matches",
+          filter: "status=eq.completed",
         },
-        () => {
-          fetchRecentWinners()
-        }
+        () => fetchRecentWinners()
       )
       .subscribe()
-    
-    // Also poll every 30 seconds as backup (realtime handles immediate updates)
+
     const interval = setInterval(fetchRecentWinners, 30000)
-    
+
     return () => {
       supabase.removeChannel(subscription)
       clearInterval(interval)
     }
   }, [])
 
-  const formatTimeAgo = (dateString: string) => {
-    const now = new Date()
-    const past = new Date(dateString)
-    const diffInSeconds = Math.floor((now.getTime() - past.getTime()) / 1000)
-    
-    // Handle negative time (future dates)
-    if (diffInSeconds < 0) return 'Just now'
-    
-    if (diffInSeconds < 60) return `${diffInSeconds} seconds ago`
-    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} minutes ago`
-    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`
-    return `${Math.floor(diffInSeconds / 86400)} days ago`
-  }
-
-  if (loading) {
-    return (
-      <div className="space-y-3">
-        {[...Array(5)].map((_, i) => (
-          <div key={i} className="flex items-center justify-between animate-pulse">
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-gray-700 rounded-full"></div>
-              <div className="h-4 bg-gray-700 rounded w-20"></div>
-            </div>
-            <div className="h-4 bg-gray-700 rounded w-16"></div>
-          </div>
-        ))}
-      </div>
-    )
-  }
-
   return (
-    <div className="space-y-3">
-      {winners.length === 0 ? (
-        <div className="text-center text-gray-400 text-sm py-4">
-          No recent winners
-        </div>
+    <div className="flex h-full min-h-0 flex-col" aria-busy={loading}>
+      <div className="chance-rail-card-head">
+        <h2 className="chance-section-title text-base" id="dashboard-winners">
+          Recent payouts
+        </h2>
+        <ChanceBadge variant="live" showLiveDot className="text-[0.6875rem]">
+          Live
+        </ChanceBadge>
+      </div>
+
+      {loading ? (
+        <SkeletonRows rows={5} className="h-10" />
+      ) : winners.length === 0 ? (
+        <EmptyState className="py-5">
+          <p className="chance-text-caption">No recent payouts yet.</p>
+        </EmptyState>
       ) : (
-        winners.map((winner) => (
-          <div key={winner.id} className="flex items-center justify-between w-full">
-            <div className="flex items-center space-x-3 flex-1">
-              <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center text-black font-bold text-sm flex-shrink-0">
-                {winner.display_name.charAt(0)}
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="text-white text-sm font-medium truncate">{winner.display_name}</div>
-                <div className="text-xs text-gray-400 truncate">{winner.game_name}</div>
-              </div>
-            </div>
-            <div className="text-right flex-shrink-0 ml-4">
-              <div className="flex items-center justify-end text-green-400 text-sm font-semibold">
-                <Trophy className="w-3 h-3 mr-1 flex-shrink-0" />
-                <span>{winner.amount} tokens</span>
-              </div>
-              <div className="flex items-center justify-end text-gray-400 text-xs">
-                <Clock className="w-3 h-3 mr-1 flex-shrink-0" />
-                <span>{formatTimeAgo(winner.won_at)}</span>
-              </div>
-            </div>
-          </div>
-        ))
+        <ul className="overflow-hidden rounded-[var(--chance-radius-md)] border border-[var(--chance-border)]">
+          {winners.map((winner, index) => (
+            <li
+              key={winner.id}
+              className={`chance-payout-row grid grid-cols-[1fr_auto] gap-x-2 gap-y-0.5 px-3 py-2.5 text-sm ${
+                index > 0 ? "border-t border-[var(--chance-border)]" : ""
+              }`}
+            >
+              <span className="truncate text-[0.8125rem] font-medium tracking-[-0.01em] text-[var(--chance-fg)]">
+                {winner.display_name}
+              </span>
+              <span className="chance-text-mono text-right text-[0.8125rem] font-semibold tabular-nums text-[var(--chance-yes)]">
+                +{winner.amount}
+              </span>
+              <span className="col-span-2 truncate chance-text-caption">
+                {winner.game_name} · {formatTimeAgo(winner.won_at)}
+              </span>
+            </li>
+          ))}
+        </ul>
       )}
     </div>
   )
+}
+
+function formatTimeAgo(dateString: string) {
+  const diffInSeconds = Math.floor((Date.now() - new Date(dateString).getTime()) / 1000)
+  if (diffInSeconds < 0) return "now"
+  if (diffInSeconds < 60) return `${diffInSeconds}s`
+  if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m`
+  if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h`
+  return `${Math.floor(diffInSeconds / 86400)}d`
 }
