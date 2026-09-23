@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useCallback } from 'react'
-import { Coins } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -13,9 +12,9 @@ import StripePaymentForm from '@/components/wallet/stripe-payment-form'
 type Pack = { amount: 100 | 500 | 1000; label: string; note?: string }
 
 const PACKS: Pack[] = [
-  { amount: 100, label: '100 tokens', note: '$9.99' },
-  { amount: 500, label: '500 tokens', note: '$49.99' },
-  { amount: 1000, label: '1,000 tokens', note: '$99.99' },
+  { amount: 100, label: '100', note: '$9.99' },
+  { amount: 500, label: '500', note: '$49.99' },
+  { amount: 1000, label: '1,000', note: '$99.99' },
 ]
 
 let globalIsProcessing = false
@@ -84,64 +83,56 @@ export default function BuyButtons({ current }: { current: number }) {
 
   return (
     <>
-      <div className="rounded-2xl border border-yellow-500/20 bg-gray-900/50 p-4 sm:p-5 shadow-lg shadow-black/20">
-        <div className="mb-4 flex items-center gap-2">
-          <div className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-yellow-500/10 text-yellow-400">
-            <Coins className="h-4 w-4" />
-          </div>
-          <div>
-            <h3 className="text-base font-semibold text-white">Add Tokens</h3>
-            <p className="text-xs text-gray-400">
-              Current balance: <span className="text-white">{current.toLocaleString()}</span>
-            </p>
-          </div>
-        </div>
+      <div className="chance-premium-card p-4 sm:p-5">
+        <p className="chance-text-caption">
+          Balance after purchase updates automatically · currently{' '}
+          <span className="chance-text-mono font-semibold tabular-nums text-[var(--chance-fg)]">
+            {current.toLocaleString()}
+          </span>
+        </p>
 
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
           {PACKS.map((p) => (
-            <div
+            <button
               key={p.amount}
-              className="group rounded-xl border border-gray-800 bg-gray-900/60 p-4 transition-colors hover:border-yellow-500/30"
+              type="button"
+              onClick={() => onBuy(p.amount)}
+              disabled={loading !== null || globalIsProcessing}
+              aria-busy={loading === p.amount}
+              className="chance-wallet-pack chance-focus-ring group text-left disabled:pointer-events-none disabled:opacity-60"
             >
-              <div className="text-white font-semibold">{p.label}</div>
-              {p.note && <div className="mt-1 text-xs text-gray-400">{p.note}</div>}
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.preventDefault()
-                  e.stopPropagation()
-                  onBuy(p.amount)
-                }}
-                disabled={loading !== null || globalIsProcessing}
-                aria-busy={loading !== null || globalIsProcessing}
-                className="mt-3 w-full rounded-lg bg-yellow-500 px-3 py-2 text-sm font-semibold text-black shadow-md transition hover:bg-yellow-400 disabled:cursor-not-allowed disabled:opacity-70 disabled:pointer-events-none"
-                style={{
-                  pointerEvents: loading !== null || globalIsProcessing ? 'none' : 'auto',
-                }}
-              >
+              <span className="chance-text-mono text-2xl font-bold tabular-nums tracking-tight">{p.label}</span>
+              <span className="chance-text-caption mt-0.5 block">tokens</span>
+              {p.note ? (
+                <span className="chance-text-caption mt-2 block text-[var(--chance-muted-fg)]">{p.note}</span>
+              ) : null}
+              <span className="mt-4 block w-full rounded-[var(--chance-radius-md)] bg-[var(--chance-brand)] py-2 text-center text-sm font-semibold text-[var(--chance-brand-fg)] group-hover:opacity-95">
                 {loading === p.amount ? 'Opening…' : 'Buy'}
-              </button>
-            </div>
+              </span>
+            </button>
           ))}
         </div>
 
-        {error && (
-          <div className="mt-3 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-300">
+        {error ? (
+          <div
+            className="mt-4 rounded-[var(--chance-radius-md)] border border-[color-mix(in_srgb,var(--chance-no)_40%,var(--chance-border))] bg-[color-mix(in_srgb,var(--chance-no)_8%,var(--chance-surface))] px-3 py-2 text-sm text-[var(--chance-no)]"
+            role="alert"
+          >
             {error}
           </div>
-        )}
+        ) : null}
       </div>
 
       <Dialog open={modalOpen} onOpenChange={handleModalOpenChange}>
-        <DialogContent className="bg-gray-900 border-gray-800 text-white sm:max-w-md">
+        <DialogContent className="border-[var(--chance-border)] bg-[var(--chance-surface-raised)] text-[var(--chance-fg)] sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-white">Token checkout</DialogTitle>
+            <DialogTitle>Token checkout</DialogTitle>
           </DialogHeader>
           {clientSecret && paymentIntentId && selectedPack && (
             <StripePaymentForm
               clientSecret={clientSecret}
               paymentIntentId={paymentIntentId}
-              packLabel={selectedPack.label}
+              packLabel={`${selectedPack.label} tokens`}
               packPrice={selectedPack.note}
               onSuccess={handlePaymentSuccess}
               onError={handlePaymentError}

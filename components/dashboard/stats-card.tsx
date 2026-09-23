@@ -1,6 +1,6 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import type { LucideIcon } from "lucide-react"
-import { ReactNode } from "react"
+import type { ReactNode } from "react"
+import { ChanceStatCard } from "@/components/design-system/stat-card"
 
 interface StatsCardProps {
   title: string
@@ -14,23 +14,26 @@ interface StatsCardProps {
   className?: string
 }
 
-export default function StatsCard({ title, value, description, icon: Icon, trend, className }: StatsCardProps) {
+/** @deprecated Prefer `ChanceStatCard` — thin wrapper for legacy imports during migration. */
+export default function StatsCard(props: StatsCardProps) {
+  const accent =
+    props.className?.includes("green") || props.className?.includes("yes")
+      ? "yes"
+      : props.className?.includes("red") || props.className?.includes("no")
+        ? "no"
+        : props.className?.includes("brand") || props.className?.includes("cyan")
+          ? "brand"
+          : "none"
+
   return (
-    <Card className={`border-border bg-card card-hover ${className}`}>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium text-gray-400">{title}</CardTitle>
-        <Icon className="h-4 w-4 text-gray-400" />
-      </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold">{value}</div>
-        {description && <p className="text-xs text-gray-500 mt-1">{description}</p>}
-        {trend && (
-          <p className={`text-xs mt-1 ${trend.isPositive ? "text-green-400" : "text-red-400"}`}>
-            {trend.isPositive ? "+" : ""}
-            {trend.value}% from last week
-          </p>
-        )}
-      </CardContent>
-    </Card>
+    <ChanceStatCard
+      title={props.title}
+      value={props.value}
+      description={props.description}
+      icon={props.icon}
+      trend={props.trend}
+      accent={accent}
+      className={props.className}
+    />
   )
 }

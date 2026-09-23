@@ -285,7 +285,7 @@ export default function TournamentDetailClient({
     .filter((id): id is string => !!id)
 
   return (
-    <div className="space-y-6">
+    <div className="chance-competition-tournament-client space-y-6">
       {/* Creator: delete option */}
       {isCreator && (
         <Card className="bg-gray-900/80 border-gray-800">
@@ -473,18 +473,18 @@ export default function TournamentDetailClient({
 
       {/* Tabs for different views */}
       <Tabs defaultValue="bracket" className="w-full">
-        <TabsList className="bg-gray-900/80 border-gray-800">
-          <TabsTrigger value="bracket" className="text-white data-[state=active]:bg-orange-500">
+        <TabsList className="chance-competition-tabs-list">
+          <TabsTrigger value="bracket" className="chance-competition-tab">
             Bracket
           </TabsTrigger>
-          <TabsTrigger value="participants" className="text-white data-[state=active]:bg-orange-500">
+          <TabsTrigger value="participants" className="chance-competition-tab">
             Participants ({participants.length})
           </TabsTrigger>
-          <TabsTrigger value="matches" className="text-white data-[state=active]:bg-orange-500">
+          <TabsTrigger value="matches" className="chance-competition-tab">
             Matches
           </TabsTrigger>
           {isRegistered && (
-            <TabsTrigger value="chat" className="text-white data-[state=active]:bg-orange-500">
+            <TabsTrigger value="chat" className="chance-competition-tab">
               Chat
             </TabsTrigger>
           )}

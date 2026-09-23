@@ -24,9 +24,14 @@ interface MatchmakingQueue {
 interface MatchmakingRealtimeProps {
   initialQueues: MatchmakingQueue[]
   currentUserId: string
+  variant?: "legacy" | "competitive"
 }
 
-export default function MatchmakingRealtime({ initialQueues, currentUserId }: MatchmakingRealtimeProps) {
+export default function MatchmakingRealtime({
+  initialQueues,
+  currentUserId,
+  variant = "legacy",
+}: MatchmakingRealtimeProps) {
   const [queues, setQueues] = useState<MatchmakingQueue[]>(initialQueues)
 
   useEffect(() => {
@@ -173,5 +178,5 @@ export default function MatchmakingRealtime({ initialQueues, currentUserId }: Ma
     }
   }
 
-  return <MatchmakingQueueList queues={queues} />
+  return <MatchmakingQueueList queues={queues} variant={variant} />
 }

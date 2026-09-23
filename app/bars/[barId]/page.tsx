@@ -27,7 +27,8 @@ import { toast } from "sonner"
 import QRCodeGenerator from "@/components/bar/qr-code-generator"
 import DrinkRewardsManager from "@/components/bar/drink-rewards-manager"
 import StaffManagement from "@/components/bar/staff-management"
-import Header from "@/components/navigation/header"
+import VenuesPageChrome from "@/components/venues/venues-page-chrome"
+import VenuesHero from "@/components/venues/venues-hero"
 import { createClient } from "@/lib/supabase/client"
 import type { User } from "@/lib/supabase/client"
 import { 
@@ -324,20 +325,15 @@ export default function BarManagementPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 relative">
-      <Header user={user} />
-      
-      {/* Subtle gradient overlay */}
-      
-      
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
+    <VenuesPageChrome user={user} host>
         <div className="space-y-8">
-          {/* Header */}
+          <VenuesHero
+            kicker="Host mode"
+            title={bar.name}
+            subtitle="Run tonight's event — games, sessions, QR, and staff."
+          />
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-4xl font-bold text-white">{bar.name}</h1>
-              <p className="text-gray-300 mt-2">Bar Management Dashboard</p>
-            </div>
+            <div className="sr-only">{bar.name}</div>
             <div className="flex gap-3">
               <Button
                 onClick={() => router.push(`/bars/${barId}/dashboard`)}
@@ -640,7 +636,6 @@ export default function BarManagementPage() {
             </div>
           )}
         </div>
-      </div>
-    </div>
+    </VenuesPageChrome>
   )
 }

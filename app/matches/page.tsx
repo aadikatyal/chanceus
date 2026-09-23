@@ -1,39 +1,43 @@
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
-import Header from "@/components/navigation/header"
-import MatchHistoryTable from "@/components/matches/match-history-table"
-import StatsCard from "@/components/dashboard/stats-card"
-import { Trophy, Target, TrendingUp, Clock } from "lucide-react"
+import CompetitiveShell from "@/components/app/competitive-shell"
+import CompetitivePageFeed from "@/components/app/competitive-page-feed"
+import CompetitionHero, { CompetitionHeroLink } from "@/components/competition/competition-hero"
+import CompetitionProgressMeter from "@/components/competition/competition-progress-meter"
+import CompetitionMatchTimeline from "@/components/competition/competition-match-timeline"
+import { ChanceText } from "@/components/design-system/typography"
+import { Trophy, Target, TrendingUp, Clock, Flame, Gamepad2 } from "lucide-react"
+import Link from "next/link"
 
 export default async function MatchesPage() {
-  // If Supabase is not configured, show setup message
   if (!isSupabaseConfigured) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-950">
-        <h1 className="text-2xl font-bold mb-4 text-white">Connect Supabase to get started</h1>
+      <div className="flex min-h-screen items-center justify-center bg-[var(--chance-bg)] px-4">
+        <div className="max-w-md text-center">
+          <ChanceText as="h1" variant="h2" className="mb-3">
+            Connect Supabase to get started
+          </ChanceText>
+          <ChanceText variant="muted">Configure your database connection to continue</ChanceText>
+        </div>
       </div>
     )
   }
 
-  // Get the user from the server
   const supabase = await createClient()
   const {
     data: { user: authUser },
   } = await supabase.auth.getUser()
 
-  // If no user, redirect to login
   if (!authUser) {
     redirect("/auth/login")
   }
 
-  // Get user profile data
   const { data: user } = await supabase.from("users").select("*").eq("id", authUser.id).single()
 
   if (!user) {
     redirect("/auth/login")
   }
 
-  // Get match history with detailed information
   const { data: matches = [], error: matchesError } = await supabase
     .from("matches")
     .select(`
@@ -52,23 +56,10 @@ export default async function MatchesPage() {
     .order("created_at", { ascending: false })
     .limit(50)
 
-  // Debug: Log any errors and the matches data
   if (matchesError) {
-    console.error('❌ Error fetching matches:', matchesError)
-  }
-  
-  console.log('🔍 Matches page - fetched matches:', matches?.length || 0)
-  if (matches && matches.length > 0) {
-    console.log('🔍 First match sample:', {
-      id: matches[0].id,
-      status: matches[0].status,
-      player1: matches[0].player1,
-      player2: matches[0].player2,
-      games: matches[0].games
-    })
+    console.error("❌ Error fetching matches:", matchesError)
   }
 
-  // Calculate additional stats
   const completedMatches = matches.filter((m) => m.status === "completed")
   const totalWins = completedMatches.filter((m) => m.winner_id === authUser.id).length
   const totalLosses = completedMatches.filter((m) => m.winner_id && m.winner_id !== authUser.id).length
@@ -80,62 +71,98 @@ export default async function MatchesPage() {
           .filter((m) => m.started_at && m.completed_at)
           .reduce((sum, m) => {
             const duration = new Date(m.completed_at!).getTime() - new Date(m.started_at!).getTime()
-            return sum + duration / 1000 / 60 // Convert to minutes
+            return sum + duration / 1000 / 60
           }, 0) / completedMatches.length,
       )
     : 0
 
+  const recentStreak = completedMatches.slice(0, 10).reduce((streak, m) => {
+    if (m.winner_id === authUser.id) return streak + 1
+    return 0
+  }, 0)
+
   return (
-    <div className="min-h-screen bg-gray-950 relative">
-      <Header user={user} />
+    <CompetitiveShell user={user}>
+      <CompetitivePageFeed className="chance-competition-feed">
+        <CompetitionHero
+          kicker="Competition"
+          title="Activity"
+          subtitle="Every match is a step on your ladder — wins, losses, and rematches tell the story."
+          stats={[
+            { label: "win rate", value: `${user.win_rate}%`, mono: true },
+            { label: "career wins", value: totalWins, mono: true },
+            { label: "matches", value: user.total_games_played, mono: true },
+          ]}
+          actions={
+            <>
+              <CompetitionHeroLink href="/rankings">Your rank</CompetitionHeroLink>
+              <CompetitionHeroLink href="/games" primary>
+                <Gamepad2 className="size-4 stroke-[1.75]" aria-hidden />
+                Queue again
+              </CompetitionHeroLink>
+            </>
+          }
+        />
 
-      {/* Subtle gradient overlay */}
-      
+        <CompetitionProgressMeter
+          metrics={[
+            {
+              id: "wins",
+              label: "Victories",
+              value: totalWins,
+              hint: `${totalLosses} losses · ${totalDraws} draws`,
+              icon: Trophy,
+              accent: "yes",
+            },
+            {
+              id: "wr",
+              label: "Win rate",
+              value: `${user.win_rate}%`,
+              hint: "Ranked skill signal",
+              icon: Target,
+              accent: "brand",
+            },
+            {
+              id: "volume",
+              label: "Matches",
+              value: user.total_games_played,
+              hint: "Career volume",
+              icon: TrendingUp,
+            },
+            {
+              id: "pace",
+              label: "Avg duration",
+              value: `${averageMatchDuration}m`,
+              hint: "Per completed match",
+              icon: Clock,
+            },
+          ]}
+        />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
-        {/* Page Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">Match History</h1>
-          <p className="text-gray-400">Track your gaming performance and statistics</p>
+        <div className="chance-competition-activity-links">
+          <Link href="/leaderboards" className="chance-link-arrow text-sm">
+            Global ladder →
+          </Link>
+          <Link href="/tournaments" className="chance-link-arrow text-sm">
+            Tournament arenas →
+          </Link>
         </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <StatsCard
-            title="Total Wins"
-            value={totalWins}
-            description={`${totalLosses} losses, ${totalDraws} draws`}
-            icon={Trophy}
-            trend={{ value: 12, isPositive: true }}
-            className="border-green-500/20"
-          />
-          <StatsCard
-            title="Win Rate"
-            value={`${user.win_rate}%`}
-            description="Your success percentage"
-            icon={Target}
-            trend={{ value: 5, isPositive: true }}
-            className="border-cyan-500/20"
-          />
-          <StatsCard
-            title="Total Matches"
-            value={user.total_games_played}
-            description="Games completed"
-            icon={TrendingUp}
-            className="border-purple-500/20"
-          />
-          <StatsCard
-            title="Avg Duration"
-            value={`${averageMatchDuration}m`}
-            description="Per completed match"
-            icon={Clock}
-            className="border-yellow-500/20"
-          />
-        </div>
+        <CompetitionMatchTimeline matches={matches} currentUserId={authUser.id} />
 
-        {/* Match History Table */}
-        <MatchHistoryTable matches={matches} currentUserId={authUser.id} />
-      </main>
-    </div>
+        {recentStreak >= 2 ? (
+          <section className="chance-competition-streak-banner chance-premium-card p-4 sm:p-5">
+            <Flame className="size-5 text-[var(--chance-brand)]" aria-hidden />
+            <div>
+              <p className="text-sm font-semibold">{recentStreak}-match hot streak</p>
+              <p className="chance-text-caption">Keep pressure on — the ladder is watching.</p>
+            </div>
+            <CompetitionHeroLink href="/games" primary>
+              Stay in queue
+            </CompetitionHeroLink>
+          </section>
+        ) : null}
+      </CompetitivePageFeed>
+    </CompetitiveShell>
   )
 }

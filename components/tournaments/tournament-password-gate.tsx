@@ -1,17 +1,16 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Label } from "@/components/ui/label"
 import { Lock } from "lucide-react"
 
 const COOKIE_NAME = "tournaments_unlocked"
-// Optional: set NEXT_PUBLIC_TOURNAMENT_GATE_PASSWORD in .env.local (defaults to Ca$ino if unset)
-const PASSWORD = typeof process.env.NEXT_PUBLIC_TOURNAMENT_GATE_PASSWORD === "string" && process.env.NEXT_PUBLIC_TOURNAMENT_GATE_PASSWORD.length > 0
-  ? process.env.NEXT_PUBLIC_TOURNAMENT_GATE_PASSWORD
-  : "Ca$ino"
+const PASSWORD =
+  typeof process.env.NEXT_PUBLIC_TOURNAMENT_GATE_PASSWORD === "string" &&
+  process.env.NEXT_PUBLIC_TOURNAMENT_GATE_PASSWORD.length > 0
+    ? process.env.NEXT_PUBLIC_TOURNAMENT_GATE_PASSWORD
+    : "Ca$ino"
 const COOKIE_MAX_AGE_DAYS = 1
 
 function getCookie(name: string): string | null {
@@ -47,45 +46,43 @@ export default function TournamentPasswordGate({ children }: { children: React.R
 
   if (unlocked === null) {
     return (
-      <div className="flex items-center justify-center min-h-[40vh]">
-        <p className="text-gray-400">Loading...</p>
+      <div className="chance-page-centered-panel">
+        <p className="chance-text-caption">Loading…</p>
       </div>
     )
   }
 
   if (!unlocked) {
     return (
-      <Card className="bg-gray-900/80 border-gray-800 max-w-md mx-auto mt-12">
-        <CardHeader>
-          <CardTitle className="text-white flex items-center gap-2">
-            <Lock className="h-5 w-5" />
+      <div className="chance-page-centered-panel">
+        <section className="chance-page-centered-panel__card chance-premium-card p-6 sm:p-8">
+          <h2 className="chance-section-title flex items-center gap-2">
+            <Lock className="size-4 stroke-[1.75] text-[var(--chance-brand)]" aria-hidden />
             Tournaments
-          </CardTitle>
-          <p className="text-gray-400 text-sm">Enter password to access</p>
-        </CardHeader>
-        <CardContent>
+          </h2>
+          <p className="chance-text-caption mb-6">Enter password to access</p>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="tournament-password" className="text-white">
+              <label htmlFor="tournament-password" className="chance-text-label">
                 Password
-              </Label>
+              </label>
               <Input
                 id="tournament-password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Password"
-                className="bg-gray-800 border-gray-700 text-white"
+                className="chance-input"
                 autoFocus
               />
             </div>
-            {error && <p className="text-sm text-red-400">{error}</p>}
-            <Button type="submit" className="w-full bg-orange-500 hover:bg-orange-600">
+            {error ? <p className="text-sm text-[var(--chance-no)]">{error}</p> : null}
+            <Button type="submit" className="chance-hero-cta-primary chance-focus-ring w-full">
               Unlock
             </Button>
           </form>
-        </CardContent>
-      </Card>
+        </section>
+      </div>
     )
   }
 

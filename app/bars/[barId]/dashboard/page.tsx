@@ -52,7 +52,8 @@ import { createClient } from "@/lib/supabase/client"
 import QuickSetupWizard from "@/components/bar/quick-setup-wizard"
 import QRCodeGenerator from "@/components/bar/qr-code-generator"
 import type { Bar, BarTriviaGame, BarTriviaSession } from "@/lib/bar-actions"
-import Header from "@/components/navigation/header"
+import VenuesPageChrome from "@/components/venues/venues-page-chrome"
+import VenuesHero from "@/components/venues/venues-hero"
 import type { User } from "@/lib/supabase/client"
 
 export default function BarDashboardPage() {
@@ -247,42 +248,26 @@ export default function BarDashboardPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-950 relative">
-        <Header user={user} />
-        
-        {/* Subtle gradient overlay */}
-        
-        
-        <div className="flex items-center justify-center p-4 pt-20 relative z-10">
-          <Card className="w-full max-w-md bg-gray-900/80 border-gray-800">
-            <CardContent className="p-6">
-              <div className="text-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto mb-4"></div>
-                <p className="text-white">Loading bar dashboard...</p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+      <VenuesPageChrome user={user} host>
+        <section className="chance-premium-card p-8 text-center">
+          <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-2 border-[var(--chance-border)] border-t-[var(--chance-brand)]" />
+          <p className="chance-text-caption">Opening control room…</p>
+        </section>
+      </VenuesPageChrome>
     )
   }
 
   if (!bar) {
     return (
-      <div className="min-h-screen bg-black">
-        <Header user={user} />
-        <div className="flex items-center justify-center p-4 pt-20">
-          <Card className="w-full max-w-md bg-gray-900/80 border-gray-800">
-            <CardContent className="p-6 text-center">
-              <h2 className="text-xl font-semibold text-red-400 mb-2">Bar Not Found</h2>
-              <p className="text-white/60 mb-4">The bar you're looking for doesn't exist.</p>
-              <Button onClick={() => router.push("/bars")} className="bg-blue-600 hover:bg-blue-700 text-white">
-                Back to Bar Trivia
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+      <VenuesPageChrome user={user} host>
+        <section className="chance-premium-card p-8 text-center">
+          <h2 className="text-xl font-semibold text-[var(--chance-no)] mb-2">Venue not found</h2>
+          <p className="chance-text-caption mb-4">This venue may have been removed.</p>
+          <Button onClick={() => router.push("/bars")} className="chance-hero-cta-primary chance-focus-ring">
+            Back to venues
+          </Button>
+        </section>
+      </VenuesPageChrome>
     )
   }
 
@@ -290,19 +275,20 @@ export default function BarDashboardPage() {
   const waitingSessions = sessions.filter(s => s.status === "waiting")
 
   return (
-    <div className="min-h-screen bg-gray-950 relative">
-      <Header user={user} />
-      
-      {/* Subtle gradient overlay */}
-      
-      
-      <div className="max-w-7xl mx-auto p-4 pt-8 space-y-6 relative z-10">
-        {/* Header */}
+    <VenuesPageChrome user={user} host>
+      <div className="space-y-6">
+        <VenuesHero
+          kicker="Control room"
+          title={bar.name}
+          subtitle="Run the live floor — start sessions, show QR, watch the board fill."
+          live={Boolean(activeSession)}
+          stats={[
+            { label: "waiting", value: waitingSessions.length },
+            { label: "active", value: activeSession ? 1 : 0 },
+          ]}
+        />
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-white">{bar.name} Dashboard</h1>
-            <p className="text-white/80 mt-1">Live bar management and trivia control</p>
-          </div>
+          <div className="sr-only">Actions</div>
           <div className="flex items-center gap-2">
             <Button
               onClick={() => setShowQRModal(true)}
@@ -742,6 +728,6 @@ export default function BarDashboardPage() {
           </div>
         )}
       </div>
-    </div>
+    </VenuesPageChrome>
   )
 }

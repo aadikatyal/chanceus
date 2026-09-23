@@ -33,30 +33,23 @@ export default function TournamentBracket({
   // If we have matches, show the bracket even if status is still "registration"
   if (tournament.status === "registration" && matches.length === 0) {
     return (
-      <Card className="bg-gray-900/80 border-gray-800">
-        <CardContent className="pt-6">
-          <div className="text-center py-12">
-            <p className="text-gray-400">
-              Bracket will be generated when the tournament starts
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+      <section className="chance-premium-card chance-competition-bracket-shell p-6 sm:p-8">
+        <div className="py-10 text-center">
+          <p className="text-sm font-medium text-[var(--chance-fg)]">Bracket unlocks at start</p>
+          <p className="chance-text-caption mt-1">Registration fills the field — then seeds go live.</p>
+        </div>
+      </section>
     )
   }
 
   if (matches.length === 0 && tournament.status === "in_progress") {
     return (
-      <Card className="bg-gray-900/80 border-gray-800">
-        <CardContent className="pt-6">
-          <div className="text-center py-12">
-            <p className="text-gray-400">Generating bracket...</p>
-            <p className="text-gray-500 text-sm mt-2">
-              Matches are being created. Please refresh the page.
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+      <section className="chance-premium-card chance-competition-bracket-shell p-6 sm:p-8">
+        <div className="py-10 text-center">
+          <p className="text-sm font-medium text-[var(--chance-fg)]">Generating bracket…</p>
+          <p className="chance-text-caption mt-1">Matches are seeding — refresh in a moment.</p>
+        </div>
+      </section>
     )
   }
 

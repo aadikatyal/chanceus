@@ -29,11 +29,15 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { sendFriendRequest, getFriends, getSentRequests, getPendingRequests, acceptFriendRequest } from '@/lib/friends-actions'
 import { useConnectFourBotAutoPlay } from '@/hooks/use-connect-four-bot-autoplay'
+import GameplayShell from '@/components/gameplay/gameplay-shell'
+import { displayName, extractScores, resolveGameplayPhase } from '@/components/gameplay/gameplay-utils'
 
 interface EnhancedMatchInterfaceProps {
   match: Match
   currentUser: User
   onMatchComplete?: (winnerId: string | null) => void
+  /** Live call sidebar — single result surface, call-first CTAs */
+  embedInCall?: boolean
 }
 
 interface GameState {
@@ -47,7 +51,8 @@ interface GameState {
 export default function EnhancedMatchInterface({ 
   match, 
   currentUser, 
-  onMatchComplete 
+  onMatchComplete,
+  embedInCall = false,
 }: EnhancedMatchInterfaceProps) {
   const [gameState, setGameState] = useState<GameState>({
     status: 'waiting',
@@ -1164,6 +1169,16 @@ export default function EnhancedMatchInterface({
     }
   }, [updateMatch, addMatchHistory, match, onMatchComplete])
 
+  const inGameplayPresentation =
+    localMatch.status !== "waiting" &&
+    (localMatch.status === "in_progress" ||
+      localMatch.status === "completed" ||
+      match.status === "in_progress" ||
+      match.status === "completed" ||
+      gameState.status === "playing" ||
+      gameState.status === "countdown" ||
+      gameState.status === "completed")
+
   // Render game component based on game type
   const renderGame = useCallback(() => {
     // Only log when game state changes significantly
@@ -1250,6 +1265,7 @@ export default function EnhancedMatchInterface({
             player2Id={match.player2_id || ''}
             onGameComplete={handleGameComplete}
             isTournamentMatch={!!(match as any)?.tournament_id}
+            compactPresentation={inGameplayPresentation}
           />
         case '4 in a row':
         case 'four in a row':
@@ -1271,6 +1287,7 @@ export default function EnhancedMatchInterface({
             player2Id={match.player2_id}
             initialGameData={match.game_data}
             isTournamentMatch={!!(match as any)?.tournament_id}
+            compactPresentation={inGameplayPresentation}
           />
         case 'trivia challenge':
           console.log('🎮 Rendering Multiplayer Trivia Challenge')
@@ -1281,6 +1298,7 @@ export default function EnhancedMatchInterface({
             player2Id={match.player2_id || ''}
             onGameComplete={handleGameComplete}
             isTournamentMatch={!!(match as any)?.tournament_id}
+            compactPresentation={inGameplayPresentation}
           />
         default:
           console.log('🎮 Unknown game type, falling back to Math Blitz. Game name was:', game?.name)
@@ -1291,6 +1309,7 @@ export default function EnhancedMatchInterface({
             player2Id={match.player2_id || ''}
             onGameComplete={handleGameComplete}
             isTournamentMatch={!!(match as any)?.tournament_id}
+            compactPresentation={inGameplayPresentation}
           />
       }
     } else if (match.player2_id) {
@@ -1323,6 +1342,7 @@ export default function EnhancedMatchInterface({
             player2Id={match.player2_id || ''}
             onGameComplete={handleGameComplete}
             isTournamentMatch={!!(match as any)?.tournament_id}
+            compactPresentation={inGameplayPresentation}
           />
         case '4 in a row':
         case 'four in a row':
@@ -1335,6 +1355,7 @@ export default function EnhancedMatchInterface({
             player2Id={match.player2_id}
             initialGameData={match.game_data}
             isTournamentMatch={!!(match as any)?.tournament_id}
+            compactPresentation={inGameplayPresentation}
           />
         case 'trivia challenge':
           console.log('🎮 Fallback: Rendering Multiplayer Trivia Challenge')
@@ -1345,6 +1366,7 @@ export default function EnhancedMatchInterface({
             player2Id={match.player2_id || ''}
             onGameComplete={handleGameComplete}
             isTournamentMatch={!!(match as any)?.tournament_id}
+            compactPresentation={inGameplayPresentation}
           />
         default:
           console.log('🎮 Fallback: Unknown game type, falling back to Math Blitz. Game name was:', game?.name)
@@ -1355,6 +1377,7 @@ export default function EnhancedMatchInterface({
             player2Id={match.player2_id || ''}
             onGameComplete={handleGameComplete}
             isTournamentMatch={!!(match as any)?.tournament_id}
+            compactPresentation={inGameplayPresentation}
           />
       }
     } else {
@@ -1412,7 +1435,7 @@ export default function EnhancedMatchInterface({
           />
       }
     }
-  }, [match, gameState, localMatch, game, isMyTurn, handleGameComplete])
+  }, [match, gameState, localMatch, game, isMyTurn, handleGameComplete, inGameplayPresentation, currentUser.id])
 
 
   // Show warning if not connected but continue with game (WebSocket is optional)
@@ -1493,7 +1516,134 @@ export default function EnhancedMatchInterface({
     }
   }, [isConnected, error, match.id, localMatch.status, gameState.status, supabase])
 
-  // Early return for connection errors (must be after all hooks)
+  const gameplayPhase = resolveGameplayPhase({
+    matchStatus: localMatch.status,
+    gameStateStatus: gameState.status,
+    isMyTurn,
+    hasOpponent: !!localMatch.player2_id,
+    winnerId: localMatch.winner_id ?? null,
+    currentUserId: currentUser.id,
+    player1Id: match.player1_id,
+    error,
+    isConnected,
+    countdown: gameState.status === "countdown" ? countdown : null,
+    gameName: game?.name,
+  })
+
+  const gameplayScore = extractScores(
+    (gameState.gameData ?? localMatch.game_data) as Record<string, unknown>,
+    isPlayer1
+  )
+
+  const matchFinished =
+    localMatch.status === "completed" || gameState.status === "completed"
+
+  const resultFooter =
+    opponentId &&
+    localMatch.player2_id &&
+    matchFinished ? (
+      <Button
+        onClick={handleAddFriend}
+        disabled={isLoadingFriend || friendStatus === "friends"}
+        className={
+          friendStatus === "friends"
+            ? "chance-secondary-btn w-full"
+            : "chance-hero-cta-ghost chance-focus-ring w-full"
+        }
+        size="sm"
+      >
+        {isLoadingFriend
+          ? "Processing…"
+          : friendStatus === "friends"
+            ? "Friends"
+            : friendStatus === "request_sent"
+              ? "Request sent"
+              : `Add ${displayName(isPlayer1 ? player2Data : player1Data)}`}
+      </Button>
+    ) : null
+
+  const rematchSlot =
+    !isTournamentMatch && matchFinished && localMatch.player2_id ? (
+      <div className="chance-gp-rematch">
+        {rematchStatus === "none" ? (
+          <button
+            type="button"
+            onClick={requestRematch}
+            disabled={isLoadingRematch}
+            className="chance-hero-cta-primary chance-focus-ring inline-flex items-center gap-2 px-4 py-2 text-sm"
+          >
+            {isLoadingRematch ? "Requesting…" : "Request rematch"}
+          </button>
+        ) : null}
+        {rematchStatus === "requested" ? (
+          <p className="chance-text-caption text-sm">Rematch sent — waiting for opponent…</p>
+        ) : null}
+        {rematchStatus === "received" ? (
+          <>
+            <p className="chance-text-caption text-sm">Opponent wants a rematch</p>
+            <div className="chance-gp-rematch-actions">
+              <button
+                type="button"
+                onClick={acceptRematch}
+                disabled={isLoadingRematch}
+                className="chance-hero-cta-primary chance-focus-ring px-4 py-2 text-sm"
+              >
+                {isLoadingRematch ? "Accepting…" : "Accept"}
+              </button>
+              <button
+                type="button"
+                onClick={rejectRematch}
+                disabled={isLoadingRematch}
+                className="chance-hero-cta-ghost chance-focus-ring px-4 py-2 text-sm"
+              >
+                Decline
+              </button>
+            </div>
+          </>
+        ) : null}
+        {rematchStatus === "accepted" ? (
+          <p className="chance-text-caption text-sm">Rematch accepted — loading new game…</p>
+        ) : null}
+        {rematchStatus === "rejected" ? (
+          <button
+            type="button"
+            onClick={() => setRematchStatus("none")}
+            className="chance-hero-cta-ghost chance-focus-ring px-4 py-2 text-sm"
+          >
+            Request again
+          </button>
+        ) : null}
+      </div>
+    ) : null
+
+  if (inGameplayPresentation) {
+    return (
+      <GameplayShell
+        gameName={game?.name ?? "Game"}
+        betAmount={match.bet_amount ?? 0}
+        pot={(match.bet_amount ?? 0) * (localMatch.player2_id ? 2 : 1)}
+        phase={error ? "network-error" : gameplayPhase}
+        countdown={gameState.status === "countdown" ? countdown : null}
+        timeLeft={timeLeft}
+        score={gameplayScore}
+        player1={player1Data ?? (match.player1 as any)}
+        player2={player2Data ?? (match.player2 as any)}
+        isPlayer1={isPlayer1}
+        networkNote={!isConnected && !error ? "Syncing match state…" : null}
+        resultFooter={resultFooter}
+        rematchSlot={rematchSlot}
+        embedInCall={embedInCall}
+      >
+        {(gameState.status === "playing" ||
+          gameState.status === "completed" ||
+          gameState.status === "countdown" ||
+          localMatch.status === "in_progress") &&
+          renderGame()}
+      </GameplayShell>
+    )
+  }
+
+  // Early return for connection errors outside active gameplay (must be after all hooks)
   if (error) {
     return (
       <Card className="bg-gray-900/50 border-red-500/20">
@@ -1501,11 +1651,7 @@ export default function EnhancedMatchInterface({
           <div className="text-center">
             <AlertCircle className="h-8 w-8 text-red-400 mx-auto mb-4" />
             <p className="text-red-400">Connection Error: {error}</p>
-            <Button 
-              onClick={() => window.location.reload()} 
-              className="mt-4"
-              variant="outline"
-            >
+            <Button onClick={() => window.location.reload()} className="mt-4" variant="outline">
               Retry
             </Button>
           </div>
@@ -1515,20 +1661,20 @@ export default function EnhancedMatchInterface({
   }
 
   return (
-    <Card className="bg-gray-900/50 border-orange-500/20">
+    <Card className="bg-gray-900/50 border-[color-mix(in_srgb,var(--chance-brand)_35%,var(--chance-border))]">
       <CardHeader>
         {/* Match Title and Info */}
         <div className="mb-4 pb-4 border-b border-gray-700">
         <div className="flex items-center justify-between">
             <div>
               <CardTitle className="text-white text-xl flex items-center">
-                <Trophy className="mr-2 h-5 w-5 text-orange-400" />
+                <Trophy className="mr-2 h-5 w-5 text-[var(--chance-brand)]" />
                 {game?.name || 'Game'} Match
               </CardTitle>
               <p className="text-gray-400 text-sm mt-1">Match #{match.id.slice(0, 8)}</p>
             </div>
             <div className="flex items-center space-x-2">
-              <Badge className="bg-orange-500/20 text-orange-400 text-sm px-3 py-1">
+              <Badge className="bg-[color-mix(in_srgb,var(--chance-brand)_20%,transparent)] text-[var(--chance-brand)] text-sm px-3 py-1">
                 <Trophy className="mr-1 h-3 w-3" />
                 {match.bet_amount * 2} tokens
               </Badge>
@@ -1554,7 +1700,7 @@ export default function EnhancedMatchInterface({
         {/* Match Status Section */}
         <div className="flex items-center justify-between">
           <CardTitle className="text-white flex items-center text-base">
-            <Users className="mr-2 h-4 w-4 text-orange-400" />
+            <Users className="mr-2 h-4 w-4 text-[var(--chance-brand)]" />
             Match Status
           </CardTitle>
                  <div className="flex items-center space-x-2">
@@ -1562,7 +1708,7 @@ export default function EnhancedMatchInterface({
                      <div className="w-2 h-2 rounded-full mr-2 bg-blue-400" />
                      Polling
                    </Badge>
-            <Badge className="bg-orange-500/20 text-orange-400 text-xs">
+            <Badge className="bg-[color-mix(in_srgb,var(--chance-brand)_20%,transparent)] text-[var(--chance-brand)] text-xs">
               {match.bet_amount} tokens
             </Badge>
           </div>
@@ -1631,20 +1777,20 @@ export default function EnhancedMatchInterface({
         
         {/* Compact Player Information - Horizontal Layout */}
         <div className="flex items-center justify-center gap-4 py-2">
-          <div className={`px-3 py-1.5 rounded-lg text-sm ${isPlayer1 ? 'bg-orange-500/20 border border-orange-500/30' : 'bg-gray-800/30'}`}>
+          <div className={`px-3 py-1.5 rounded-lg text-sm ${isPlayer1 ? 'bg-[color-mix(in_srgb,var(--chance-brand)_20%,transparent)] border border-[color-mix(in_srgb,var(--chance-brand)_35%,var(--chance-border))]' : 'bg-gray-800/30'}`}>
             <span className="text-gray-400 text-xs">P1:</span>{' '}
             <span className="text-white font-medium">
               {isPlayer1 ? 'You' : (player1Data?.display_name || player1Data?.username || 'Waiting...')}
             </span>
-            {isPlayer1 && <Badge className="ml-2 bg-orange-500/20 text-orange-400 text-xs">You</Badge>}
+            {isPlayer1 && <Badge className="ml-2 bg-[color-mix(in_srgb,var(--chance-brand)_20%,transparent)] text-[var(--chance-brand)] text-xs">You</Badge>}
           </div>
           <div className="text-gray-500">vs</div>
-          <div className={`px-3 py-1.5 rounded-lg text-sm ${isPlayer2 ? 'bg-orange-500/20 border border-orange-500/30' : 'bg-gray-800/30'}`}>
+          <div className={`px-3 py-1.5 rounded-lg text-sm ${isPlayer2 ? 'bg-[color-mix(in_srgb,var(--chance-brand)_20%,transparent)] border border-[color-mix(in_srgb,var(--chance-brand)_35%,var(--chance-border))]' : 'bg-gray-800/30'}`}>
             <span className="text-gray-400 text-xs">P2:</span>{' '}
             <span className="text-white font-medium">
               {isPlayer2 ? 'You' : (localMatch.player2_id ? (player2Data?.display_name || player2Data?.username || 'Joined') : 'Waiting...')}
             </span>
-            {isPlayer2 && <Badge className="ml-2 bg-orange-500/20 text-orange-400 text-xs">You</Badge>}
+            {isPlayer2 && <Badge className="ml-2 bg-[color-mix(in_srgb,var(--chance-brand)_20%,transparent)] text-[var(--chance-brand)] text-xs">You</Badge>}
           </div>
         </div>
         
@@ -1690,7 +1836,7 @@ export default function EnhancedMatchInterface({
         {/* Countdown Display - Show before game */}
         {gameState.status === 'countdown' && countdown !== null && localMatch.status !== 'waiting' && (
           <div className="text-center space-y-4 mb-4">
-            <div className="text-6xl font-bold text-orange-400 mb-4 animate-pulse">
+            <div className="text-6xl font-bold text-[var(--chance-brand)] mb-4 animate-pulse">
               {countdown}
             </div>
             <div className="text-gray-400 text-lg">
@@ -1729,7 +1875,7 @@ export default function EnhancedMatchInterface({
                   <>
                     {gameState.status === 'countdown' && countdown !== null ? (
                       <div className="text-center">
-                        <div className="text-6xl font-bold text-orange-400 mb-4 animate-pulse">
+                        <div className="text-6xl font-bold text-[var(--chance-brand)] mb-4 animate-pulse">
                           {countdown}
                         </div>
                         <div className="text-gray-400 text-lg">
@@ -1808,7 +1954,7 @@ export default function EnhancedMatchInterface({
                 </div>
                 {gameState.status === 'countdown' && countdown !== null && (
                   <div className="text-center">
-                    <div className="text-6xl font-bold text-orange-400 mb-4 animate-pulse">
+                    <div className="text-6xl font-bold text-[var(--chance-brand)] mb-4 animate-pulse">
                       {countdown}
                     </div>
                     <div className="text-gray-400 text-lg">
@@ -1817,7 +1963,7 @@ export default function EnhancedMatchInterface({
                   </div>
                 )}
                 {!localMatch.player2_id && (
-                  <div className="text-orange-400 text-sm">You joined! Waiting for another player...</div>
+                  <div className="text-[var(--chance-brand)] text-sm">You joined! Waiting for another player...</div>
                 )}
               </div>
             )}

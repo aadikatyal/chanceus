@@ -1,0 +1,4443 @@
+/**
+ * High-fidelity competitive home — depth, glow, and premium surfaces.
+ * ChanceUS brand (green); structure inspired by pro-gaming dashboards.
+ */
+
+/* Light = default; respects html.light from next-themes */
+.chance-competitive-theme {
+  --chance-bg: #f4f4f1;
+  --chance-fg: #0a0a0a;
+  --chance-surface: #ffffff;
+  --chance-surface-raised: #ffffff;
+  --chance-surface-inset: #ecece7;
+  --chance-border: #e0e0da;
+  --chance-border-strong: #c8c8c2;
+  --chance-muted: #eaeae5;
+  --chance-muted-fg: #64748b;
+  --chance-brand: #00a862;
+  --chance-brand-hover: #009956;
+  --chance-brand-fg: #052e16;
+  --chance-yes: #00a862;
+  --chance-no: #e5484d;
+  --chance-shadow-elevated: 0 12px 36px rgb(15 23 42 / 0.08), 0 0 0 1px rgb(15 23 42 / 0.04);
+  --chance-shadow-glow-brand: 0 0 40px color-mix(in srgb, var(--chance-brand) 22%, transparent);
+  --chance-glass-fill: rgb(15 23 42 / 0.04);
+  --chance-glass-fill-hover: rgb(15 23 42 / 0.06);
+  --chance-glass-border: rgb(15 23 42 / 0.1);
+  --chance-glass-border-hover: rgb(15 23 42 / 0.14);
+  --chance-glass-highlight: rgb(255 255 255 / 0.85);
+  --chance-hero-scrim: linear-gradient(90deg, rgb(244 244 241 / 0.94) 0%, rgb(244 244 241 / 0.72) 45%, transparent 72%);
+  --chance-hero-base: linear-gradient(112deg, #eef0ec 0%, #f8f8f5 42%, #ecece7 100%);
+  --chance-topbar-bg: rgb(244 244 241 / 0.82);
+  --chance-topbar-border: rgb(15 23 42 / 0.08);
+  --chance-streak-bg: rgb(255 255 255 / 0.92);
+  --chance-streak-icon-bg: color-mix(in srgb, var(--chance-brand) 14%, var(--chance-muted));
+  --chance-invite-bg: linear-gradient(165deg, var(--chance-surface) 0%, var(--chance-surface-inset) 100%);
+  --chance-nav-inset: rgb(255 255 255 / 0.7);
+  --chance-rail-row-bg: color-mix(in srgb, var(--chance-muted) 65%, var(--chance-surface));
+  --chance-avatar-sat: 42%;
+  --chance-avatar-light-from: 88%;
+  --chance-avatar-light-to: 72%;
+  --chance-avatar-fg: var(--chance-fg);
+  --chance-ambient-vignette: radial-gradient(
+    ellipse 80% 50% at 50% 100%,
+    rgb(15 23 42 / 0.07),
+    transparent 60%
+  );
+  --chance-rail-w: 20rem;
+  --chance-ease-premium: cubic-bezier(0.22, 1, 0.36, 1);
+  --chance-ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --chance-duration-ui: 180ms;
+  --chance-duration-surface: 240ms;
+  --chance-home-gap: 2rem;
+  --chance-section-gap: 1.25rem;
+  color-scheme: light;
+  font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.dark .chance-competitive-theme {
+  --chance-bg: #070707;
+  --chance-fg: #f5f5f2;
+  --chance-surface: #121212;
+  --chance-surface-raised: #181818;
+  --chance-surface-inset: #0c0c0c;
+  --chance-border: #1f1f1f;
+  --chance-border-strong: #333333;
+  --chance-muted: #161616;
+  --chance-muted-fg: #94a3b8;
+  --chance-brand: #00e676;
+  --chance-brand-hover: #00ff84;
+  --chance-brand-fg: #052e16;
+  --chance-yes: #34d399;
+  --chance-no: #f87171;
+  --chance-shadow-elevated: 0 12px 40px rgb(0 0 0 / 0.55), 0 0 0 1px rgb(255 255 255 / 0.04);
+  --chance-shadow-glow-brand: 0 0 48px color-mix(in srgb, var(--chance-brand) 35%, transparent);
+  --chance-glass-fill: rgb(255 255 255 / 0.04);
+  --chance-glass-fill-hover: rgb(255 255 255 / 0.07);
+  --chance-glass-border: rgb(255 255 255 / 0.08);
+  --chance-glass-border-hover: rgb(255 255 255 / 0.12);
+  --chance-glass-highlight: rgb(255 255 255 / 0.06);
+  --chance-hero-scrim: linear-gradient(90deg, rgb(7 7 7 / 0.92) 0%, rgb(7 7 7 / 0.55) 42%, transparent 72%);
+  --chance-hero-base: linear-gradient(112deg, #0d0d0d 0%, #141414 42%, #0a0a0a 100%);
+  --chance-topbar-bg: rgb(7 7 7 / 0.75);
+  --chance-topbar-border: rgb(255 255 255 / 0.06);
+  --chance-streak-bg: rgb(18 18 18 / 0.88);
+  --chance-streak-icon-bg: color-mix(in srgb, var(--chance-brand) 20%, #1a1a1a);
+  --chance-invite-bg: linear-gradient(165deg, rgb(22 22 22 / 0.95) 0%, rgb(12 12 12 / 0.98) 100%);
+  --chance-nav-inset: rgb(255 255 255 / 0.06);
+  --chance-rail-row-bg: color-mix(in srgb, var(--chance-surface-inset) 80%, transparent);
+  --chance-avatar-sat: 42%;
+  --chance-avatar-light-from: 34%;
+  --chance-avatar-light-to: 16%;
+  --chance-avatar-fg: #fff;
+  --chance-ambient-vignette: radial-gradient(ellipse 80% 50% at 50% 100%, rgb(0 0 0 / 0.85), transparent 60%);
+  color-scheme: dark;
+}
+
+.chance-competitive-theme .chance-shell {
+  position: relative;
+  isolation: isolate;
+  background: var(--chance-bg);
+}
+
+.chance-competitive-theme .chance-shell::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 55% 45% at 12% -5%, color-mix(in srgb, var(--chance-brand) 12%, transparent), transparent 50%),
+    radial-gradient(ellipse 40% 35% at 88% 15%, color-mix(in srgb, var(--chance-info) 8%, transparent), transparent 45%),
+    var(--chance-ambient-vignette);
+}
+
+.chance-competitive-theme .chance-shell-sidebar {
+  background: linear-gradient(180deg, var(--chance-surface-inset) 0%, var(--chance-bg) 100%);
+}
+
+.chance-premium-card {
+  position: relative;
+  border-radius: var(--chance-radius-shell);
+  background: linear-gradient(165deg, var(--chance-surface-raised) 0%, var(--chance-surface) 100%);
+  box-shadow: var(--chance-shadow-elevated);
+}
+
+.chance-premium-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--chance-fg) 12%, transparent),
+    color-mix(in srgb, var(--chance-brand) 25%, transparent) 40%,
+    color-mix(in srgb, var(--chance-fg) 6%, transparent)
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+.chance-hero-cinematic {
+  position: relative;
+  min-height: 17.5rem;
+  overflow: hidden;
+  border-radius: 1.25rem;
+  border: 1px solid color-mix(in srgb, var(--chance-brand) 18%, var(--chance-border));
+  background:
+    radial-gradient(ellipse 70% 90% at 100% 50%, color-mix(in srgb, var(--chance-brand) 28%, transparent), transparent 58%),
+    radial-gradient(ellipse 50% 80% at 85% 100%, color-mix(in srgb, var(--chance-brand) 15%, transparent), transparent 50%),
+    var(--chance-hero-base);
+  box-shadow:
+    var(--chance-shadow-elevated),
+    inset 0 1px 0 var(--chance-glass-highlight);
+}
+
+.chance-hero-cinematic::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--chance-hero-scrim);
+  pointer-events: none;
+}
+
+.chance-hero-art {
+  position: absolute;
+  right: -4%;
+  bottom: -8%;
+  width: min(52%, 22rem);
+  height: auto;
+  opacity: 0.95;
+  filter: drop-shadow(0 0 40px color-mix(in srgb, var(--chance-brand) 45%, transparent))
+    drop-shadow(0 20px 40px rgb(0 0 0 / 0.7));
+  pointer-events: none;
+  z-index: 0;
+}
+
+.chance-hero-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  min-height: 17.5rem;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .chance-hero-content {
+    padding: 1.25rem 2rem 1.75rem;
+  }
+}
+
+.chance-hero-identity {
+  position: relative;
+  z-index: 2;
+  min-height: 1.25rem;
+}
+
+/* One-line welcome + Wallet label share baseline rhythm (lg+ columns) */
+.chance-home-aligned-header {
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1.25rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--chance-muted-fg);
+}
+
+.chance-home-aligned-header span {
+  text-transform: none;
+  letter-spacing: -0.02em;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--chance-fg);
+}
+
+.chance-home-welcome-header {
+  text-transform: none;
+  letter-spacing: -0.01em;
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
+.chance-hero-main {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  flex: 1;
+  min-height: 0;
+  gap: 0;
+  padding-top: 0.5rem;
+}
+
+@media (min-width: 640px) {
+  .chance-hero-main {
+    padding-top: 0.75rem;
+  }
+}
+
+.chance-home-feed--hero-first {
+  margin-top: 0;
+}
+
+@media (min-width: 1024px) {
+  .chance-competitive-theme .chance-shell-main-wrap:has(.chance-home-feed--hero-first) .chance-shell-main {
+    padding-top: 1.5rem;
+  }
+
+  .chance-competitive-theme .chance-shell-main-wrap:has(.chance-home-feed--hero-first) .chance-shell-rail {
+    padding-top: 1.5rem;
+  }
+}
+
+.chance-hero-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--chance-brand);
+}
+
+.chance-hero-title {
+  margin-top: 0.5rem;
+  max-width: 14ch;
+  font-size: clamp(1.75rem, 4vw, 2.75rem);
+  font-weight: 800;
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  color: var(--chance-fg);
+  text-shadow: none;
+}
+
+.dark .chance-competitive-theme .chance-hero-title {
+  text-shadow: 0 2px 20px rgb(0 0 0 / 0.35);
+}
+
+.chance-hero-social {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.625rem;
+  margin-top: 1rem;
+  padding: 0.375rem 0.75rem 0.375rem 0.375rem;
+  border-radius: 9999px;
+  border: 1px solid var(--chance-glass-border);
+  background: color-mix(in srgb, var(--chance-surface) 88%, transparent);
+  backdrop-filter: blur(8px);
+}
+
+.chance-avatar-stack {
+  display: flex;
+  align-items: center;
+}
+
+.chance-avatar-stack span {
+  display: inline-flex;
+  size: 1.75rem;
+  width: 1.75rem;
+  height: 1.75rem;
+  margin-left: -0.5rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  border: 2px solid var(--chance-surface);
+  font-size: 0.625rem;
+}
+
+.chance-avatar-stack span:first-child {
+  margin-left: 0;
+}
+
+.chance-hero-cta-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+}
+
+.chance-hero-cta-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.5rem;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  border-radius: var(--chance-radius-md);
+  color: var(--chance-brand-fg);
+  background: linear-gradient(180deg, var(--chance-brand) 0%, color-mix(in srgb, var(--chance-brand) 85%, #000) 100%);
+  box-shadow:
+    0 4px 14px color-mix(in srgb, var(--chance-brand) 45%, transparent),
+    inset 0 1px 0 rgb(255 255 255 / 0.25);
+  text-decoration: none;
+  transition: transform 150ms ease, box-shadow 150ms ease;
+}
+
+.chance-hero-cta-primary:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    0 8px 24px color-mix(in srgb, var(--chance-brand) 50%, transparent),
+    inset 0 1px 0 rgb(255 255 255 / 0.3);
+}
+
+.chance-streak-float {
+  position: absolute;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  box-sizing: border-box;
+  width: 13.75rem;
+  max-width: calc(100% - 2rem);
+  padding: 0.875rem 1rem;
+  border-radius: var(--chance-radius-md);
+  border: 1px solid color-mix(in srgb, var(--chance-brand) 35%, var(--chance-border));
+  background: var(--chance-streak-bg);
+  backdrop-filter: blur(12px);
+  box-shadow: var(--chance-shadow-elevated);
+}
+
+.chance-streak-float-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.chance-streak-float-meta {
+  display: block;
+  min-height: 1.125rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 639px) {
+  .chance-streak-float {
+    right: 0.75rem;
+    bottom: 0.75rem;
+    width: min(13.75rem, calc(100% - 1.5rem));
+  }
+  .chance-hero-art {
+    opacity: 0.35;
+    width: 70%;
+  }
+}
+
+.chance-game-tile {
+  position: relative;
+  display: flex;
+  min-height: 10.5rem;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: var(--chance-radius-shell);
+  border: 1px solid var(--chance-border);
+  background: var(--chance-surface);
+  text-decoration: none;
+  color: inherit;
+  transition:
+    transform 200ms var(--chance-ease-out),
+    box-shadow 200ms var(--chance-ease-out),
+    border-color 200ms ease;
+}
+
+.chance-game-tile:hover {
+  transform: translateY(-3px);
+  border-color: color-mix(in srgb, var(--chance-brand) 40%, var(--chance-border-strong));
+  box-shadow: var(--chance-shadow-glow-brand), var(--chance-shadow-elevated);
+}
+
+.chance-game-tile-visual {
+  position: relative;
+  flex: 1;
+  min-height: 5.5rem;
+  padding: 1rem;
+}
+
+.chance-game-tile-visual::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.9;
+}
+
+.chance-game-tile-visual--0::before {
+  background: linear-gradient(145deg, color-mix(in srgb, #1a3a2a 55%, var(--chance-surface)) 0%, var(--chance-surface-inset) 70%);
+}
+.chance-game-tile-visual--1::before {
+  background: linear-gradient(145deg, color-mix(in srgb, #1a2a4a 55%, var(--chance-surface)) 0%, var(--chance-surface-inset) 70%);
+}
+.chance-game-tile-visual--2::before {
+  background: linear-gradient(145deg, color-mix(in srgb, #3a2a1a 55%, var(--chance-surface)) 0%, var(--chance-surface-inset) 70%);
+}
+.chance-game-tile-visual--3::before {
+  background: linear-gradient(145deg, color-mix(in srgb, #2a1a3a 55%, var(--chance-surface)) 0%, var(--chance-surface-inset) 70%);
+}
+.chance-game-tile-visual--4::before {
+  background: linear-gradient(145deg, color-mix(in srgb, #1a3a3a 55%, var(--chance-surface)) 0%, var(--chance-surface-inset) 70%);
+}
+
+.chance-game-tile-icon {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  size: 2.75rem;
+  width: 2.75rem;
+  height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--chance-radius-md);
+  background: rgb(255 255 255 / 0.08);
+  color: var(--chance-brand);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.12);
+}
+
+.chance-game-tile-glow {
+  position: absolute;
+  right: -20%;
+  top: -30%;
+  width: 70%;
+  height: 100%;
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--chance-brand) 35%, transparent), transparent 70%);
+  filter: blur(20px);
+  opacity: 0.6;
+}
+
+.chance-game-tile-foot {
+  border-top: 1px solid var(--chance-border);
+  padding: 0.75rem 1rem;
+  background: linear-gradient(180deg, var(--chance-surface) 0%, var(--chance-surface-inset) 100%);
+}
+
+.chance-nav-active-pill {
+  position: relative;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--chance-brand) 18%, var(--chance-muted)), var(--chance-muted));
+  box-shadow: inset 0 1px 0 var(--chance-nav-inset);
+  color: var(--chance-fg) !important;
+  transition:
+    background var(--chance-duration-surface) var(--chance-ease-premium),
+    box-shadow var(--chance-duration-surface) var(--chance-ease-premium);
+}
+
+.chance-nav-active-pill::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 3px;
+  height: 60%;
+  border-radius: 0 4px 4px 0;
+  background: var(--chance-brand);
+  transform: translateY(-50%) scaleY(0.6);
+  opacity: 0.9;
+  box-shadow: 0 0 12px color-mix(in srgb, var(--chance-brand) 70%, transparent);
+}
+
+.chance-nav-link.chance-nav-active-pill {
+  padding-left: calc(0.75rem + 2px);
+}
+
+.chance-invite-card {
+  position: relative;
+  border-radius: var(--chance-radius-shell);
+  border: 1px solid var(--chance-border);
+  background: var(--chance-invite-bg);
+  box-shadow: var(--chance-shadow-elevated);
+  transition: box-shadow var(--chance-duration-surface) var(--chance-ease-premium);
+}
+
+.chance-invite-card:hover {
+  box-shadow:
+    var(--chance-shadow-elevated),
+    0 0 32px color-mix(in srgb, var(--chance-brand) 8%, transparent);
+}
+
+.chance-player-avatar {
+  color: var(--chance-avatar-fg);
+  font-weight: 700;
+}
+
+.chance-avatar-stack span {
+  color: var(--chance-muted-fg);
+  font-weight: 700;
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--chance-brand) 12%, var(--chance-muted)),
+    var(--chance-surface-inset)
+  );
+}
+
+.chance-wallet-hero-balance {
+  font-size: 2rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+/* ——— Wallet (match-first stack) ——— */
+
+.chance-wallet-hero {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--chance-radius-shell);
+  border: 1px solid var(--chance-border);
+  background: linear-gradient(165deg, var(--chance-surface-raised) 0%, var(--chance-surface) 55%, var(--chance-surface-inset) 100%);
+  box-shadow: var(--chance-shadow-elevated);
+}
+
+.chance-wallet-hero-glow {
+  pointer-events: none;
+  position: absolute;
+  inset: -20% -10% auto auto;
+  width: min(420px, 70%);
+  aspect-ratio: 1;
+  background: radial-gradient(circle, color-mix(in srgb, var(--chance-brand) 22%, transparent) 0%, transparent 70%);
+  opacity: 0.9;
+}
+
+.chance-wallet-hero-inner {
+  position: relative;
+  padding: 1.5rem 1.25rem 1.75rem;
+}
+
+@media (min-width: 640px) {
+  .chance-wallet-hero-inner {
+    padding: 2rem 2rem 2.25rem;
+  }
+
+  .chance-wallet-hero .chance-wallet-hero-balance {
+    font-size: clamp(2.75rem, 6vw, 4rem);
+  }
+}
+
+.chance-wallet-hero .chance-wallet-hero-balance {
+  font-size: clamp(2.25rem, 8vw, 3.25rem);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 0.95;
+  color: var(--chance-fg);
+}
+
+.chance-wallet-hero-unit {
+  font-size: 0.35em;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--chance-muted-fg);
+}
+
+.chance-wallet-pack {
+  border-radius: var(--chance-radius-lg);
+  border: 1px solid var(--chance-border);
+  background: var(--chance-surface-inset);
+  padding: 1rem 1rem 0.875rem;
+  transition:
+    border-color var(--chance-duration-fast),
+    box-shadow var(--chance-duration-fast),
+    transform var(--chance-duration-fast);
+}
+
+.chance-wallet-pack:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--chance-brand) 40%, var(--chance-border));
+  box-shadow: 0 0 24px color-mix(in srgb, var(--chance-brand) 12%, transparent);
+}
+
+.chance-wallet-pack:active:not(:disabled) {
+  transform: scale(0.99);
+}
+
+.chance-wallet-tx-row {
+  transition: background var(--chance-duration-fast);
+}
+
+.chance-wallet-tx-row:hover {
+  background: color-mix(in srgb, var(--chance-brand) 5%, var(--chance-surface));
+}
+
+.chance-table-rich tbody tr:hover {
+  background: color-mix(in srgb, var(--chance-brand) 6%, var(--chance-surface-inset));
+}
+
+.chance-topbar-rich {
+  background: var(--chance-topbar-bg) !important;
+  border-bottom-color: var(--chance-topbar-border) !important;
+}
+
+.chance-search-rich {
+  height: 2.5rem;
+  border-radius: var(--chance-radius-md);
+  border: 1px solid var(--chance-glass-border);
+  background: var(--chance-glass-fill);
+  box-shadow: inset 0 1px 0 var(--chance-glass-highlight);
+}
+
+.chance-token-pill-rich {
+  border: 1px solid color-mix(in srgb, var(--chance-brand) 35%, var(--chance-border));
+  background: linear-gradient(180deg, var(--chance-glass-fill) 0%, color-mix(in srgb, var(--chance-surface) 92%, transparent) 100%);
+  box-shadow: 0 0 20px color-mix(in srgb, var(--chance-brand) 15%, transparent);
+  transition:
+    border-color var(--chance-duration-ui) var(--chance-ease-premium),
+    box-shadow var(--chance-duration-ui) var(--chance-ease-premium),
+    transform var(--chance-duration-ui) var(--chance-ease-premium);
+}
+
+.chance-token-pill-rich:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0 28px color-mix(in srgb, var(--chance-brand) 22%, transparent);
+}
+
+.chance-token-pill-rich:active {
+  transform: translateY(0);
+}
+
+/* ——— Interaction primitives ——— */
+
+.chance-focus-ring:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px var(--chance-bg),
+    0 0 0 4px color-mix(in srgb, var(--chance-brand) 55%, transparent);
+}
+
+.chance-pressable {
+  transition:
+    transform var(--chance-duration-ui) var(--chance-ease-premium),
+    box-shadow var(--chance-duration-ui) var(--chance-ease-premium),
+    border-color var(--chance-duration-ui) var(--chance-ease-premium),
+    background-color var(--chance-duration-ui) var(--chance-ease-premium),
+    color var(--chance-duration-ui) var(--chance-ease-premium),
+    opacity var(--chance-duration-ui) var(--chance-ease-premium);
+}
+
+.chance-pressable:active {
+  transform: scale(0.98);
+}
+
+.chance-nav-link {
+  position: relative;
+  transition:
+    background-color var(--chance-duration-ui) var(--chance-ease-premium),
+    color var(--chance-duration-ui) var(--chance-ease-premium),
+    transform var(--chance-duration-ui) var(--chance-ease-premium);
+}
+
+.chance-nav-link:hover:not(.chance-nav-active-pill) {
+  transform: translateX(2px);
+}
+
+.chance-nav-link .chance-nav-icon {
+  transition:
+    color var(--chance-duration-ui) var(--chance-ease-premium),
+    transform var(--chance-duration-ui) var(--chance-ease-premium),
+    opacity var(--chance-duration-ui) var(--chance-ease-premium);
+}
+
+.chance-nav-link:hover .chance-nav-icon {
+  opacity: 1;
+}
+
+.chance-link-subtle {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--chance-muted-fg);
+  text-decoration: none;
+  text-underline-offset: 4px;
+  transition: color var(--chance-duration-ui) var(--chance-ease-premium);
+}
+
+.chance-link-subtle:hover {
+  color: var(--chance-fg);
+  text-decoration: underline;
+}
+
+.chance-link-arrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.125rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--chance-muted-fg);
+  text-decoration: none;
+  transition:
+    color var(--chance-duration-ui) var(--chance-ease-premium),
+    gap var(--chance-duration-ui) var(--chance-ease-premium);
+}
+
+.chance-link-arrow:hover {
+  color: var(--chance-brand);
+  gap: 0.375rem;
+}
+
+.chance-toolbar-btn {
+  color: var(--chance-muted-fg);
+  transition:
+    background-color var(--chance-duration-ui) var(--chance-ease-premium),
+    color var(--chance-duration-ui) var(--chance-ease-premium);
+}
+
+.chance-toolbar-btn:hover {
+  color: var(--chance-fg);
+  background-color: var(--chance-glass-fill-hover);
+}
+
+.chance-secondary-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--chance-radius-md);
+  border: 1px solid var(--chance-border-strong);
+  background: var(--chance-surface-inset);
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition:
+    border-color var(--chance-duration-ui) var(--chance-ease-premium),
+    background-color var(--chance-duration-ui) var(--chance-ease-premium),
+    color var(--chance-duration-ui) var(--chance-ease-premium),
+    transform var(--chance-duration-ui) var(--chance-ease-premium);
+}
+
+.chance-secondary-btn:hover {
+  border-color: color-mix(in srgb, var(--chance-brand) 45%, var(--chance-border-strong));
+  background: var(--chance-muted);
+}
+
+.chance-secondary-btn:active {
+  transform: scale(0.98);
+}
+
+.chance-icon-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--chance-radius-sm);
+  border: 1px solid var(--chance-border);
+  color: var(--chance-muted-fg);
+  transition:
+    border-color var(--chance-duration-ui) var(--chance-ease-premium),
+    color var(--chance-duration-ui) var(--chance-ease-premium),
+    background-color var(--chance-duration-ui) var(--chance-ease-premium),
+    transform var(--chance-duration-ui) var(--chance-ease-premium);
+}
+
+.chance-icon-action:hover {
+  border-color: color-mix(in srgb, var(--chance-brand) 50%, var(--chance-border));
+  color: var(--chance-brand);
+  background: color-mix(in srgb, var(--chance-brand) 8%, transparent);
+}
+
+.chance-icon-action:active {
+  transform: scale(0.94);
+}
+
+/* ——— Typography rhythm ——— */
+
+.chance-page-kicker {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--chance-muted-fg);
+}
+
+.chance-page-title {
+  font-size: clamp(1.5rem, 2.5vw, 1.875rem);
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  line-height: 1.15;
+  color: var(--chance-fg);
+}
+
+.chance-competitive-theme .chance-section-head {
+  margin-bottom: var(--chance-section-gap);
+}
+
+.chance-section-title {
+  font-size: 1.0625rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+}
+
+.chance-home-feed {
+  display: flex;
+  flex-direction: column;
+  gap: var(--chance-home-gap);
+}
+
+/* Full-width main column, centered focused panel (gates, empty auth-style blocks) */
+.chance-page-centered-panel {
+  display: flex;
+  width: 100%;
+  min-height: min(28rem, calc(100vh - 11rem));
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem 0 2.5rem;
+}
+
+.chance-page-centered-panel__card {
+  width: 100%;
+  max-width: 26rem;
+  margin-inline: auto;
+}
+
+/* —— Social hub (flagship community) —— */
+.chance-social-hub-root {
+  width: 100%;
+  max-width: 100%;
+}
+
+.chance-social-hub-feed {
+  width: 100%;
+  max-width: 100%;
+}
+
+.chance-home-feed.chance-social-hub-feed {
+  gap: var(--chance-home-gap, 1.5rem);
+}
+
+.chance-social-hub-hero-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 1.25rem 1.5rem 1.5rem;
+}
+
+@media (min-width: 1024px) {
+  .chance-social-hub-hero-inner {
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: space-between;
+    padding: 1.5rem 2rem 1.75rem;
+  }
+}
+
+.chance-social-hub-grid {
+  display: grid;
+  width: 100%;
+  max-width: 100%;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  overflow-x: clip;
+}
+
+.chance-social-hub-left-scroll {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+}
+
+/* Mobile tab panes — single column + section tabs */
+@media (max-width: 767.98px) {
+  .chance-social-hub-root .chance-social-chat-panel {
+    height: clamp(16rem, 38vh, 22rem);
+  }
+
+  .chance-social-hub-root .chance-social-hub-grid--friends .chance-social-pane--floor,
+  .chance-social-hub-root .chance-social-hub-grid--friends .chance-social-pane--more,
+  .chance-social-hub-root .chance-social-hub-grid--friends .chance-social-pane--chat {
+    display: none;
+  }
+
+  .chance-social-hub-root .chance-social-hub-grid--floor .chance-social-pane--friends,
+  .chance-social-hub-root .chance-social-hub-grid--floor .chance-social-pane--more {
+    display: none;
+  }
+
+  .chance-social-hub-root .chance-social-hub-grid--floor .chance-social-pane--chat {
+    display: none;
+  }
+
+  .chance-social-hub-root .chance-social-hub-grid--chat .chance-social-pane--friends,
+  .chance-social-hub-root .chance-social-hub-grid--chat .chance-social-pane--more,
+  .chance-social-hub-root
+    .chance-social-hub-grid--chat
+    .chance-social-pane--floor
+    > :not(.chance-social-pane--chat) {
+    display: none;
+  }
+
+  .chance-social-hub-root .chance-social-hub-grid--chat .chance-social-pane--floor {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .chance-social-hub-root .chance-social-hub-grid--chat .chance-social-pane--chat {
+    display: flex;
+  }
+
+  .chance-social-hub-root .chance-social-hub-grid--more .chance-social-pane--friends,
+  .chance-social-hub-root .chance-social-hub-grid--more .chance-social-pane--floor {
+    display: none;
+  }
+}
+
+/* Tablet + desktop hub */
+@media (min-width: 768px) {
+  .chance-social-hub-root .chance-social-mobile-tabs {
+    display: none;
+  }
+
+  .chance-social-hub-root .chance-social-hub-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+    align-items: start;
+  }
+
+  .chance-social-hub-root .chance-social-pane--more {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (min-width: 1024px) {
+  .chance-social-hub-root .chance-social-hub-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .chance-social-hub-root .chance-social-pane--more {
+    grid-column: auto;
+  }
+}
+
+@media (min-width: 768px) {
+
+  .chance-social-hub-root .chance-social-hub-col.chance-social-pane--friends,
+  .chance-social-hub-root .chance-social-hub-col.chance-social-hub-col-main,
+  .chance-social-hub-root .chance-social-hub-col.chance-social-pane--more {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 0.875rem;
+  }
+
+  .chance-social-hub-root .chance-social-hub-left-scroll {
+    display: flex;
+    flex-direction: column;
+    gap: 0.875rem;
+  }
+
+  .chance-social-hub-root .chance-social-pulse-list {
+    max-height: 11.5rem;
+    overflow-y: auto;
+  }
+
+  .chance-social-hub-root .chance-social-chat-panel {
+    min-height: clamp(14rem, 28vh, 20rem);
+  }
+
+  .chance-social-hub-root .chance-social-friends-list {
+    max-height: 14rem;
+  }
+}
+
+@media (min-width: 900px) {
+  .chance-social-hub-root .chance-social-hub-grid {
+    gap: 1.125rem;
+  }
+}
+
+@media (min-width: 1100px) {
+  .chance-social-hub-root .chance-social-hub-grid {
+    gap: 1.25rem;
+  }
+}
+
+.chance-social-rail-pair {
+  display: grid;
+  gap: 0.875rem;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.chance-social-hub-col {
+  display: flex;
+  min-width: 0;
+  max-width: 100%;
+  flex-direction: column;
+  gap: 0.875rem;
+}
+
+.chance-social-hub-col-main {
+  min-width: 0;
+}
+
+.chance-social-pulse-panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.chance-social-pulse-list {
+  max-height: 15rem;
+  overflow-y: auto;
+}
+
+.chance-social-friends-list {
+  max-height: 14rem;
+  overflow-y: auto;
+}
+
+.chance-social-chat-panel {
+  display: flex;
+  width: 100%;
+  max-width: 100%;
+  flex-direction: column;
+  min-height: 16rem;
+  overflow: hidden;
+}
+
+
+
+.chance-social-chat-body {
+  display: flex;
+  min-height: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.chance-social-quick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+@media (min-width: 1024px) {
+  .chance-social-quick-actions {
+    flex-direction: column;
+    align-items: stretch;
+    margin-top: 0;
+  }
+}
+
+.chance-social-mobile-tabs {
+  display: flex;
+  gap: 0.375rem;
+  padding: 0.125rem;
+  border-radius: 9999px;
+  border: 1px solid var(--chance-border);
+  background: var(--chance-surface-inset);
+}
+
+.chance-social-mobile-tab {
+  flex: 1;
+  border-radius: 9999px;
+  padding: 0.5rem 0.4rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--chance-muted-fg);
+  transition: background 180ms ease, color 180ms ease;
+}
+
+.chance-social-mobile-tab.is-active {
+  background: var(--chance-surface);
+  color: var(--chance-fg);
+  box-shadow: var(--chance-shadow-xs, none);
+}
+
+.chance-social-presence {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 9999px;
+  border: 1px solid var(--chance-border);
+  padding: 0.125rem 0.45rem;
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.chance-social-presence--off {
+  color: var(--chance-muted-fg);
+}
+
+.chance-social-presence--idle,
+.chance-social-presence--search,
+.chance-social-presence--live {
+  color: var(--chance-yes);
+  border-color: color-mix(in srgb, var(--chance-yes) 28%, var(--chance-border));
+}
+
+.chance-social-presence--search {
+  color: var(--chance-brand);
+  border-color: color-mix(in srgb, var(--chance-brand) 30%, var(--chance-border));
+}
+
+.chance-social-presence--live {
+  color: var(--chance-info, var(--chance-brand));
+}
+
+.chance-social-presence--away,
+.chance-social-presence--spec {
+  color: var(--chance-muted-fg);
+}
+
+.chance-social-presence--tourney,
+.chance-social-presence--voice {
+  color: var(--chance-brand);
+}
+
+.chance-social-dot {
+  position: absolute;
+  right: -1px;
+  bottom: -1px;
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 9999px;
+  border: 2px solid var(--chance-surface);
+  background: var(--chance-border-strong);
+}
+
+.chance-social-dot--idle,
+.chance-social-dot--searching,
+.chance-social-dot--in_match,
+.chance-social-dot--in_tournament,
+.chance-social-dot--in_voice {
+  background: var(--chance-yes);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--chance-yes) 22%, transparent);
+}
+
+.chance-social-dot--away {
+  background: var(--chance-warning, #c9a227);
+}
+
+.chance-social-friend-row,
+.chance-social-live-row,
+.chance-social-lfm-row,
+.chance-social-dm-row,
+.chance-social-voice-row,
+.chance-social-pulse,
+.chance-social-announce {
+  border-radius: var(--chance-radius-md, 0.75rem);
+  border: 1px solid var(--chance-border);
+  background: var(--chance-surface-inset);
+  padding: 0.625rem 0.75rem;
+  transition: border-color 180ms ease, background 180ms ease, transform 180ms ease;
+}
+
+.chance-social-friend-row:hover,
+.chance-social-live-row:hover,
+.chance-social-lfm-row:hover,
+.chance-social-dm-row:hover,
+.chance-social-voice-row:hover,
+.chance-social-pulse:hover {
+  border-color: color-mix(in srgb, var(--chance-brand) 28%, var(--chance-border));
+  transform: translateY(-1px);
+}
+
+.chance-social-live-row,
+.chance-social-lfm-row,
+.chance-social-dm-row,
+.chance-social-voice-row,
+.chance-social-pulse {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+.chance-social-pulse-icon {
+  display: grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 0.5rem;
+  background: color-mix(in srgb, var(--chance-brand) 12%, var(--chance-surface));
+  color: var(--chance-brand);
+}
+
+.chance-social-pulse--friend_win .chance-social-pulse-icon,
+.chance-social-pulse--streak .chance-social-pulse-icon {
+  color: var(--chance-yes);
+  background: color-mix(in srgb, var(--chance-yes) 12%, var(--chance-surface));
+}
+
+.chance-social-pulse--match_live .chance-social-pulse-icon,
+.chance-social-pulse--tournament_live .chance-social-pulse-icon {
+  color: var(--chance-brand);
+}
+
+.chance-social-mini-action {
+  border-radius: 9999px;
+  border: 1px solid var(--chance-border);
+  padding: 0.125rem 0.5rem;
+  font-size: 0.6875rem;
+  color: var(--chance-muted-fg);
+  transition: color 160ms ease, border-color 160ms ease;
+}
+
+.chance-social-mini-action:hover {
+  color: var(--chance-fg);
+  border-color: var(--chance-border-strong);
+}
+
+.chance-social-unread {
+  min-width: 1.125rem;
+  height: 1.125rem;
+  border-radius: 9999px;
+  background: var(--chance-brand);
+  color: var(--chance-brand-fg, #111);
+  font-size: 0.625rem;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+  padding: 0 0.3rem;
+}
+
+@keyframes chance-social-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .chance-social-hub-col > .chance-premium-card {
+    animation: chance-social-enter 200ms var(--chance-ease-out-expo, ease) both;
+  }
+
+  .chance-social-hub-col > .chance-premium-card:nth-child(2) {
+    animation-delay: 40ms;
+  }
+  .chance-social-hub-col > .chance-premium-card:nth-child(3) {
+    animation-delay: 80ms;
+  }
+  .chance-social-hub-col > .chance-premium-card:nth-child(4) {
+    animation-delay: 120ms;
+  }
+}
+
+@media (min-width: 1024px) {
+  .chance-competitive-theme {
+    --chance-home-gap: 2.25rem;
+  }
+}
+
+.chance-home-feed > section,
+.chance-home-feed > .chance-premium-card,
+.chance-home-feed > .chance-hero-cinematic,
+.chance-home-feed > a {
+  animation: chance-home-enter var(--chance-duration-surface) var(--chance-ease-out-expo) both;
+}
+
+.chance-home-feed > *:nth-child(1) {
+  animation-delay: 0ms;
+}
+.chance-home-feed > *:nth-child(2) {
+  animation-delay: 40ms;
+}
+.chance-home-feed > *:nth-child(3) {
+  animation-delay: 80ms;
+}
+.chance-home-feed > *:nth-child(4) {
+  animation-delay: 120ms;
+}
+.chance-home-feed > *:nth-child(5) {
+  animation-delay: 160ms;
+}
+.chance-home-feed > *:nth-child(6) {
+  animation-delay: 200ms;
+}
+
+@keyframes chance-home-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ——— Surfaces ——— */
+
+.chance-premium-card {
+  transition: box-shadow var(--chance-duration-surface) var(--chance-ease-premium);
+}
+
+.chance-hero-cinematic {
+  transition: box-shadow var(--chance-duration-surface) var(--chance-ease-premium);
+}
+
+.chance-hero-art {
+  transition:
+    transform 600ms var(--chance-ease-out-expo),
+    opacity var(--chance-duration-surface) var(--chance-ease-premium);
+}
+
+.chance-hero-cinematic:hover .chance-hero-art {
+  transform: scale(1.02) translateY(-2px);
+}
+
+.chance-streak-float {
+  transition:
+    border-color var(--chance-duration-ui) var(--chance-ease-premium),
+    box-shadow var(--chance-duration-ui) var(--chance-ease-premium),
+    transform var(--chance-duration-ui) var(--chance-ease-premium);
+}
+
+.chance-hero-cinematic:hover .chance-streak-float {
+  border-color: color-mix(in srgb, var(--chance-brand) 50%, var(--chance-border));
+}
+
+.chance-hero-cta-primary {
+  transition:
+    transform var(--chance-duration-ui) var(--chance-ease-premium),
+    box-shadow var(--chance-duration-ui) var(--chance-ease-premium),
+    filter var(--chance-duration-ui) var(--chance-ease-premium);
+}
+
+.chance-hero-cta-primary:active {
+  transform: translateY(0) scale(0.98);
+  filter: brightness(0.96);
+}
+
+.chance-hero-cta-primary:focus-visible {
+  outline: none;
+  box-shadow:
+    0 4px 14px color-mix(in srgb, var(--chance-brand) 45%, transparent),
+    0 0 0 3px color-mix(in srgb, var(--chance-brand) 35%, transparent);
+}
+
+.chance-game-tile:active {
+  transform: translateY(-1px) scale(0.985);
+}
+
+.chance-game-tile:focus-visible {
+  outline: none;
+  box-shadow:
+    var(--chance-shadow-glow-brand),
+    0 0 0 2px color-mix(in srgb, var(--chance-brand) 40%, transparent);
+}
+
+.chance-game-tile-icon {
+  transition:
+    transform var(--chance-duration-surface) var(--chance-ease-out-expo),
+    background-color var(--chance-duration-ui) var(--chance-ease-premium),
+    color var(--chance-duration-ui) var(--chance-ease-premium);
+}
+
+.chance-game-tile:hover .chance-game-tile-icon {
+  transform: scale(1.06);
+  background: rgb(255 255 255 / 0.12);
+}
+
+.chance-game-tile-glow {
+  transition: opacity var(--chance-duration-surface) var(--chance-ease-premium);
+}
+
+.chance-game-tile:hover .chance-game-tile-glow {
+  opacity: 0.85;
+}
+
+.chance-search-rich {
+  transition:
+    border-color var(--chance-duration-ui) var(--chance-ease-premium),
+    background-color var(--chance-duration-ui) var(--chance-ease-premium),
+    box-shadow var(--chance-duration-ui) var(--chance-ease-premium);
+}
+
+.chance-search-rich:hover {
+  border-color: var(--chance-glass-border-hover);
+  background: var(--chance-glass-fill-hover);
+}
+
+.chance-table-rich tbody tr {
+  transition: background-color var(--chance-duration-ui) var(--chance-ease-premium);
+}
+
+.chance-table-rich tbody tr:active {
+  background: color-mix(in srgb, var(--chance-brand) 4%, var(--chance-surface-inset));
+}
+
+.chance-rail-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+@media (min-width: 1024px) {
+  .chance-rail-stack {
+    gap: 1.5rem;
+  }
+}
+
+.chance-rail-row {
+  transition: background-color var(--chance-duration-ui) var(--chance-ease-premium);
+}
+
+.chance-rail-row:hover {
+  background: var(--chance-glass-fill-hover);
+}
+
+.chance-rail-row-bordered {
+  border: 1px solid var(--chance-border);
+  background: var(--chance-rail-row-bg);
+}
+
+.chance-streak-icon-wrap {
+  display: flex;
+  size: 2.5rem;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--chance-radius-md);
+  background: var(--chance-streak-icon-bg);
+  color: var(--chance-brand);
+}
+
+.chance-shell-dropdown {
+  border-color: var(--chance-border) !important;
+  background: var(--chance-surface) !important;
+  color: var(--chance-fg) !important;
+}
+
+.chance-active-match-banner {
+  transition:
+    border-color var(--chance-duration-surface) var(--chance-ease-premium),
+    box-shadow var(--chance-duration-surface) var(--chance-ease-premium),
+    transform var(--chance-duration-ui) var(--chance-ease-premium);
+}
+
+.chance-active-match-banner:hover {
+  transform: translateY(-1px);
+}
+
+.chance-active-match-banner:active {
+  transform: translateY(0) scale(0.995);
+}
+
+.chance-competitive-theme .chance-shell-rail {
+  gap: 1.25rem;
+}
+
+@media (min-width: 1024px) {
+  .chance-competitive-theme .chance-shell-rail {
+    gap: 1.5rem;
+  }
+}
+
+/* ——— Craft: skeleton, empty, table rows, rail headers ——— */
+
+@keyframes chance-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.chance-skeleton {
+  border-radius: var(--chance-radius-md);
+  background: linear-gradient(
+    90deg,
+    var(--chance-muted) 0%,
+    color-mix(in srgb, var(--chance-fg) 6%, var(--chance-muted)) 50%,
+    var(--chance-muted) 100%
+  );
+  background-size: 200% 100%;
+  animation: chance-shimmer 1.4s var(--chance-ease-premium) infinite;
+}
+
+.chance-skeleton-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.chance-empty-state {
+  padding: 1.75rem 1rem;
+  text-align: center;
+  border-radius: var(--chance-radius-md);
+  border: 1px dashed color-mix(in srgb, var(--chance-border-strong) 80%, transparent);
+  background: color-mix(in srgb, var(--chance-surface-inset) 50%, transparent);
+}
+
+.chance-empty-state .chance-text-caption {
+  line-height: 1.5;
+}
+
+.chance-rail-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.875rem;
+}
+
+.chance-table-row {
+  cursor: pointer;
+  outline: none;
+}
+
+.chance-table-row:focus-visible {
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--chance-brand) 45%, transparent);
+}
+
+.chance-table-row:hover td:first-child .chance-table-game-icon {
+  background: color-mix(in srgb, var(--chance-brand) 14%, var(--chance-muted));
+}
+
+.chance-table-game-icon {
+  transition: background-color var(--chance-duration-ui) var(--chance-ease-premium);
+}
+
+.chance-table-opponent-avatar {
+  transition: ring-color var(--chance-duration-ui) var(--chance-ease-premium);
+}
+
+.chance-table-row:hover .chance-table-opponent-avatar {
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--chance-brand) 35%, var(--chance-border));
+}
+
+.chance-hero-kicker {
+  margin-bottom: 0.625rem;
+}
+
+.chance-hero-title {
+  margin-top: 0;
+}
+
+.chance-hero-cta-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.625rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  border-radius: var(--chance-radius-md);
+  border: 1px solid var(--chance-glass-border);
+  background: var(--chance-glass-fill);
+  color: var(--chance-fg);
+  text-decoration: none;
+  transition:
+    border-color var(--chance-duration-ui) var(--chance-ease-premium),
+    background-color var(--chance-duration-ui) var(--chance-ease-premium),
+    transform var(--chance-duration-ui) var(--chance-ease-premium);
+}
+
+.chance-hero-cta-ghost:hover {
+  border-color: var(--chance-glass-border-hover);
+  background: var(--chance-glass-fill-hover);
+}
+
+.chance-hero-cta-ghost:active {
+  transform: scale(0.98);
+}
+
+.chance-sidebar-divider {
+  margin: 0.625rem 0.5rem;
+  height: 1px;
+  border: 0;
+  background: linear-gradient(90deg, transparent, var(--chance-border), transparent);
+}
+
+.chance-sidebar-section-label {
+  padding: 0.375rem 0.75rem 0.25rem;
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--chance-muted-fg) 85%, transparent);
+}
+
+.chance-game-tile-visual--0 .chance-game-tile-icon {
+  color: #6ee7b7;
+}
+.chance-game-tile-visual--1 .chance-game-tile-icon {
+  color: #93c5fd;
+}
+.chance-game-tile-visual--2 .chance-game-tile-icon {
+  color: #fcd34d;
+}
+.chance-game-tile-visual--3 .chance-game-tile-icon {
+  color: #c4b5fd;
+}
+.chance-game-tile-visual--4 .chance-game-tile-icon {
+  color: #5eead4;
+}
+
+.chance-game-tile-foot-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.chance-game-tile-play {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--chance-brand);
+  opacity: 0;
+  transform: translateY(2px);
+  transition:
+    opacity var(--chance-duration-ui) var(--chance-ease-premium),
+    transform var(--chance-duration-ui) var(--chance-ease-premium);
+}
+
+.chance-game-tile:hover .chance-game-tile-play {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.chance-payout-row {
+  transition: background-color var(--chance-duration-ui) var(--chance-ease-premium);
+}
+
+.chance-payout-row:hover {
+  background: rgb(255 255 255 / 0.04);
+}
+
+.chance-streak-float {
+  transition:
+    border-color var(--chance-duration-ui) var(--chance-ease-premium),
+    box-shadow var(--chance-duration-ui) var(--chance-ease-premium),
+    transform var(--chance-duration-ui) var(--chance-ease-premium);
+}
+
+.chance-streak-float:hover {
+  transform: translateY(-1px);
+}
+
+.chance-badge-capitalize {
+  text-transform: capitalize;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chance-competitive-theme *,
+  .chance-competitive-theme *::before,
+  .chance-competitive-theme *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .chance-nav-link:hover:not(.chance-nav-active-pill) {
+    transform: none;
+  }
+
+  .chance-hero-cinematic:hover .chance-hero-art {
+    transform: none;
+  }
+}
+
+/* ——— Play lobby (/games) ——— */
+
+.chance-display-title {
+  font-size: clamp(1.5rem, 2.5vw, 1.875rem);
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  line-height: 1.15;
+  color: var(--chance-fg);
+}
+
+.chance-input {
+  width: 100%;
+  border-radius: var(--chance-radius-md, 0.5rem);
+  border: 1px solid var(--chance-border);
+  background: var(--chance-surface);
+  color: var(--chance-fg);
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  box-shadow: var(--chance-shadow-xs, none);
+  transition: border-color var(--chance-duration-fast, 150ms) ease;
+}
+
+.chance-input::placeholder {
+  color: var(--chance-muted-fg);
+}
+
+.chance-input:focus-visible {
+  outline: none;
+  border-color: var(--chance-border-strong);
+  box-shadow: var(--chance-shadow-focus);
+}
+
+.chance-play-stat-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  border-radius: 9999px;
+  border: 1px solid var(--chance-border);
+  background: color-mix(in srgb, var(--chance-surface) 92%, var(--chance-muted));
+  padding: 0.375rem 0.625rem;
+  font-size: 0.8125rem;
+}
+
+.chance-play-categories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.chance-play-category-pill {
+  border-radius: 9999px;
+  border: 1px solid var(--chance-border);
+  background: var(--chance-surface);
+  padding: 0.4375rem 0.875rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--chance-muted-fg);
+  transition:
+    border-color var(--chance-duration-ui) var(--chance-ease-premium),
+    background-color var(--chance-duration-ui) var(--chance-ease-premium),
+    color var(--chance-duration-ui) var(--chance-ease-premium);
+}
+
+.chance-play-category-pill:hover {
+  border-color: color-mix(in srgb, var(--chance-brand) 35%, var(--chance-border));
+  color: var(--chance-fg);
+}
+
+.chance-play-category-pill--active {
+  border-color: color-mix(in srgb, var(--chance-brand) 45%, var(--chance-border-strong));
+  background: color-mix(in srgb, var(--chance-brand) 12%, var(--chance-surface));
+  color: var(--chance-fg);
+}
+
+.chance-play-spotlight {
+  position: relative;
+  display: grid;
+  overflow: hidden;
+  border-radius: 1.25rem;
+  border: 1px solid color-mix(in srgb, var(--chance-brand) 18%, var(--chance-border));
+  background: var(--chance-hero-base);
+  box-shadow: var(--chance-shadow-elevated);
+}
+
+@media (min-width: 900px) {
+  .chance-play-spotlight {
+    grid-template-columns: 1.05fr 1fr;
+    min-height: 16rem;
+  }
+}
+
+.chance-play-spotlight-art {
+  position: relative;
+  min-height: 12rem;
+}
+
+.chance-play-spotlight-scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    transparent 30%,
+    color-mix(in srgb, var(--chance-surface) 88%, transparent) 100%
+  );
+  pointer-events: none;
+}
+
+@media (min-width: 900px) {
+  .chance-play-spotlight-scrim {
+    background: linear-gradient(
+      90deg,
+      transparent 40%,
+      color-mix(in srgb, var(--chance-bg) 94%, transparent) 100%
+    );
+  }
+}
+
+.chance-play-spotlight-body {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 1.25rem 1.5rem 1.5rem;
+}
+
+@media (min-width: 900px) {
+  .chance-play-spotlight-body {
+    padding: 1.75rem 1.75rem 1.75rem 0.5rem;
+  }
+}
+
+.chance-play-spotlight-title {
+  font-size: clamp(1.375rem, 3vw, 2rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+}
+
+.chance-play-live-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  border-radius: 9999px;
+  border: 1px solid color-mix(in srgb, var(--chance-yes) 35%, var(--chance-border));
+  background: color-mix(in srgb, var(--chance-yes) 10%, var(--chance-surface));
+  padding: 0.125rem 0.5rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--chance-yes);
+}
+
+.chance-play-live-dot {
+  size: 0.375rem;
+  width: 0.375rem;
+  height: 0.375rem;
+  border-radius: 9999px;
+  background: var(--chance-yes);
+  box-shadow: 0 0 8px var(--chance-yes);
+  animation: chance-play-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes chance-play-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+.chance-play-game-card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: var(--chance-radius-shell);
+  border: 1px solid var(--chance-border);
+  background: linear-gradient(165deg, var(--chance-surface-raised) 0%, var(--chance-surface) 100%);
+  box-shadow: var(--chance-shadow-elevated);
+  transition:
+    transform var(--chance-duration-surface) var(--chance-ease-out-expo),
+    box-shadow var(--chance-duration-surface) var(--chance-ease-premium),
+    border-color var(--chance-duration-ui) ease;
+}
+
+.chance-play-game-card:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--chance-brand) 35%, var(--chance-border));
+}
+
+.chance-play-game-card--featured {
+  border-color: color-mix(in srgb, var(--chance-brand) 28%, var(--chance-border));
+}
+
+.chance-play-game-card-link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
+.chance-play-game-card-visual {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+}
+
+.chance-play-game-card-scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgb(15 23 42 / 0.05) 0%,
+    transparent 45%,
+    color-mix(in srgb, var(--chance-surface) 95%, transparent) 100%
+  );
+  pointer-events: none;
+}
+
+.chance-play-game-card-visual .chance-play-live-badge {
+  position: absolute;
+  left: 0.75rem;
+  top: 0.75rem;
+  z-index: 2;
+}
+
+.chance-play-game-card-body {
+  padding: 1rem 1rem 0.75rem;
+}
+
+.chance-play-game-card-actions {
+  display: flex;
+  gap: 0.5rem;
+  border-top: 1px solid var(--chance-border);
+  padding: 0.75rem 1rem 1rem;
+}
+
+.chance-play-queue-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border-radius: var(--chance-radius-md);
+  border: 1px solid var(--chance-border);
+  background: var(--chance-rail-row-bg);
+  padding: 0.625rem 0.75rem;
+  text-decoration: none;
+  color: inherit;
+  transition:
+    border-color var(--chance-duration-ui) var(--chance-ease-premium),
+    background-color var(--chance-duration-ui) var(--chance-ease-premium);
+}
+
+.chance-play-queue-row:hover {
+  border-color: color-mix(in srgb, var(--chance-brand) 35%, var(--chance-border));
+}
+
+.chance-play-tournament-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border-radius: var(--chance-radius-md);
+  border: 1px solid var(--chance-border);
+  background: var(--chance-rail-row-bg);
+  padding: 0.625rem 0.75rem;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color var(--chance-duration-ui) ease;
+}
+
+.chance-play-tournament-row:hover {
+  border-color: color-mix(in srgb, var(--chance-brand) 35%, var(--chance-border));
+}
+
+.chance-play-tournament-icon {
+  display: flex;
+  size: 2.25rem;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--chance-radius-sm);
+  background: color-mix(in srgb, var(--chance-brand) 14%, var(--chance-muted));
+  color: var(--chance-brand);
+}
+
+.chance-queue-spotlight {
+  min-height: 0;
+}
+
+.chance-queue-spotlight .chance-play-spotlight-art {
+  min-height: 10rem;
+}
+
+@media (min-width: 900px) {
+  .chance-queue-spotlight {
+    grid-template-columns: 0.95fr 1.05fr;
+    min-height: 14rem;
+  }
+}
+
+/* ——— Match lobby (/games/match/[id]) ——— */
+
+.chance-match-arena {
+  display: grid;
+  overflow: hidden;
+  border-radius: 1.25rem;
+  border: 1px solid color-mix(in srgb, var(--chance-brand) 22%, var(--chance-border));
+  min-height: 12rem;
+}
+
+@media (min-width: 900px) {
+  .chance-match-arena {
+    grid-template-columns: 1fr 1.1fr;
+    min-height: 14rem;
+  }
+}
+
+.chance-match-arena-art {
+  position: relative;
+  min-height: 10rem;
+}
+
+.chance-match-arena-scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--chance-bg) 88%, transparent) 0%,
+    transparent 55%,
+    color-mix(in srgb, var(--chance-brand) 18%, transparent) 100%
+  );
+  pointer-events: none;
+}
+
+.chance-match-arena-body {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 1.25rem 1.5rem;
+}
+
+.chance-match-arena-title {
+  font-size: clamp(1.5rem, 3vw, 2.125rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  text-transform: uppercase;
+}
+
+.chance-match-vs-text {
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  color: color-mix(in srgb, var(--chance-brand) 85%, var(--chance-fg));
+  text-shadow: 0 0 24px color-mix(in srgb, var(--chance-brand) 35%, transparent);
+}
+
+.chance-match-player-col {
+  border-radius: var(--chance-radius-shell);
+  border: 1px solid var(--chance-border);
+  background: linear-gradient(165deg, var(--chance-surface-raised) 0%, var(--chance-surface-inset) 100%);
+  padding: 1.25rem 1rem;
+  box-shadow: var(--chance-shadow-elevated);
+}
+
+.chance-match-player-col--left {
+  border-color: color-mix(in srgb, var(--chance-brand) 20%, var(--chance-border));
+}
+
+.chance-match-player-col--right {
+  border-color: color-mix(in srgb, var(--chance-no) 15%, var(--chance-border));
+}
+
+.chance-match-player-avatar {
+  size: 4.5rem;
+  width: 4.5rem;
+  height: 4.5rem;
+  font-size: 1.125rem;
+}
+
+.chance-match-status-badge {
+  border-radius: 9999px;
+  border: 1px solid var(--chance-border);
+  padding: 0.25rem 0.625rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.chance-match-status-badge--waiting {
+  border-color: color-mix(in srgb, var(--chance-warning) 40%, var(--chance-border));
+  color: var(--chance-warning);
+  background: color-mix(in srgb, var(--chance-warning) 10%, var(--chance-surface));
+}
+
+.chance-match-status-badge--in_progress {
+  border-color: color-mix(in srgb, var(--chance-yes) 45%, var(--chance-border));
+  color: var(--chance-yes);
+  background: color-mix(in srgb, var(--chance-yes) 10%, var(--chance-surface));
+}
+
+.chance-match-status-badge--completed {
+  border-color: var(--chance-border-strong);
+  color: var(--chance-muted-fg);
+}
+
+.chance-match-ready-btn {
+  min-width: 10rem;
+  border-radius: var(--chance-radius-md);
+  border: 1px solid color-mix(in srgb, var(--chance-brand) 55%, var(--chance-border-strong));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--chance-brand) 95%, #fff) 0%, var(--chance-brand) 100%);
+  color: var(--chance-brand-fg);
+  padding: 0.875rem 1.5rem;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  transition:
+    transform var(--chance-duration-ui) var(--chance-ease-premium),
+    box-shadow var(--chance-duration-ui) var(--chance-ease-premium);
+  box-shadow: 0 0 28px color-mix(in srgb, var(--chance-brand) 35%, transparent);
+}
+
+.chance-match-ready-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 0 36px color-mix(in srgb, var(--chance-brand) 45%, transparent);
+}
+
+.chance-match-ready-btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.chance-match-ready-btn--locked,
+.chance-match-ready-btn:disabled {
+  opacity: 0.65;
+  cursor: default;
+  box-shadow: none;
+}
+
+.chance-match-ready-panel {
+  border-color: color-mix(in srgb, var(--chance-brand) 25%, var(--chance-border));
+}
+
+.chance-match-start-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border-radius: var(--chance-radius-md);
+  border: 1px solid color-mix(in srgb, var(--chance-brand) 35%, var(--chance-border));
+  background: color-mix(in srgb, var(--chance-brand) 8%, var(--chance-surface-inset));
+  padding: 0.75rem 1rem;
+  animation: chance-match-pulse-border 1.4s ease-in-out infinite;
+}
+
+@keyframes chance-match-pulse-border {
+  0%,
+  100% {
+    border-color: color-mix(in srgb, var(--chance-brand) 35%, var(--chance-border));
+  }
+  50% {
+    border-color: color-mix(in srgb, var(--chance-brand) 65%, var(--chance-border));
+  }
+}
+
+.chance-match-start-count {
+  display: inline-flex;
+  size: 2rem;
+  width: 2rem;
+  height: 2rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background: var(--chance-brand);
+  color: var(--chance-brand-fg);
+  font-weight: 800;
+  animation: chance-match-count-pulse 1s ease-in-out infinite;
+}
+
+@keyframes chance-match-count-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.08);
+  }
+}
+
+.chance-match-wait-pulse {
+  animation: chance-match-spin 0.9s linear infinite;
+}
+
+@keyframes chance-match-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.chance-match-lobby-game [data-slot="card-header"] {
+  display: none;
+}
+
+.chance-match-lobby-game [data-slot="card"] {
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  padding-top: 0;
+  padding-bottom: 0;
+  gap: 1rem;
+}
+
+.chance-match-lobby-game [data-slot="card-content"] {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.chance-match-lobby-game .flex.items-center.justify-center.gap-4.py-2 {
+  display: none;
+}
+
+/* ——— Active gameplay HUD ——— */
+
+.chance-match-lobby--active {
+  padding-bottom: 1rem;
+}
+
+.chance-gameplay-frame {
+  min-width: 0;
+}
+
+.chance-gameplay-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.chance-gp-hud {
+  display: grid;
+  gap: 0.75rem;
+  border-radius: var(--chance-radius-shell);
+  border: 1px solid var(--chance-border);
+  background: linear-gradient(180deg, var(--chance-surface-raised) 0%, var(--chance-surface) 100%);
+  padding: 0.75rem 1rem;
+  box-shadow: var(--chance-shadow-elevated);
+}
+
+@media (min-width: 768px) {
+  .chance-gp-hud {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr) minmax(0, 1.1fr);
+    align-items: center;
+  }
+}
+
+.chance-gp-hud-block--matchup {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem 0.5rem;
+  min-width: 0;
+}
+
+.chance-gp-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  max-width: 9.5rem;
+  border-radius: 9999px;
+  border: 1px solid var(--chance-border);
+  background: var(--chance-surface-inset);
+  padding: 0.2rem 0.5rem 0.2rem 0.25rem;
+}
+
+.chance-gp-chip--you {
+  border-color: color-mix(in srgb, var(--chance-brand) 40%, var(--chance-border));
+}
+
+.chance-gp-chip-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.chance-gp-chip-score {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--chance-muted-fg);
+}
+
+.chance-gp-stake--inline {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.375rem;
+  font-size: 0.75rem;
+}
+
+.chance-gp-hud-kicker {
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--chance-muted-fg);
+}
+
+.chance-gp-hud-title {
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.chance-gp-hud-block--status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.chance-gp-hud-block--stakes {
+  text-align: left;
+}
+
+@media (min-width: 768px) {
+  .chance-gp-hud-block--stakes {
+    text-align: right;
+  }
+}
+
+.chance-gp-stake {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.875rem;
+}
+
+.chance-gp-phase {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  border-radius: 9999px;
+  border: 1px solid var(--chance-border);
+  padding: 0.25rem 0.625rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.chance-gp-phase-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 9999px;
+  background: var(--chance-muted-fg);
+}
+
+.chance-gp-phase--you {
+  border-color: color-mix(in srgb, var(--chance-brand) 45%, var(--chance-border));
+  color: var(--chance-brand);
+}
+
+.chance-gp-phase--you .chance-gp-phase-dot {
+  background: var(--chance-brand);
+  box-shadow: 0 0 8px var(--chance-brand);
+}
+
+.chance-gp-phase--opp .chance-gp-phase-dot {
+  background: var(--chance-muted-fg);
+}
+
+.chance-gp-phase--win {
+  border-color: color-mix(in srgb, var(--chance-yes) 45%, var(--chance-border));
+  color: var(--chance-yes);
+}
+
+.chance-gp-phase--win .chance-gp-phase-dot {
+  background: var(--chance-yes);
+}
+
+.chance-gp-phase--loss {
+  border-color: color-mix(in srgb, var(--chance-no) 45%, var(--chance-border));
+  color: var(--chance-no);
+}
+
+.chance-gp-phase--loss .chance-gp-phase-dot {
+  background: var(--chance-no);
+}
+
+.chance-gp-phase--draw .chance-gp-phase-dot {
+  background: var(--chance-muted-fg);
+}
+
+.chance-gp-phase--warn {
+  border-color: color-mix(in srgb, var(--chance-warning) 45%, var(--chance-border));
+  color: var(--chance-warning);
+}
+
+.chance-gp-timer {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.chance-gp-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: var(--chance-radius-md);
+  padding: 0.5rem 0.75rem;
+  font-size: 0.8125rem;
+}
+
+.chance-gp-banner--warn {
+  border: 1px solid color-mix(in srgb, var(--chance-warning) 35%, var(--chance-border));
+  background: color-mix(in srgb, var(--chance-warning) 8%, var(--chance-surface-inset));
+}
+
+.chance-gp-banner--sync {
+  border: 1px solid color-mix(in srgb, var(--chance-brand) 28%, var(--chance-border));
+  background: color-mix(in srgb, var(--chance-brand) 6%, var(--chance-surface-inset));
+  color: var(--chance-muted-fg);
+}
+
+.chance-gp-banner--error {
+  border: 1px solid color-mix(in srgb, var(--chance-no) 35%, var(--chance-border));
+  background: color-mix(in srgb, var(--chance-no) 8%, var(--chance-surface-inset));
+}
+
+.chance-gp-players {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.chance-gp-player {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  border-radius: var(--chance-radius-md);
+  border: 1px solid var(--chance-border);
+  background: var(--chance-rail-row-bg);
+  padding: 0.5rem 0.625rem;
+  min-width: 0;
+}
+
+.chance-gp-player--right {
+  flex-direction: row-reverse;
+  text-align: right;
+}
+
+.chance-gp-player--you {
+  border-color: color-mix(in srgb, var(--chance-brand) 35%, var(--chance-border));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--chance-brand) 12%, transparent);
+}
+
+.chance-gp-vs {
+  font-size: 0.6875rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  color: var(--chance-muted-fg);
+}
+
+.chance-gp-stage {
+  position: relative;
+  min-height: 16rem;
+}
+
+.chance-gp-countdown-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--chance-radius-shell);
+  background: color-mix(in srgb, var(--chance-bg) 72%, transparent);
+  backdrop-filter: blur(6px);
+  pointer-events: none;
+}
+
+.chance-gp-countdown-num {
+  font-size: clamp(3rem, 12vw, 5rem);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  color: var(--chance-brand);
+  text-shadow: 0 0 32px color-mix(in srgb, var(--chance-brand) 45%, transparent);
+  animation: chance-gp-count-pop 0.85s var(--chance-ease-out-expo);
+}
+
+@keyframes chance-gp-count-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.chance-gp-result {
+  margin-bottom: 0.75rem;
+  border-radius: var(--chance-radius-md);
+  border: 1px solid var(--chance-border);
+  padding: 0.875rem 1rem;
+  text-align: center;
+}
+
+.chance-gp-result--win {
+  border-color: color-mix(in srgb, var(--chance-yes) 40%, var(--chance-border));
+  background: color-mix(in srgb, var(--chance-yes) 10%, var(--chance-surface));
+}
+
+.chance-gp-result--loss {
+  border-color: color-mix(in srgb, var(--chance-no) 35%, var(--chance-border));
+  background: color-mix(in srgb, var(--chance-no) 8%, var(--chance-surface));
+}
+
+.chance-gp-result-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.chance-gp-result-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.625rem;
+  margin-top: 0.25rem;
+}
+
+.chance-gp-result-actions-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.625rem;
+}
+
+.chance-gp-result-extra {
+  width: 100%;
+  max-width: 20rem;
+  margin-inline: auto;
+}
+
+.chance-gp-result-extra .chance-hero-cta-primary,
+.chance-gp-result-extra .chance-secondary-btn {
+  width: 100%;
+  justify-content: center;
+}
+
+.chance-gp-rematch {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  text-align: center;
+}
+
+.chance-gp-rematch-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.chance-gameplay-shell--call .chance-gp-hud {
+  padding: 0.625rem 0.75rem;
+  gap: 0.5rem;
+}
+
+.chance-gameplay-shell--call .chance-gp-hud-title {
+  font-size: 0.9375rem;
+}
+
+.chance-gameplay-shell--call .chance-gp-stage {
+  min-height: 12rem;
+}
+
+.chance-call-match {
+  min-width: 0;
+  max-height: min(72vh, 780px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 0.125rem;
+}
+
+.chance-gameplay-board {
+  width: 100%;
+  max-width: 100%;
+}
+
+.chance-gameplay-board .bg-black,
+.chance-gameplay-board [class*="bg-gray-950"] {
+  background: var(--chance-surface-inset) !important;
+}
+
+.chance-gameplay-board .border-gray-800,
+.chance-gameplay-board [class*="border-gray-8"] {
+  border-color: var(--chance-border) !important;
+}
+
+.chance-gameplay-board .text-white {
+  color: var(--chance-fg) !important;
+}
+
+.chance-c4-board {
+  overflow: visible;
+}
+
+.chance-c4-board-col {
+  overflow: visible;
+  --c4-row-gap: 0.375rem;
+}
+
+@media (min-width: 640px) {
+  .chance-c4-board-col {
+    --c4-row-gap: 0.5rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .chance-c4-board-col {
+    --c4-row-gap: 0.25rem;
+  }
+}
+
+.chance-c4-cell {
+  flex-shrink: 0;
+}
+
+.chance-c4-piece.chance-c4-piece--drop {
+  position: relative;
+  z-index: 2;
+  transform: translateY(
+    calc(-1 * var(--drop-rows, 0) * (100% + var(--c4-row-gap, 0.375rem)))
+  );
+  animation: chance-c4-piece-drop 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  will-change: transform;
+}
+
+@keyframes chance-c4-piece-drop {
+  from {
+    transform: translateY(
+      calc(-1 * var(--drop-rows, 0) * (100% + var(--c4-row-gap, 0.375rem)))
+    );
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chance-c4-piece.chance-c4-piece--drop {
+    animation: none;
+  }
+}
+
+.chance-c4-compact .bg-gray-800\/50 {
+  margin-top: 0.75rem;
+  padding: 0.5rem 0.625rem;
+  background: var(--chance-surface-inset);
+  border: 1px solid var(--chance-border);
+}
+
+.chance-c4-compact .bg-gray-800\/50 h3 {
+  font-size: 0.8125rem;
+}
+
+.chance-gameplay-board .text-gray-400,
+.chance-gameplay-board .text-gray-300 {
+  color: var(--chance-muted-fg) !important;
+}
+
+.chance-game-embed {
+  --chance-embed-radius: var(--chance-radius-md, 0.75rem);
+}
+
+.chance-gameplay-board .chance-game-embed [class*="bg-gray-800"] {
+  background: var(--chance-surface-inset) !important;
+  border: 1px solid var(--chance-border);
+  color: var(--chance-fg) !important;
+}
+
+.chance-gameplay-board .chance-game-embed [class*="hover:bg-gray-700"]:hover {
+  background: color-mix(in srgb, var(--chance-brand) 12%, var(--chance-surface-inset)) !important;
+}
+
+.chance-gameplay-board .text-orange-500,
+.chance-gameplay-board .border-orange-500 {
+  color: var(--chance-brand) !important;
+  border-color: var(--chance-brand) !important;
+}
+
+.chance-match-lobby--active .chance-premium-card:has(.chance-section-title) {
+  border-color: var(--chance-border);
+}
+
+.chance-match-lobby--active .chance-section-title {
+  font-size: 0.8125rem;
+}
+
+/* —— Competition ecosystem (presentation) —— */
+.chance-competition-feed {
+  display: flex;
+  flex-direction: column;
+  gap: var(--chance-home-gap, 2rem);
+}
+
+.chance-competition-hero-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 1.25rem 1.5rem 1.5rem;
+}
+
+@media (min-width: 1024px) {
+  .chance-competition-hero-inner {
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: space-between;
+    padding: 1.5rem 2rem 1.75rem;
+  }
+}
+
+.chance-competition-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.chance-competition-progress-grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (min-width: 1024px) {
+  .chance-competition-progress-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.chance-competition-progress-cell {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  border-radius: var(--chance-radius-md, 0.5rem);
+  border: 1px solid var(--chance-border);
+  background: var(--chance-surface-inset);
+  padding: 0.75rem 0.875rem;
+}
+
+.chance-competition-progress-cell--brand .chance-competition-progress-icon {
+  color: var(--chance-brand);
+}
+
+.chance-competition-progress-cell--yes .chance-competition-progress-icon {
+  color: var(--chance-yes);
+}
+
+.chance-competition-progress-icon {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.5rem;
+  background: color-mix(in srgb, var(--chance-fg) 6%, transparent);
+  color: var(--chance-muted-fg);
+}
+
+.chance-competition-activity-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  margin-top: -0.5rem;
+}
+
+.chance-competition-streak-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+}
+
+.chance-competition-timeline-track {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.chance-competition-timeline-node {
+  position: relative;
+  padding-left: 1.25rem;
+  padding-bottom: 1.25rem;
+}
+
+.chance-competition-timeline-node:last-child {
+  padding-bottom: 0;
+}
+
+.chance-competition-timeline-rail {
+  position: absolute;
+  left: 0.2rem;
+  top: 0.35rem;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(180deg, var(--chance-brand), var(--chance-border));
+  opacity: 0.65;
+}
+
+.chance-competition-timeline-node:last-child .chance-competition-timeline-rail {
+  bottom: auto;
+  height: 0.75rem;
+}
+
+.chance-competition-timeline-card {
+  border-radius: var(--chance-radius-md, 0.5rem);
+  border: 1px solid var(--chance-border);
+  background: var(--chance-surface-inset);
+  padding: 0.875rem 1rem;
+}
+
+.chance-competition-result-pill {
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 0.15rem 0.45rem;
+  border-radius: 9999px;
+  border: 1px solid var(--chance-border);
+}
+
+.chance-competition-result-pill--won {
+  color: var(--chance-yes);
+  border-color: color-mix(in srgb, var(--chance-yes) 35%, var(--chance-border));
+}
+
+.chance-competition-result-pill--lost {
+  color: var(--chance-no);
+  border-color: color-mix(in srgb, var(--chance-no) 35%, var(--chance-border));
+}
+
+.chance-competition-ladder-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  max-height: 36rem;
+  overflow-y: auto;
+}
+
+.chance-competition-ladder-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border-radius: var(--chance-radius-md, 0.5rem);
+  border: 1px solid transparent;
+  padding: 0.5rem 0.625rem;
+  transition: background 160ms ease, border-color 160ms ease;
+}
+
+.chance-competition-ladder-row:hover {
+  background: var(--chance-surface-inset);
+  border-color: var(--chance-border);
+}
+
+.chance-competition-ladder-row.is-you {
+  border-color: color-mix(in srgb, var(--chance-brand) 40%, var(--chance-border));
+  background: color-mix(in srgb, var(--chance-brand) 8%, transparent);
+}
+
+.chance-competition-ladder-row--gold {
+  border-color: color-mix(in srgb, var(--chance-brand) 25%, var(--chance-border));
+}
+
+.chance-competition-ladder-rank {
+  width: 1.75rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--chance-muted-fg);
+}
+
+.chance-competition-you-pill,
+.chance-competition-tier-pill {
+  font-size: 0.625rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 0.1rem 0.4rem;
+  border-radius: 9999px;
+  border: 1px solid var(--chance-border);
+  color: var(--chance-muted-fg);
+}
+
+.chance-competition-rank-stat {
+  border-radius: var(--chance-radius-md, 0.5rem);
+  border: 1px solid var(--chance-border);
+  background: var(--chance-surface-inset);
+  padding: 0.5rem 0.625rem;
+  text-align: center;
+}
+
+.chance-competition-profile-grid {
+  display: grid;
+  gap: 1.25rem;
+}
+
+@media (min-width: 1024px) {
+  .chance-competition-profile-grid {
+    grid-template-columns: minmax(0, 1.65fr) minmax(0, 1fr);
+    align-items: start;
+  }
+}
+
+.chance-competition-achievement {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  border-radius: var(--chance-radius-md, 0.5rem);
+  border: 1px solid var(--chance-border);
+  padding: 0.625rem 0.75rem;
+}
+
+.chance-competition-achievement.is-unlocked {
+  background: color-mix(in srgb, var(--chance-brand) 6%, var(--chance-surface-inset));
+}
+
+.chance-competition-achievement.is-locked {
+  opacity: 0.55;
+}
+
+.chance-competition-achievement-icon {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.5rem;
+  background: var(--chance-surface-inset);
+  color: var(--chance-brand);
+}
+
+.chance-competition-arena-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (min-width: 768px) {
+  .chance-competition-arena-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1280px) {
+  .chance-competition-arena-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.chance-competition-arena-pool {
+  border-radius: var(--chance-radius-md, 0.5rem);
+  border: 1px solid var(--chance-border);
+  background: var(--chance-surface-inset);
+  padding: 0.75rem 0.875rem;
+}
+
+.chance-competition-status-pill {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: capitalize;
+  padding: 0.2rem 0.55rem;
+  border-radius: 9999px;
+  border: 1px solid var(--chance-border);
+  background: var(--chance-surface-inset);
+}
+
+.chance-competition-tournament-stats {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (min-width: 768px) {
+  .chance-competition-tournament-stats {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.chance-competition-tabs-list {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  border-radius: 9999px;
+  border: 1px solid var(--chance-border);
+  background: var(--chance-surface-inset);
+  height: auto;
+}
+
+.chance-competition-tab {
+  border-radius: 9999px !important;
+  padding: 0.45rem 0.85rem !important;
+  font-size: 0.8125rem !important;
+  font-weight: 600 !important;
+  color: var(--chance-muted-fg) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.chance-competition-tab[data-state="active"] {
+  background: var(--chance-surface) !important;
+  color: var(--chance-fg) !important;
+  box-shadow: var(--chance-shadow-xs, none) !important;
+}
+
+.chance-competition-bracket-shell {
+  overflow-x: auto;
+}
+
+.chance-competition-tournament-detail .bg-gray-900\/80,
+.chance-competition-tournament-detail [class*="bg-gray-900"] {
+  background: linear-gradient(165deg, var(--chance-surface-raised) 0%, var(--chance-surface) 100%) !important;
+  border-color: var(--chance-border) !important;
+}
+
+.chance-competition-tournament-detail .border-gray-800,
+.chance-competition-tournament-detail .border-gray-700 {
+  border-color: var(--chance-border) !important;
+}
+
+.chance-competition-tournament-detail .text-white {
+  color: var(--chance-fg) !important;
+}
+
+.chance-competition-tournament-detail .text-gray-400,
+.chance-competition-tournament-detail .text-gray-300,
+.chance-competition-tournament-detail .text-gray-500 {
+  color: var(--chance-muted-fg) !important;
+}
+
+.chance-competition-tournament-detail .bg-gray-800\/50,
+.chance-competition-tournament-detail .bg-gray-800 {
+  background: var(--chance-surface-inset) !important;
+}
+
+.chance-competition-tournament-detail .text-orange-400,
+.chance-competition-tournament-detail .text-orange-500,
+.chance-competition-tournament-detail .bg-orange-500 {
+  color: var(--chance-brand) !important;
+  background-color: var(--chance-brand) !important;
+}
+
+.chance-competition-tournament-detail button.bg-gradient-to-r.from-green-500 {
+  background: var(--chance-brand) !important;
+  color: var(--chance-brand-fg, #111) !important;
+}
+
+/* —— Venues (live events) —— */
+.chance-venues-feed-stack {
+  --chance-venues-section-gap: 2.75rem;
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  gap: var(--chance-venues-section-gap);
+}
+
+@media (min-width: 1024px) {
+  .chance-venues-feed-stack {
+    --chance-venues-section-gap: 3.25rem;
+  }
+}
+
+/* Outer feed wraps one stack child — section spacing lives on .chance-venues-feed-stack */
+.chance-home-feed.chance-venues-feed {
+  gap: 0;
+}
+
+.chance-venues-qr .flex > .chance-input,
+.chance-call-root .flex > .chance-input {
+  width: auto;
+  flex: 1 1 0%;
+  min-width: 0;
+}
+
+.chance-call-invite-toast {
+  border-color: color-mix(in srgb, var(--chance-brand) 35%, var(--chance-border));
+}
+
+.chance-venues-hero-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 1.25rem 1.5rem 1.5rem;
+}
+
+@media (min-width: 1024px) {
+  .chance-venues-hero-inner {
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: space-between;
+    padding: 1.5rem 2rem 1.75rem;
+  }
+}
+
+.chance-venues-hero--live {
+  box-shadow:
+    var(--chance-shadow-elevated),
+    0 0 0 1px color-mix(in srgb, var(--chance-brand) 35%, var(--chance-border));
+}
+
+.chance-venues-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.chance-venues-mode-tabs {
+  display: flex;
+  gap: 0.375rem;
+  padding: 0.125rem;
+  border-radius: 9999px;
+  border: 1px solid var(--chance-border);
+  background: var(--chance-surface-inset);
+  width: fit-content;
+  max-width: 100%;
+}
+
+.chance-venues-mode-tab {
+  flex: 1;
+  border-radius: 9999px;
+  padding: 0.5rem 0.85rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--chance-muted-fg);
+  white-space: nowrap;
+}
+
+.chance-venues-mode-tab.is-active {
+  background: var(--chance-surface);
+  color: var(--chance-fg);
+  box-shadow: var(--chance-shadow-xs, none);
+}
+
+.chance-venues-discover-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (min-width: 768px) {
+  .chance-venues-discover-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1280px) {
+  .chance-venues-discover-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.chance-venues-live-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border-radius: 9999px;
+  border: 1px solid color-mix(in srgb, var(--chance-brand) 45%, var(--chance-border));
+  background: color-mix(in srgb, var(--chance-brand) 12%, transparent);
+  padding: 0.15rem 0.55rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--chance-brand);
+}
+
+.chance-venues-soon-pill {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  padding: 0.15rem 0.5rem;
+  border-radius: 9999px;
+  border: 1px solid var(--chance-border);
+  color: var(--chance-muted-fg);
+}
+
+.chance-venues-tonight-banner {
+  border-color: color-mix(in srgb, var(--chance-brand) 30%, var(--chance-border));
+}
+
+.chance-venues-journey-steps {
+  display: grid;
+  gap: 0.75rem;
+}
+
+@media (min-width: 768px) {
+  .chance-venues-journey-steps {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.chance-venues-journey-step {
+  display: flex;
+  gap: 0.65rem;
+  align-items: flex-start;
+  border-radius: var(--chance-radius-md, 0.5rem);
+  border: 1px solid var(--chance-border);
+  background: var(--chance-surface-inset);
+  padding: 0.65rem 0.75rem;
+}
+
+.chance-venues-journey-index {
+  font-size: 0.625rem;
+  font-weight: 700;
+  color: var(--chance-muted-fg);
+}
+
+.chance-venues-journey-icon {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.5rem;
+  background: color-mix(in srgb, var(--chance-brand) 10%, transparent);
+  color: var(--chance-brand);
+}
+
+.chance-venues-meta-cell {
+  border-radius: var(--chance-radius-md, 0.5rem);
+  border: 1px solid var(--chance-border);
+  background: var(--chance-surface-inset);
+  padding: 0.5rem 0.625rem;
+}
+
+.chance-venues-session-pick {
+  border-radius: var(--chance-radius-md, 0.5rem);
+  border: 1px solid var(--chance-border);
+  background: var(--chance-surface-inset);
+  padding: 0.75rem;
+  transition: border-color 160ms ease, background 160ms ease;
+}
+
+.chance-venues-session-pick:hover {
+  border-color: color-mix(in srgb, var(--chance-brand) 35%, var(--chance-border));
+}
+
+.chance-venues-session-pick.is-selected {
+  border-color: var(--chance-brand);
+  background: color-mix(in srgb, var(--chance-brand) 10%, var(--chance-surface-inset));
+}
+
+.chance-venues-host-root .bg-gray-900\/80,
+.chance-venues-host-root [class*="bg-gray-900"] {
+  background: linear-gradient(165deg, var(--chance-surface-raised) 0%, var(--chance-surface) 100%) !important;
+  border-color: var(--chance-border) !important;
+}
+
+.chance-venues-host-root .text-white {
+  color: var(--chance-fg) !important;
+}
+
+.chance-venues-host-root .text-gray-300,
+.chance-venues-host-root .text-gray-400,
+.chance-venues-host-root .text-white\/60,
+.chance-venues-host-root .text-white\/80 {
+  color: var(--chance-muted-fg) !important;
+}
+
+.chance-venues-host-root .bg-orange-600,
+.chance-venues-host-root .bg-blue-600,
+.chance-venues-host-root .bg-green-600 {
+  background: var(--chance-brand) !important;
+  color: var(--chance-brand-fg, #111) !important;
+}
+
+.chance-venues-live .bg-black {
+  background: var(--chance-bg) !important;
+}
+
+/* —— Venues discovery hub (flagship) —— */
+.chance-venues-section {
+  width: 100%;
+}
+
+.chance-rail-card-head.chance-venues-section-head {
+  align-items: flex-start;
+  gap: 0.75rem 1.25rem;
+  margin-bottom: 1.375rem;
+}
+
+.chance-venues-section-head {
+  margin-bottom: 1.375rem;
+}
+
+.chance-venues-section-head > div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.chance-venues-section-head .chance-section-title {
+  line-height: 1.35;
+}
+
+.chance-venues-section-head .chance-text-caption {
+  margin-top: 0;
+  line-height: 1.45;
+  max-width: 36rem;
+}
+
+.chance-venues-inset {
+  padding: 1.125rem 1.25rem;
+}
+
+@media (min-width: 640px) {
+  .chance-venues-inset {
+    padding: 1.25rem 1.375rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .chance-venues-inset {
+    padding: 1.375rem 1.625rem;
+  }
+}
+
+.chance-venues-footer-cta {
+  display: flex;
+  justify-content: center;
+  padding: 0.75rem 0 0.25rem;
+}
+
+.chance-venues-cinematic-glow {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 55% 70% at 92% 40%, color-mix(in srgb, var(--chance-brand) 22%, transparent), transparent 55%),
+    radial-gradient(ellipse 40% 50% at 70% 90%, color-mix(in srgb, #8b5cf6 18%, transparent), transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.chance-venues-cinematic .chance-hero-content {
+  min-height: 18.5rem;
+  padding-bottom: 1.75rem;
+}
+
+.chance-venues-hero-content {
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+
+@media (min-width: 1024px) {
+  .chance-venues-hero-content {
+    flex-direction: row;
+  }
+}
+
+.chance-venues-hero-float {
+  z-index: 2;
+}
+
+.chance-venues-hero-posters {
+  position: relative;
+  z-index: 1;
+  display: none;
+  min-width: 0;
+  flex: 0 0 auto;
+  gap: 0.75rem;
+  align-self: flex-end;
+}
+
+@media (min-width: 1024px) {
+  .chance-venues-hero-posters {
+    display: flex;
+  }
+}
+
+.chance-venues-hero-poster {
+  width: 7.5rem;
+  border-radius: 1rem;
+  border: 1px solid color-mix(in srgb, var(--chance-brand) 25%, var(--chance-border));
+  padding: 0.85rem;
+  background: color-mix(in srgb, var(--chance-surface) 80%, transparent);
+  box-shadow: var(--chance-shadow-elevated);
+}
+
+.chance-venues-hero-poster--a {
+  transform: rotate(-4deg) translateY(0.5rem);
+}
+
+.chance-venues-hero-poster--b {
+  transform: rotate(3deg);
+  margin-top: 1.25rem;
+}
+
+.chance-venues-poster-grid {
+  display: grid;
+  gap: 1.375rem;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (min-width: 768px) {
+  .chance-venues-poster-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1280px) {
+  .chance-venues-poster-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.chance-venues-poster {
+  display: flex;
+  min-height: 100%;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 1.125rem;
+  border: 1px solid var(--chance-border);
+  background: var(--chance-surface);
+  box-shadow: var(--chance-shadow-elevated);
+  transition:
+    transform var(--chance-duration-ui) var(--chance-ease-premium),
+    box-shadow var(--chance-duration-ui) var(--chance-ease-premium),
+    border-color var(--chance-duration-ui) var(--chance-ease-premium);
+}
+
+.chance-venues-poster:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--chance-brand) 35%, var(--chance-border));
+  box-shadow:
+    var(--chance-shadow-elevated),
+    0 0 0 1px color-mix(in srgb, var(--chance-brand) 20%, transparent);
+}
+
+.chance-venues-poster--featured {
+  border-color: color-mix(in srgb, var(--chance-brand) 40%, var(--chance-border));
+}
+
+.chance-venues-poster-art {
+  position: relative;
+  min-height: 9rem;
+  background:
+    linear-gradient(145deg, color-mix(in srgb, var(--chance-brand) 35%, #0a0a0a), #0f0f12 55%),
+    radial-gradient(circle at 80% 20%, color-mix(in srgb, var(--chance-brand) 40%, transparent), transparent 45%);
+}
+
+.chance-venues-poster-scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgb(0 0 0 / 0.55), transparent 55%);
+}
+
+.chance-venues-poster-badges {
+  position: absolute;
+  left: 0.75rem;
+  bottom: 0.75rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  z-index: 1;
+}
+
+.chance-venues-poster-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  padding: 1.125rem 1.25rem 1.25rem;
+}
+
+.chance-venues-poster-title {
+  font-size: 1.0625rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.chance-venues-poster-meta {
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: minmax(0, 1fr);
+  font-size: 0.75rem;
+}
+
+@media (min-width: 480px) {
+  .chance-venues-poster-meta {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.chance-venues-trending-track {
+  display: flex;
+  gap: 0.875rem;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  padding-bottom: 0.35rem;
+  margin-inline: -0.25rem;
+  padding-inline: 0.25rem;
+}
+
+.chance-venues-trending-card {
+  flex: 0 0 min(16rem, 78vw);
+  scroll-snap-align: start;
+  border-radius: 1rem;
+  border: 1px solid var(--chance-border);
+  padding: 1rem 1.125rem 1.125rem;
+  background:
+    radial-gradient(ellipse 120% 80% at 100% 0%, color-mix(in srgb, var(--venues-theme-accent, var(--chance-brand)) 28%, transparent), transparent 55%),
+    var(--chance-surface);
+  box-shadow: var(--chance-shadow-elevated);
+  transition: transform var(--chance-duration-ui) var(--chance-ease-premium);
+}
+
+.chance-venues-trending-card:hover {
+  transform: translateY(-2px);
+}
+
+.chance-venues-trending-tag {
+  display: inline-flex;
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--venues-theme-accent, var(--chance-brand));
+}
+
+.chance-venues-trending-title {
+  margin-top: 0.35rem;
+  font-size: 1.0625rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.chance-venues-trending-go {
+  color: var(--chance-brand);
+}
+
+.chance-venues-live-now-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.chance-venues-live-now-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  border-radius: var(--chance-radius-md, 0.75rem);
+  border: 1px solid var(--chance-border);
+  background: var(--chance-surface);
+  padding: 0.875rem 1rem;
+  box-shadow: var(--chance-shadow-xs, none);
+}
+
+.chance-venues-timeline {
+  display: grid;
+  gap: 0;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  border-radius: 1rem;
+  border: 1px solid var(--chance-border);
+  overflow: hidden;
+  background: var(--chance-surface);
+}
+
+@media (min-width: 768px) {
+  .chance-venues-timeline {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+.chance-venues-timeline-step {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1.125rem 1rem;
+  border-bottom: 1px solid var(--chance-border);
+}
+
+@media (min-width: 768px) {
+  .chance-venues-timeline-step {
+    border-bottom: none;
+    border-right: 1px solid var(--chance-border);
+    min-height: 9.25rem;
+    padding: 1rem 0.875rem;
+  }
+
+  .chance-venues-timeline-step:last-child {
+    border-right: none;
+  }
+}
+
+.chance-venues-timeline-step:last-child {
+  border-bottom: none;
+}
+
+.chance-venues-timeline-marker {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.chance-venues-timeline-index {
+  font-size: 0.625rem;
+  font-weight: 700;
+  color: var(--chance-muted-fg);
+}
+
+.chance-venues-timeline-icon {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.65rem;
+  border: 1px solid color-mix(in srgb, var(--chance-brand) 30%, var(--chance-border));
+  background: color-mix(in srgb, var(--chance-brand) 10%, transparent);
+  color: var(--chance-brand);
+}
+
+.chance-venues-host-benefits {
+  display: grid;
+  gap: 0.75rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+@media (min-width: 768px) {
+  .chance-venues-host-benefits {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.chance-venues-host-benefit {
+  display: flex;
+  gap: 0.65rem;
+  align-items: flex-start;
+}
+
+.chance-venues-host-venues-grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (min-width: 768px) {
+  .chance-venues-host-venues-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.chance-venues-community-grid {
+  display: grid;
+  gap: 1.125rem;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.chance-venues-community-grid > .chance-premium-card {
+  padding: 0;
+}
+
+.chance-venues-community-grid .chance-venues-inset {
+  height: 100%;
+}
+
+@media (min-width: 900px) {
+  .chance-venues-community-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.chance-venues-feed-stack > .chance-venues-section,
+.chance-venues-feed-stack > .chance-hero-cinematic,
+.chance-venues-feed-stack > .chance-venues-footer-cta {
+  animation: chance-home-enter var(--chance-duration-surface) var(--chance-ease-out-expo) both;
+}
+
+.chance-venues-feed-stack > *:nth-child(1) {
+  animation-delay: 0ms;
+}
+.chance-venues-feed-stack > *:nth-child(2) {
+  animation-delay: 40ms;
+}
+.chance-venues-feed-stack > *:nth-child(3) {
+  animation-delay: 80ms;
+}
+.chance-venues-feed-stack > *:nth-child(4) {
+  animation-delay: 120ms;
+}
+.chance-venues-feed-stack > *:nth-child(5) {
+  animation-delay: 160ms;
+}
+.chance-venues-feed-stack > *:nth-child(6) {
+  animation-delay: 200ms;
+}
+.chance-venues-feed-stack > *:nth-child(7) {
+  animation-delay: 240ms;
+}
+.chance-venues-feed-stack > *:nth-child(8) {
+  animation-delay: 280ms;
+}
+
+/* —— Player discovery (/friends/add) —— */
+.chance-home-feed.chance-discovery-feed {
+  gap: 0;
+}
+
+.chance-discovery-feed-stack {
+  --chance-discovery-gap: 2.75rem;
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  gap: var(--chance-discovery-gap);
+}
+
+@media (min-width: 1024px) {
+  .chance-discovery-feed-stack {
+    --chance-discovery-gap: 3.25rem;
+  }
+}
+
+.chance-discovery-section {
+  width: 100%;
+}
+
+.chance-discovery-section-head {
+  margin-bottom: 1.125rem;
+}
+
+.chance-discovery-section-head .chance-text-caption {
+  margin-top: 0.375rem;
+  line-height: 1.45;
+}
+
+.chance-discovery-inset {
+  padding: 1.125rem 1.25rem;
+}
+
+@media (min-width: 640px) {
+  .chance-discovery-inset {
+    padding: 1.25rem 1.375rem;
+  }
+}
+
+.chance-discovery-hero-glow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 60% 80% at 100% 20%, color-mix(in srgb, var(--chance-brand) 24%, transparent), transparent 55%);
+  pointer-events: none;
+}
+
+.chance-discovery-hero-content {
+  min-height: 16rem;
+}
+
+.chance-discovery-search {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  border-radius: 1rem;
+  border: 1px solid color-mix(in srgb, var(--chance-brand) 28%, var(--chance-border));
+  background: color-mix(in srgb, var(--chance-surface) 92%, transparent);
+  padding: 0.75rem;
+  box-shadow: var(--chance-shadow-elevated);
+}
+
+@media (min-width: 640px) {
+  .chance-discovery-search {
+    flex-direction: row;
+    align-items: center;
+    padding: 0.5rem 0.5rem 0.5rem 1rem;
+  }
+}
+
+.chance-discovery-search-icon {
+  display: none;
+  color: var(--chance-muted-fg);
+}
+
+@media (min-width: 640px) {
+  .chance-discovery-search-icon {
+    display: block;
+  }
+}
+
+.chance-discovery-search-input {
+  width: 100%;
+  min-width: 0;
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: var(--chance-fg);
+  font-size: 0.9375rem;
+  outline: none;
+}
+
+.chance-discovery-search-input::placeholder {
+  color: var(--chance-muted-fg);
+}
+
+.chance-discovery-search-btn {
+  width: 100%;
+  justify-content: center;
+  padding: 0.65rem 1.25rem;
+  font-size: 0.875rem;
+}
+
+@media (min-width: 640px) {
+  .chance-discovery-search-btn {
+    width: auto;
+  }
+}
+
+.chance-discovery-player-track {
+  display: flex;
+  gap: 1rem;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  padding-bottom: 0.35rem;
+}
+
+.chance-discovery-player-track--inner {
+  padding: 0.25rem 0;
+}
+
+.chance-discovery-player-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (min-width: 640px) {
+  .chance-discovery-player-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1100px) {
+  .chance-discovery-player-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.chance-discovery-player-card {
+  flex: 0 0 min(18.5rem, 88vw);
+  scroll-snap-align: start;
+  border-radius: 1.125rem;
+  border: 1px solid var(--chance-border);
+  background: var(--chance-surface);
+  padding: 1.125rem 1.25rem;
+  box-shadow: var(--chance-shadow-elevated);
+  transition:
+    transform var(--chance-duration-ui) var(--chance-ease-premium),
+    border-color var(--chance-duration-ui) var(--chance-ease-premium),
+    box-shadow var(--chance-duration-ui) var(--chance-ease-premium);
+}
+
+.chance-discovery-player-card:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--chance-brand) 35%, var(--chance-border));
+}
+
+.chance-discovery-player-card--compact {
+  flex-basis: min(16.5rem, 85vw);
+}
+
+.chance-discovery-player-card-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.chance-discovery-online-dot {
+  position: absolute;
+  right: -0.05rem;
+  bottom: -0.05rem;
+  width: 0.65rem;
+  height: 0.65rem;
+  border-radius: 9999px;
+  border: 2px solid var(--chance-surface);
+  background: var(--chance-muted-fg);
+}
+
+.chance-discovery-online-dot.is-online {
+  background: var(--chance-brand);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--chance-brand) 70%, transparent);
+}
+
+.chance-discovery-rank-badge {
+  border-radius: 9999px;
+  border: 1px solid color-mix(in srgb, var(--chance-brand) 35%, var(--chance-border));
+  background: color-mix(in srgb, var(--chance-brand) 10%, transparent);
+  padding: 0.1rem 0.45rem;
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--chance-brand);
+}
+
+.chance-discovery-queue-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  border-radius: 9999px;
+  border: 1px solid var(--chance-border);
+  padding: 0.15rem 0.45rem;
+  font-size: 0.625rem;
+  font-weight: 700;
+  color: var(--chance-brand);
+}
+
+.chance-discovery-player-stats {
+  display: grid;
+  gap: 0.65rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 0.875rem;
+}
+
+.chance-discovery-player-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.chance-discovery-state-pill {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 9999px;
+  border: 1px solid var(--chance-border);
+  padding: 0.35rem 0.65rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--chance-muted-fg);
+}
+
+.chance-discovery-recent-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.chance-discovery-recent-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  border-radius: var(--chance-radius-md, 0.75rem);
+  border: 1px solid var(--chance-border);
+  background: var(--chance-surface);
+  padding: 0.875rem 1rem;
+}
+
+.chance-discovery-rival-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (min-width: 768px) {
+  .chance-discovery-rival-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.chance-discovery-rival-stats {
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.chance-discovery-request-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  padding: 0.125rem;
+  border-radius: 9999px;
+  border: 1px solid var(--chance-border);
+  background: var(--chance-surface-inset);
+  width: fit-content;
+  max-width: 100%;
+}
+
+.chance-discovery-request-tab {
+  border-radius: 9999px;
+  padding: 0.45rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--chance-muted-fg);
+}
+
+.chance-discovery-request-tab.is-active {
+  background: var(--chance-surface);
+  color: var(--chance-fg);
+}
+
+.chance-discovery-request-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--chance-border);
+  padding: 0.65rem 0.75rem;
+}
+
+/* —— Live Call hub (/call) —— */
+.chance-home-feed.chance-call-hub-feed,
+.chance-home-feed.chance-call-room-feed {
+  gap: 0;
+}
+
+.chance-call-hub-stack {
+  --chance-call-hub-gap: 2.75rem;
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  gap: var(--chance-call-hub-gap);
+  padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px));
+}
+
+@media (min-width: 1024px) {
+  .chance-call-hub-stack {
+    --chance-call-hub-gap: 3.25rem;
+    padding-bottom: 0;
+  }
+}
+
+.chance-call-hub-hero {
+  position: relative;
+  overflow: hidden;
+}
+
+.chance-call-hub-hero-glow {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 55% 70% at 8% 30%, color-mix(in srgb, var(--chance-brand) 22%, transparent), transparent 55%),
+    radial-gradient(ellipse 45% 60% at 92% 20%, color-mix(in srgb, #6366f1 18%, transparent), transparent 50%);
+  pointer-events: none;
+}
+
+.chance-call-hub-join {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-width: 22rem;
+}
+
+@media (min-width: 480px) {
+  .chance-call-hub-join {
+    flex-direction: row;
+    align-items: stretch;
+  }
+}
+
+.chance-call-hub-join-input {
+  flex: 1;
+  min-width: 0;
+  border-radius: 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--chance-brand) 28%, var(--chance-border));
+  background: color-mix(in srgb, var(--chance-surface) 94%, transparent);
+  padding: 0.65rem 0.85rem;
+  font-size: 0.875rem;
+  color: var(--chance-fg);
+  outline: none;
+}
+
+.chance-call-hub-join-input:focus-visible {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--chance-brand) 45%, transparent);
+}
+
+.chance-call-hub-grid {
+  display: grid;
+  gap: 2rem;
+  grid-template-columns: minmax(0, 1fr);
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .chance-call-hub-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .chance-call-hub-col-main {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (min-width: 1024px) {
+  .chance-call-hub-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr) minmax(0, 1fr);
+    gap: 1.75rem;
+  }
+
+  .chance-call-hub-col-main {
+    grid-column: auto;
+  }
+}
+
+.chance-call-hub-section {
+  width: 100%;
+}
+
+.chance-call-hub-section-head {
+  margin-bottom: 1rem;
+}
+
+.chance-call-hub-section-head .chance-text-caption {
+  margin-top: 0.35rem;
+}
+
+.chance-call-hub-inset {
+  padding: 1.125rem 1.25rem;
+}
+
+.chance-call-presence-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.chance-call-presence-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border-radius: 1rem;
+  border: 1px solid var(--chance-border);
+  background: var(--chance-surface);
+  padding: 0.65rem 0.75rem;
+  box-shadow: var(--chance-shadow-soft, 0 1px 2px rgb(0 0 0 / 0.04));
+}
+
+.chance-call-room-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (min-width: 640px) {
+  .chance-call-room-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.chance-call-room-card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 1.125rem;
+  border: 1px solid var(--chance-border);
+  background: var(--chance-surface);
+  box-shadow: var(--chance-shadow-elevated);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.chance-call-room-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px color-mix(in srgb, var(--chance-brand) 12%, transparent);
+}
+
+.chance-call-room-card--featured {
+  border-color: color-mix(in srgb, var(--chance-brand) 45%, var(--chance-border));
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--chance-brand) 20%, transparent),
+    var(--chance-shadow-elevated);
+}
+
+.chance-call-room-card-art {
+  position: relative;
+  min-height: 5.5rem;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--chance-brand) 35%, #0f172a), #0c0c0c 70%),
+    radial-gradient(circle at 80% 20%, color-mix(in srgb, var(--chance-brand) 40%, transparent), transparent 45%);
+  padding: 0.85rem 1rem;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.chance-call-room-card-tag {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--chance-brand-fg, #052e16);
+  background: var(--chance-brand);
+  border-radius: 9999px;
+  padding: 0.25rem 0.55rem;
+}
+
+.chance-call-voice-pulse {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: #fff;
+  background: color-mix(in srgb, #ef4444 75%, transparent);
+  border-radius: 9999px;
+  padding: 0.25rem 0.5rem;
+  animation: chance-call-voice-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes chance-call-voice-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    box-shadow: 0 0 0 0 color-mix(in srgb, #ef4444 50%, transparent);
+  }
+  50% {
+    opacity: 0.92;
+    box-shadow: 0 0 0 6px transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chance-call-voice-pulse {
+    animation: none;
+  }
+
+  .chance-call-room-card:hover {
+    transform: none;
+  }
+}
+
+.chance-call-room-card-body {
+  padding: 1rem 1.05rem 1.15rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.chance-call-room-card-title {
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.chance-call-room-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.85rem;
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--chance-muted-fg);
+}
+
+.chance-call-room-card-meta div {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.chance-call-room-card-cta {
+  margin-top: auto;
+  width: 100%;
+  justify-content: center;
+  padding: 0.55rem 1rem;
+  font-size: 0.8125rem;
+  text-align: center;
+}
+
+.chance-call-watch-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.chance-call-watch-card,
+.chance-call-lfm-card {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border-radius: 1rem;
+  border: 1px solid var(--chance-border);
+  background: var(--chance-surface);
+  padding: 0.85rem 1rem;
+  box-shadow: var(--chance-shadow-soft, 0 1px 2px rgb(0 0 0 / 0.04));
+}
+
+.chance-call-lfm-card {
+  border-color: color-mix(in srgb, var(--chance-brand) 22%, var(--chance-border));
+}
+
+.chance-call-voice-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.chance-call-voice-row {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  border-radius: 0.85rem;
+  border: 1px solid var(--chance-border);
+  background: color-mix(in srgb, var(--chance-surface-inset) 55%, var(--chance-surface));
+  padding: 0.65rem 0.75rem;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.chance-call-voice-row:hover {
+  border-color: color-mix(in srgb, var(--chance-brand) 35%, var(--chance-border));
+  background: var(--chance-surface);
+}
+
+.chance-call-activity-timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0 0.35rem;
+  border-left: 2px solid color-mix(in srgb, var(--chance-brand) 25%, var(--chance-border));
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.chance-call-activity-item {
+  position: relative;
+  padding-left: 0.85rem;
+}
+
+.chance-call-activity-dot {
+  position: absolute;
+  left: -0.45rem;
+  top: 0.35rem;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 9999px;
+  background: var(--chance-brand);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--chance-brand) 55%, transparent);
+}
+
+.chance-call-hub-mobile-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 40;
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.65rem 1rem calc(0.65rem + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--chance-border);
+  background: color-mix(in srgb, var(--chance-bg) 92%, transparent);
+  backdrop-filter: blur(12px);
+}
+
+/* —— Active room (/call/[code]) —— */
+.chance-call-room-elite .chance-call-room-header {
+  border-color: color-mix(in srgb, var(--chance-brand) 28%, var(--chance-border));
+}
+
+.chance-call-live-indicator {
+  flex-shrink: 0;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 0.35rem 0.6rem;
+  border-radius: 9999px;
+  border: 1px solid var(--chance-border);
+  color: var(--chance-muted-fg);
+  background: var(--chance-surface-inset);
+}
+
+.chance-call-live-indicator.is-connecting {
+  color: var(--chance-fg);
+  border-color: color-mix(in srgb, #f59e0b 40%, var(--chance-border));
+}
+
+.chance-call-live-indicator.is-live {
+  color: #fff;
+  border-color: transparent;
+  background: linear-gradient(135deg, #ef4444, color-mix(in srgb, var(--chance-brand) 60%, #ef4444));
+  box-shadow: 0 0 16px color-mix(in srgb, #ef4444 35%, transparent);
+  animation: chance-call-live-breathe 2s ease-in-out infinite;
+}
+
+@keyframes chance-call-live-breathe {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.88;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chance-call-live-indicator.is-live {
+    animation: none;
+  }
+}
+
+.chance-call-video-stage {
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--chance-brand) 15%, var(--chance-border)),
+    0 24px 48px color-mix(in srgb, #000 35%, transparent);
+}

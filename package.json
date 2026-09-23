@@ -4,7 +4,9 @@
   "private": true,
   "scripts": {
     "build": "next build",
-    "dev": "next dev",
+    "dev": "node scripts/next-dev.mjs",
+    "dev:clean": "node scripts/next-dev.mjs --clean",
+    "dev:stable": "rm -rf .next && next build && next start",
     "lint": "next lint",
     "start": "next start"
   },
@@ -65,9 +67,11 @@
     "recharts": "2.15.4",
     "sonner": "^1.7.4",
     "stripe": "^17.5.0",
+    "tr46": "0.0.3",
     "tailwind-merge": "^2.5.5",
     "tailwindcss-animate": "^1.0.7",
     "vaul": "^0.9.9",
+    "whatwg-url": "5.0.0",
     "zod": "3.25.67"
   },
   "devDependencies": {

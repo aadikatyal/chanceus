@@ -12,7 +12,7 @@ export default function FloatingFeedbackButton() {
     <>
       <Button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 h-14 w-14 rounded-full bg-orange-500 hover:bg-orange-600 text-white shadow-lg hover:shadow-xl transition-all duration-300 z-50 flex items-center justify-center"
+        className="chance-focus-ring fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-[var(--chance-brand)] text-[var(--chance-brand-fg)] shadow-[var(--chance-shadow-md)] transition-all duration-[var(--chance-duration-fast)] hover:opacity-90"
         size="icon"
       >
         <MessageSquare className="h-6 w-6" />

@@ -3,16 +3,9 @@
 import { createClient } from "@/lib/supabase/client"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
-import Header from "@/components/navigation/header"
-import EnhancedMatchInterface from "@/components/games/enhanced-match-interface"
-import StartGameButton from "@/components/games/start-game-button"
-import ChatWindow from "@/components/chat/chat-window"
-import SpectatorMode from "@/components/games/spectator-mode"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { ArrowLeft, Trophy, Users, Clock, CheckCircle, XCircle } from "lucide-react"
-import Link from "next/link"
+import CompetitiveShell from "@/components/app/competitive-shell"
+import CompetitivePageFeed from "@/components/app/competitive-page-feed"
+import MatchLobbyPageView from "@/components/match-lobby/match-lobby-page-view"
 import { acceptFriendMatchRequest, markPlayerReady } from "@/lib/game-actions"
 import { useToast } from "@/hooks/use-toast"
 
@@ -79,8 +72,8 @@ export default function MatchPage({ params }: MatchPageProps) {
           .select(`
             *,
             games (name, description, min_bet, max_bet),
-            player1:users!matches_player1_id_fkey (id, username, display_name, avatar_url),
-            player2:users!matches_player2_id_fkey (id, username, display_name, avatar_url)
+            player1:users!matches_player1_id_fkey (id, username, display_name, avatar_url, tokens, total_games_played, total_games_won),
+            player2:users!matches_player2_id_fkey (id, username, display_name, avatar_url, tokens, total_games_played, total_games_won)
           `)
           .eq("id", matchId)
           .single()
@@ -384,442 +377,158 @@ export default function MatchPage({ params }: MatchPageProps) {
     }
   }
 
-  if (loading) {
+  const reloadMatch = async () => {
+    if (!matchId) return
+    const { data: updatedMatch } = await supabase
+      .from("matches")
+      .select(`
+        *,
+        games (name, description, min_bet, max_bet),
+        player1:users!matches_player1_id_fkey (id, username, display_name, avatar_url, tokens, total_games_played, total_games_won),
+        player2:users!matches_player2_id_fkey (id, username, display_name, avatar_url, tokens, total_games_played, total_games_won)
+      `)
+      .eq("id", matchId)
+      .single()
+    if (updatedMatch) setMatch(updatedMatch)
+  }
+
+  const handleMarkReady = async () => {
+    if (!match) return
+    setMarkingReady(true)
+    try {
+      const result = await markPlayerReady(match.id)
+      if (result.error) {
+        toast({ title: "Error", description: result.error, variant: "destructive" })
+      } else {
+        if (result.bothReady) {
+          toast({ title: "Both players ready!", description: "Match is starting..." })
+        } else {
+          toast({ title: "You're ready!", description: "Waiting for opponent..." })
+        }
+        await reloadMatch()
+      }
+    } catch (error) {
+      console.error("Error marking ready:", error)
+      toast({ title: "Error", description: "Failed to mark as ready", variant: "destructive" })
+    } finally {
+      setMarkingReady(false)
+    }
+  }
+
+  const handleAcceptFriend = async () => {
+    if (!match) return
+    setAcceptingMatch(true)
+    try {
+      const result = await acceptFriendMatchRequest(match.id)
+      if (result.error) {
+        toast({ title: "Failed to accept", description: result.error, variant: "destructive" })
+      } else {
+        toast({
+          title: "Match request accepted!",
+          description: "Both players need to ready up to start",
+        })
+        await reloadMatch()
+      }
+    } catch (error) {
+      console.error("Error accepting match:", error)
+      toast({ title: "Error", description: "Failed to accept match request", variant: "destructive" })
+    } finally {
+      setAcceptingMatch(false)
+    }
+  }
+
+  const handleDeclineFriend = async () => {
+    if (!match) return
+    await supabase.from("matches").update({ status: "cancelled" }).eq("id", match.id)
+    toast({ title: "Match request declined" })
+    router.push("/dashboard")
+  }
+
+  const handleJoinMatch = async () => {
+    if (!match || !user) return
+    try {
+      if (user.tokens < match.bet_amount) {
+        alert(
+          `You need ${match.bet_amount} tokens to join this match. You currently have ${user.tokens} tokens.`
+        )
+        return
+      }
+      const { error } = await supabase
+        .from("matches")
+        .update({
+          player2_id: user.id,
+          game_data: {
+            ...match.game_data,
+            player2_ready: false,
+          },
+        })
+        .eq("id", match.id)
+      if (error) {
+        console.error("Error joining match:", error)
+        alert("Failed to join match. Please try again.")
+        return
+      }
+      window.location.reload()
+    } catch (error) {
+      console.error("Error joining match:", error)
+      alert("Failed to join match. Please try again.")
+    }
+  }
+
+  if (loading || !user) {
+    const loadingBody = (
+      <section className="chance-premium-card mx-auto flex max-w-md flex-col items-center gap-3 p-10 text-center">
+        <div
+          className="size-8 animate-spin rounded-full border-2 border-[var(--chance-border)] border-t-[var(--chance-brand)]"
+          role="status"
+          aria-label="Loading"
+        />
+        <p className="chance-text-caption">Loading match…</p>
+      </section>
+    )
+
+    if (user) {
+      return (
+        <CompetitiveShell user={user}>
+          <CompetitivePageFeed>{loadingBody}</CompetitivePageFeed>
+        </CompetitiveShell>
+      )
+    }
+
     return (
-      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
-        <div className="text-white text-xl">Loading...</div>
+      <div className="chance-competitive-theme flex min-h-screen items-center justify-center bg-[var(--chance-bg)] px-4">
+        {loadingBody}
       </div>
     )
   }
 
-  if (!match || !user) {
+  if (!match) {
     return (
-      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
-        <div className="text-white text-xl">Match not found</div>
+      <div className="chance-competitive-theme chance-shell flex min-h-screen items-center justify-center bg-[var(--chance-bg)] px-4">
+        <p className="text-lg font-medium">Match not found</p>
       </div>
     )
   }
-
-  // Check if user is part of this match
-  const isPlayer1 = match.player1_id === user.id
-  const isPlayer2 = match.player2_id === user.id
-  const isInMatch = isPlayer1 || isPlayer2
-
-  // Debug logging
-  console.log('🔍 DEBUG Match Page:', {
-    matchStatus: match.status,
-    isPlayer1,
-    isPlayer2,
-    isInMatch,
-    player1Id: match.player1_id,
-    player2Id: match.player2_id,
-    userId: user.id,
-    shouldShowStartButton: match.status === "waiting" && isPlayer1
-  })
 
   return (
-    <div className="min-h-screen bg-gray-950 relative">
-      <Header user={user} />
-      
-      {/* Subtle gradient overlay */}
-      
-
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
-        {/* Navigation */}
-        <div className="mb-4">
-          {(match as any)?.tournament_id ? (
-            <Link 
-              href={`/tournaments/${(match as any).tournament_id}`}
-              className="inline-flex items-center text-gray-300 hover:text-white bg-transparent border border-gray-700 rounded px-4 py-2"
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Tournament
-            </Link>
-          ) : (
-            <Link href="/games" className="inline-flex items-center text-gray-300 hover:text-white bg-transparent border border-gray-700 rounded px-4 py-2">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Games
-            </Link>
-          )}
-        </div>
-
-        {/* Friend Match Request - Show accept button for player2 */}
-        {match.status === "waiting" && 
-         match.game_data?.friend_match_request && 
-         !match.game_data?.friend_match_accepted && 
-         isPlayer2 && (
-          <div className="text-center mt-6 mb-6">
-            <Card className="bg-orange-900/20 border-orange-500/30">
-              <CardContent className="pt-6">
-                <div className="space-y-4">
-                  <div className="text-xl text-white font-semibold">
-                    Match Request from {match.player1?.display_name || match.player1?.username || 'Friend'}
-                  </div>
-                  <div className="text-gray-400">
-                    <p>Game: {match.games?.name || 'Unknown'}</p>
-                    <p>Bet Amount: {match.bet_amount} tokens</p>
-                  </div>
-                  <div className="flex gap-4 justify-center">
-                    <Button
-                      onClick={async () => {
-                        setAcceptingMatch(true)
-                        try {
-                          const result = await acceptFriendMatchRequest(match.id)
-                          if (result.error) {
-                            toast({
-                              title: "Failed to accept",
-                              description: result.error,
-                              variant: "destructive",
-                            })
-                          } else {
-                            toast({
-                              title: "Match request accepted!",
-                              description: "Both players need to click 'I'm Ready' to start",
-                            })
-                            // Refresh match data
-                            const { data: updatedMatch } = await supabase
-                              .from("matches")
-                              .select(`
-                                *,
-                                games (*),
-                                player1:users!matches_player1_id_fkey (*),
-                                player2:users!matches_player2_id_fkey (*)
-                              `)
-                              .eq("id", match.id)
-                              .single()
-                            if (updatedMatch) {
-                              setMatch(updatedMatch)
-                            }
-                          }
-                        } catch (error) {
-                          console.error('Error accepting match:', error)
-                          toast({
-                            title: "Error",
-                            description: "Failed to accept match request",
-                            variant: "destructive",
-                          })
-                        } finally {
-                          setAcceptingMatch(false)
-                        }
-                      }}
-                      disabled={acceptingMatch}
-                      className="bg-green-500 hover:bg-green-600 text-white"
-                    >
-                      <CheckCircle className="mr-2 h-4 w-4" />
-                      {acceptingMatch ? "Accepting..." : "Accept Match"}
-                    </Button>
-                    <Button
-                      onClick={async () => {
-                        // Cancel the match request
-                        await supabase
-                          .from("matches")
-                          .update({ status: "cancelled" })
-                          .eq("id", match.id)
-                        toast({
-                          title: "Match request declined",
-                        })
-                        router.push("/dashboard")
-                      }}
-                      variant="outline"
-                      className="border-red-500 text-red-400 hover:bg-red-500 hover:text-white"
-                    >
-                      <XCircle className="mr-2 h-4 w-4" />
-                      Decline
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
-
-        {/* Waiting for friend to accept - Show for player1 */}
-        {match.status === "waiting" && 
-         match.game_data?.friend_match_request && 
-         !match.game_data?.friend_match_accepted && 
-         isPlayer1 && (
-          <div className="text-center mt-6 mb-6">
-            <Card className="bg-blue-900/20 border-blue-500/30">
-              <CardContent className="pt-6">
-                <div className="space-y-4">
-                  <div className="text-xl text-white font-semibold">
-                    Waiting for {match.player2?.display_name || match.player2?.username || 'Friend'} to accept...
-                  </div>
-                  <div className="text-gray-400">
-                    Your friend will receive a notification to accept this match request.
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
-
-        {/* Ready Button - Show after match is accepted */}
-        {match.status === "waiting" && 
-         match.game_data?.friend_match_accepted && 
-         isInMatch && (
-          <div className="text-center mt-6 mb-6">
-            <button 
-              onClick={async () => {
-                setMarkingReady(true)
-                try {
-                  const result = await markPlayerReady(match.id)
-                  if (result.error) {
-                    toast({
-                      title: "Error",
-                      description: result.error,
-                      variant: "destructive",
-                    })
-                  } else {
-                    if (result.bothReady) {
-                      toast({
-                        title: "Both players ready!",
-                        description: "Match is starting...",
-                      })
-                    } else {
-                      toast({
-                        title: "You're ready!",
-                        description: "Waiting for opponent...",
-                      })
-                    }
-                    // Refresh match data
-                    const { data: updatedMatch } = await supabase
-                      .from("matches")
-                      .select(`
-                        *,
-                        games (*),
-                        player1:users!matches_player1_id_fkey (*),
-                        player2:users!matches_player2_id_fkey (*)
-                      `)
-                      .eq("id", match.id)
-                      .single()
-                    if (updatedMatch) {
-                      setMatch(updatedMatch)
-                    }
-                  }
-                } catch (error) {
-                  console.error('Error marking ready:', error)
-                  toast({
-                    title: "Error",
-                    description: "Failed to mark as ready",
-                    variant: "destructive",
-                  })
-                } finally {
-                  setMarkingReady(false)
-                }
-              }}
-              disabled={markingReady || (isPlayer1 && match.game_data?.player1_ready) || (isPlayer2 && match.game_data?.player2_ready)}
-              className="bg-green-500 hover:bg-green-600 text-white px-8 py-3 rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {markingReady 
-                ? 'Processing...' 
-                : (isPlayer1 && match.game_data?.player1_ready) || (isPlayer2 && match.game_data?.player2_ready)
-                  ? 'You\'re Ready!'
-                  : match.game_data?.player1_ready && match.game_data?.player2_ready
-                    ? 'Both Players Ready!'
-                    : 'I\'m Ready!'}
-            </button>
-            
-            {/* Show readiness status */}
-            <div className="mt-2 text-sm text-gray-400">
-              {match.game_data?.player1_ready && match.game_data?.player2_ready ? (
-                <span className="text-green-400">Both players ready! Match starting...</span>
-              ) : (
-                <span>
-                  {match.game_data?.player1_ready && isPlayer1 ? 'You\'re ready! ' : ''}
-                  {match.game_data?.player2_ready && isPlayer2 ? 'You\'re ready! ' : ''}
-                  {match.game_data?.player1_ready && match.game_data?.player2_ready 
-                    ? 'Waiting for match to start...' 
-                    : 'Waiting for both players to be ready...'}
-                </span>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Start Match Button - Show for regular matches (not friend matches) */}
-        {match.status === "waiting" && 
-         !match.game_data?.friend_match_request && 
-         isInMatch && (
-          <div className="text-center mt-6 mb-6">
-            <button 
-              onClick={async () => {
-                setMarkingReady(true)
-                try {
-                  const result = await markPlayerReady(match.id)
-                  if (result.error) {
-                    toast({
-                      title: "Error",
-                      description: result.error,
-                      variant: "destructive",
-                    })
-                  } else {
-                    // Refresh match data
-                    const { data: updatedMatch } = await supabase
-                      .from("matches")
-                      .select(`
-                        *,
-                        games (*),
-                        player1:users!matches_player1_id_fkey (*),
-                        player2:users!matches_player2_id_fkey (*)
-                      `)
-                      .eq("id", match.id)
-                      .single()
-                    if (updatedMatch) {
-                      setMatch(updatedMatch)
-                    }
-                  }
-                } catch (error) {
-                  console.error('Error marking ready:', error)
-                } finally {
-                  setMarkingReady(false)
-                }
-              }}
-              disabled={markingReady || (isPlayer1 && match.game_data?.player1_ready) || (isPlayer2 && match.game_data?.player2_ready)}
-              className="bg-green-500 hover:bg-green-600 text-white px-8 py-3 rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {markingReady 
-                ? 'Processing...' 
-                : (isPlayer1 && match.game_data?.player1_ready) || (isPlayer2 && match.game_data?.player2_ready)
-                  ? 'You\'re Ready!'
-                  : match.game_data?.player1_ready && match.game_data?.player2_ready
-                ? 'Both Players Ready!' 
-                : 'I\'m Ready!'}
-            </button>
-            
-            {/* Show readiness status */}
-            <div className="mt-2 text-sm text-gray-400">
-              {match.game_data?.player1_ready && match.game_data?.player2_ready ? (
-                <span className="text-green-400">Both players ready! Match starting...</span>
-              ) : (
-                <span>
-                  {match.game_data?.player1_ready && isPlayer1 ? 'You\'re ready! ' : ''}
-                  {match.game_data?.player2_ready && isPlayer2 ? 'You\'re ready! ' : ''}
-                  {match.game_data?.player1_ready && match.game_data?.player2_ready 
-                    ? 'Waiting for match to start...' 
-                    : 'Waiting for both players to be ready...'}
-                </span>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Game Interface and Chat */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-4">
-          {/* Game Interface - Takes 2 columns on large screens */}
-          <div className="lg:col-span-2">
-            <EnhancedMatchInterface
-              match={match}
-              currentUser={user}
-              onMatchComplete={async (winnerId) => {
-                console.log('🏁 Match completed, winner:', winnerId)
-                
-                // If this is a tournament match, redirect to tournament page after a delay
-                if ((match as any)?.tournament_id) {
-                  console.log('🏆 Tournament match completed, redirecting to tournament...')
-                  setTimeout(() => {
-                    router.push(`/tournaments/${(match as any).tournament_id}`)
-                  }, 3000) // 3 second delay to show results
-                }
-              }}
-            />
-          </div>
-
-          {/* Match Chat - for players and spectators (when match is full) */}
-          {(isInMatch && match.player2_id) || (!isInMatch && match.player2_id) ? (
-            <div className="lg:col-span-1 space-y-4">
-              {!isInMatch && match.player2_id && (
-                <SpectatorMode
-                  matchId={match.id}
-                  currentUser={user}
-                  isPlayer={false}
-                  tournamentId={(match as any)?.tournament_id}
-                />
-              )}
-              <ChatWindow
-                messageType="match"
-                currentUser={user}
-                matchId={match.id}
-                title="Match Chat"
-                maxHeight="600px"
-              />
-            </div>
-          ) : null}
-        </div>
-
-        {/* Match Actions */}
-        {match.status === "waiting" && !isInMatch && !match.player2_id && (
-          <Card className="bg-gray-900/50 border-yellow-500/20 mt-6">
-            <CardContent className="pt-6">
-              <div className="text-center space-y-4">
-                <div className="text-xl text-white">Join this match?</div>
-                <p className="text-gray-400">
-                  Bet {match.bet_amount} tokens to challenge {match.player1?.display_name || match.player1?.username}
-                </p>
-                <button 
-                  onClick={async () => {
-                    try {
-                      // Check if user has enough tokens
-                      if (user.tokens < match.bet_amount) {
-                        alert(`You need ${match.bet_amount} tokens to join this match. You currently have ${user.tokens} tokens.`)
-                        return
-                      }
-
-                      // Join the match as player 2
-                      const { error } = await supabase
-                        .from('matches')
-                        .update({
-                          player2_id: user.id,
-                          game_data: {
-                            ...match.game_data,
-                            player2_ready: false // Player 2 starts as not ready
-                          }
-                        })
-                        .eq('id', match.id)
-
-                      if (error) {
-                        console.error('Error joining match:', error)
-                        alert('Failed to join match. Please try again.')
-                        return
-                      }
-
-                      console.log('Successfully joined match!')
-                      // Refresh the page to show updated match state
-                      window.location.reload()
-                    } catch (error) {
-                      console.error('Error joining match:', error)
-                      alert('Failed to join match. Please try again.')
-                    }
-                  }}
-                  className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded cursor-pointer inline-flex items-center transition-colors"
-                >
-                  <Users className="mr-2 h-4 w-4" />
-                  Join Match
-                </button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Match is full - spectator mode for non-players (SpectatorMode + Chat in sidebar above) */}
-
-        {match.status === "waiting" && isInMatch && !match.player2_id && (
-          <Card className="bg-gray-900/50 border-yellow-500/20 mt-6">
-            <CardContent className="pt-6">
-              <div className="text-center space-y-4">
-                <div className="text-xl text-white">Waiting for opponent...</div>
-                <p className="text-gray-400">
-                  Share this match link with a friend to start playing!
-                </p>
-                <div className="bg-gray-800 p-3 rounded text-sm text-gray-300 font-mono">
-                  {typeof window !== 'undefined' ? window.location.href : 'Loading...'}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-      </main>
-    </div>
+    <CompetitiveShell user={user}>
+      <MatchLobbyPageView
+        match={match}
+        user={user}
+        markingReady={markingReady}
+        acceptingMatch={acceptingMatch}
+        onMarkReady={handleMarkReady}
+        onAcceptFriend={handleAcceptFriend}
+        onDeclineFriend={handleDeclineFriend}
+        onJoinMatch={handleJoinMatch}
+        onMatchComplete={async () => {
+          if ((match as { tournament_id?: string }).tournament_id) {
+            setTimeout(() => {
+              router.push(`/tournaments/${(match as { tournament_id?: string }).tournament_id}`)
+            }, 3000)
+          }
+        }}
+      />
+    </CompetitiveShell>
   )
 }
