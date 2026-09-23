@@ -127,10 +127,13 @@ export default function CallMatchPanel({
   }
 
   return (
-    <EnhancedMatchInterface
-      key={`${match.id}-${match.player2_id || "open"}-${match.status}`}
-      match={match}
-      currentUser={currentUser}
-    />
+    <div className="chance-call-match">
+      <EnhancedMatchInterface
+        key={`${match.id}-${match.player2_id || "open"}-${match.status}`}
+        match={match}
+        currentUser={currentUser}
+        embedInCall
+      />
+    </div>
   )
 }

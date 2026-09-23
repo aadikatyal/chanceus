@@ -1,8 +1,10 @@
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
-import Header from "@/components/navigation/header"
+import CompetitiveShell from "@/components/app/competitive-shell"
+import CompetitivePageFeed from "@/components/app/competitive-page-feed"
 import CallRoom from "@/components/call/call-room"
 import { isCallGameId, normalizeRoomCode } from "@/lib/call-constants"
+import { ChanceText } from "@/components/design-system/typography"
 
 export default async function CallRoomPage({
   params,
@@ -13,8 +15,10 @@ export default async function CallRoomPage({
 }) {
   if (!isSupabaseConfigured) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-950">
-        <h1 className="text-2xl font-bold text-white">Connect Supabase to get started</h1>
+      <div className="flex min-h-screen items-center justify-center bg-[var(--chance-bg)] px-4">
+        <ChanceText as="h1" variant="h2">
+          Connect Supabase to get started
+        </ChanceText>
       </div>
     )
   }
@@ -37,16 +41,10 @@ export default async function CallRoomPage({
   const isHost = query.host === "1"
 
   return (
-    <div className="min-h-screen bg-gray-950 relative">
-      <Header user={user} />
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 relative z-10">
-        <CallRoom
-          roomCode={roomCode}
-          currentUser={user}
-          initialGame={game}
-          isHost={isHost}
-        />
-      </main>
-    </div>
+    <CompetitiveShell user={user}>
+      <CompetitivePageFeed className="chance-home-feed chance-call-room-feed">
+        <CallRoom roomCode={roomCode} currentUser={user} initialGame={game} isHost={isHost} />
+      </CompetitivePageFeed>
+    </CompetitiveShell>
   )
 }

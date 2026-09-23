@@ -29,6 +29,8 @@ interface ChatWindowProps {
   recipientId?: string
   title?: string
   maxHeight?: string
+  /** Presentation only — embed in Social hub / competitive shell */
+  appearance?: "legacy" | "chance"
 }
 
 export default function ChatWindow({
@@ -39,7 +41,10 @@ export default function ChatWindow({
   recipientId,
   title,
   maxHeight = "400px",
+  appearance = "legacy",
 }: ChatWindowProps) {
+  const isChance = appearance === "chance"
+  const fillParent = isChance && maxHeight === "100%"
   const [messages, setMessages] = useState<Message[]>([])
   const [inputValue, setInputValue] = useState("")
   const [isLoading, setIsLoading] = useState(true)
@@ -47,9 +52,12 @@ export default function ChatWindow({
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const chatContainerRef = useRef<HTMLDivElement>(null)
 
-  // Scroll to bottom when messages change
+  // Scroll chat pane only — never scrollIntoView (that jumps the whole page on Social hub load)
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+    if (messages.length === 0) return
+    const pane = chatContainerRef.current
+    if (!pane) return
+    pane.scrollTo({ top: pane.scrollHeight, behavior: "smooth" })
   }, [messages])
 
   // Load initial messages
@@ -235,26 +243,37 @@ export default function ChatWindow({
   }
 
   return (
-    <Card className="bg-gray-900/80 border-gray-800 flex flex-col" style={{ maxHeight }}>
-      {title && (
+    <Card
+      className={
+        isChance
+          ? fillParent
+            ? "flex h-full min-h-0 w-full max-w-full flex-col gap-0 border-0 bg-transparent py-0 shadow-none"
+            : "flex flex-col border-0 bg-transparent shadow-none"
+          : "bg-gray-900/80 border-gray-800 flex flex-col"
+      }
+      style={fillParent ? undefined : { maxHeight }}
+    >
+      {title && !isChance && (
         <CardHeader className="pb-3">
           <CardTitle className="text-white text-lg">{title}</CardTitle>
         </CardHeader>
       )}
-      <CardContent className="flex flex-col flex-1 p-0 overflow-hidden">
+      <CardContent className="flex min-h-0 flex-1 flex-col p-0 overflow-hidden">
         {/* Messages area */}
         <div
           ref={chatContainerRef}
-          className="flex-1 overflow-y-auto p-4 space-y-3"
-          style={{ maxHeight: `calc(${maxHeight} - 120px)` }}
+          className="min-h-0 flex-1 overflow-y-auto p-4 space-y-3"
+          style={fillParent ? undefined : { maxHeight: `calc(${maxHeight} - 120px)` }}
         >
           {isLoading ? (
             <div className="flex items-center justify-center h-full">
               <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
             </div>
           ) : messages.length === 0 ? (
-            <div className="text-center text-gray-500 py-8">
-              <p>No messages yet. Start the conversation!</p>
+            <div className="py-8 text-center">
+              <p className={isChance ? "chance-text-caption" : "text-gray-500"}>
+                No messages yet. Start the conversation!
+              </p>
             </div>
           ) : (
             messages.map((message) => {
@@ -266,7 +285,13 @@ export default function ChatWindow({
                 >
                   <Avatar className="h-8 w-8 flex-shrink-0">
                     <AvatarImage src={getAvatarUrl(message)} />
-                    <AvatarFallback className="bg-orange-500 text-black text-xs">
+                    <AvatarFallback
+                      className={
+                        isChance
+                          ? "bg-[var(--chance-brand)] text-[var(--chance-brand-fg)] text-xs"
+                          : "bg-orange-500 text-black text-xs"
+                      }
+                    >
                       {getDisplayName(message).charAt(0).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
@@ -276,13 +301,17 @@ export default function ChatWindow({
                     <div
                       className={`rounded-lg px-3 py-2 ${
                         isOwnMessage
-                          ? "bg-orange-500 text-black"
-                          : "bg-gray-800 text-white"
+                          ? isChance
+                            ? "bg-[var(--chance-brand)] text-[var(--chance-brand-fg)]"
+                            : "bg-orange-500 text-black"
+                          : isChance
+                            ? "border border-[var(--chance-border)] bg-[var(--chance-surface-inset)] text-[var(--chance-fg)]"
+                            : "bg-gray-800 text-white"
                       }`}
                     >
                       <p className="text-sm break-words">{message.content}</p>
                     </div>
-                    <span className="text-xs text-gray-500 mt-1">
+                    <span className={`mt-1 text-xs ${isChance ? "chance-text-caption" : "text-gray-500"}`}>
                       {formatTime(message.created_at)}
                     </span>
                   </div>
@@ -294,19 +323,24 @@ export default function ChatWindow({
         </div>
 
         {/* Input area */}
-        <form onSubmit={handleSend} className="p-4 border-t border-gray-800">
+        <form
+          onSubmit={handleSend}
+          className={isChance ? "border-t border-[var(--chance-border)] p-4" : "p-4 border-t border-gray-800"}
+        >
           <div className="flex gap-2">
             <Input
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               placeholder="Type a message..."
-              className="bg-gray-800 border-gray-700 text-white flex-1"
+              className={isChance ? "chance-input flex-1" : "bg-gray-800 border-gray-700 text-white flex-1"}
               disabled={isSending}
             />
             <Button
               type="submit"
               disabled={!inputValue.trim() || isSending}
-              className="bg-orange-500 hover:bg-orange-600 text-black"
+              className={
+                isChance ? "chance-hero-cta-primary chance-focus-ring shrink-0 px-3" : "bg-orange-500 hover:bg-orange-600 text-black"
+              }
             >
               {isSending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
