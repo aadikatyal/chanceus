@@ -70,8 +70,8 @@ export default function GameQueueHub({
     if (tier === "tokens" && stakes[1]) setSelectedStakeId(stakes[1].id)
   }, [searchParams, stakes])
 
-  const hostAmount = selected.matchType === "free" ? Math.max(1, game.min_bet ?? 1) : selected.betAmount
-  const canHost = tokens >= hostAmount
+  const hostAmount = selected.matchType === "free" ? 0 : selected.betAmount
+  const canHost = selected.matchType === "free" || tokens >= hostAmount
   const canAfford =
     selected.matchType === "free" || tokens >= selected.betAmount
 
