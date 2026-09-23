@@ -131,13 +131,14 @@ export default function LandingPageClient({ games, live: liveProp, stats }: Land
         <section className="chance-landing-panel chance-landing-panel--hero" aria-labelledby="landing-hero-title">
           <div className="chance-landing-hero-inner">
             <div className="chance-landing-hero-copy">
+              <p className="chance-landing-eyebrow chance-landing-hero-eyebrow">Skill-based gaming</p>
               <LandingLiveArena live={live} variant="strip" />
               <h1 id="landing-hero-title" className="chance-landing-display-xl">
                 Prove you&apos;re
                 <span className="chance-landing-display-accent"> better.</span>
               </h1>
               <p className="chance-landing-hero-lede">
-                Skill beats luck. Every match builds your reputation. Your rank remembers.
+                Outcomes follow skill—not luck. Every match builds your reputation, and your rank remembers.
               </p>
               <div className="chance-landing-hero-actions">
                 <Link href="/auth/sign-up" className="chance-hero-cta-primary chance-focus-ring chance-pressable chance-landing-cta-lg">

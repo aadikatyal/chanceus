@@ -111,12 +111,18 @@ html:has(.chance-landing) {
   text-transform: uppercase;
 }
 
+.chance-landing-hero-eyebrow {
+  margin-bottom: clamp(0.75rem, 2vh, 1.25rem);
+}
+
 .chance-landing-hero-lede {
   margin-top: clamp(1.25rem, 3vh, 2rem);
+  margin-inline: auto;
   font-size: clamp(1.0625rem, 2.2vw, 1.375rem);
   line-height: 1.55;
   color: var(--chance-muted-fg);
   max-width: 34rem;
+  text-wrap: balance;
 }
 
 .chance-landing-lede--tight {
@@ -847,7 +853,7 @@ html:has(.chance-landing) {
 
 .chance-landing-mockup-spotlight {
   position: absolute;
-  inset: -15% 5% 0;
+  inset: -15% 0 0;
   background: radial-gradient(ellipse at 50% 30%, color-mix(in srgb, var(--chance-brand) 28%, transparent), transparent 62%);
   filter: blur(40px);
   pointer-events: none;
@@ -867,6 +873,7 @@ html:has(.chance-landing) {
   z-index: 1;
   margin-inline: auto;
   width: 100%;
+  transform-origin: center center;
   transform: rotateX(4deg) translateY(0);
   transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
   animation: chance-landing-float 7s ease-in-out infinite;
@@ -1143,12 +1150,64 @@ html:has(.chance-landing) {
 .chance-landing-mockup-hero-card {
   border-radius: 1rem;
   border: 1px solid color-mix(in srgb, var(--chance-brand) 25%, var(--chance-border));
-  padding: clamp(1rem, 3vw, 1.75rem);
   background: linear-gradient(145deg, color-mix(in srgb, var(--chance-brand) 14%, var(--chance-surface)), var(--chance-surface-inset));
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
+  justify-content: stretch;
   min-height: 10rem;
+  overflow: hidden;
+}
+
+.chance-landing-mockup-hero-visual {
+  position: relative;
+  flex: 1;
+  min-height: clamp(5.5rem, 14vw, 8.5rem);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  padding: clamp(0.85rem, 2vw, 1.15rem) clamp(0.75rem, 2vw, 1rem) 0.65rem;
+}
+
+.chance-landing-mockup-hero-visual-bg {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 90% at 50% 0%, color-mix(in srgb, var(--chance-brand) 22%, transparent), transparent 65%),
+    linear-gradient(180deg, color-mix(in srgb, var(--chance-brand) 8%, var(--chance-surface-inset)), transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--chance-brand) 18%, var(--chance-border));
+}
+
+.chance-landing-mockup-hero-eagle {
+  position: relative;
+  z-index: 1;
+  width: clamp(3rem, 8vw, 4.5rem);
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 24px color-mix(in srgb, var(--chance-brand) 35%, transparent));
+}
+
+.chance-landing-mockup-hero-chips {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.chance-landing-mockup-hero-chip {
+  display: block;
+  width: clamp(1.75rem, 4vw, 2.25rem);
+  height: clamp(1.75rem, 4vw, 2.25rem);
+  border-radius: 0.45rem;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--chance-border) 80%, var(--chance-brand));
+  box-shadow: 0 4px 12px rgb(0 0 0 / 0.35);
+}
+
+.chance-landing-mockup-hero-copy {
+  padding: clamp(0.85rem, 2vw, 1.15rem) clamp(1rem, 3vw, 1.75rem) clamp(1rem, 3vw, 1.75rem);
 }
 
 .chance-landing-mockup-kicker {

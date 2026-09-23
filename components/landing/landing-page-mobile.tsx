@@ -43,13 +43,18 @@ function useReveal() {
   useEffect(() => {
     const el = ref.current
     if (!el) return
+    const reveal = () => setVisible(true)
     const io = new IntersectionObserver(
       ([e]) => {
-        if (e.isIntersecting) setVisible(true)
+        if (e.isIntersecting) reveal()
       },
-      { threshold: 0.12, rootMargin: "0px 0px -8% 0px" }
+      { threshold: 0.05 }
     )
     io.observe(el)
+    requestAnimationFrame(() => {
+      const rect = el.getBoundingClientRect()
+      if (rect.top < window.innerHeight * 0.92 && rect.bottom > 0) reveal()
+    })
     return () => io.disconnect()
   }, [])
   return { ref, visible }
@@ -68,7 +73,6 @@ export default function LandingPageMobile({ games, live }: LandingPageMobileProp
   const recordMoney = useCountUp(live.moneyMadeUsd, 1800, recordRef.visible)
 
   const gameList = (games ?? []).length > 0 ? games : []
-  const heroReveal = useReveal()
   const stepsReveal = useReveal()
   const rankReveal = useReveal()
   const communityReveal = useReveal()
@@ -76,11 +80,7 @@ export default function LandingPageMobile({ games, live }: LandingPageMobileProp
   return (
     <div className="chance-landing-mobile-root">
       <main className="chance-landing-mobile-main">
-        <section
-          ref={heroReveal.ref}
-          className={`chance-landing-mobile-hero ${heroReveal.visible ? "is-visible" : ""}`}
-          aria-labelledby="mobile-hero-title"
-        >
+        <section className="chance-landing-mobile-hero" aria-labelledby="mobile-hero-title">
           <div className="chance-landing-mobile-shell">
             <Image
               src="/chanceus-eagle.png"
@@ -90,13 +90,13 @@ export default function LandingPageMobile({ games, live }: LandingPageMobileProp
               className="chance-landing-mobile-eagle"
               priority
             />
-            <p className="chance-landing-mobile-kicker">Competitive skill arena</p>
+            <p className="chance-landing-mobile-kicker">Skill-based gaming</p>
             <h1 id="mobile-hero-title" className="chance-landing-mobile-headline">
               <span className="block">Play.</span>
               <span className="block">Compete.</span>
               <span className="chance-landing-mobile-headline-accent">Win.</span>
             </h1>
-            <p className="chance-landing-mobile-lede">Skill beats luck — every match builds your rank.</p>
+            <p className="chance-landing-mobile-lede">Outcomes follow skill—not luck. Every match builds your rank.</p>
             <div className="chance-landing-mobile-cta-stack">
               <Link href="/auth/sign-up" className="chance-hero-cta-primary chance-focus-ring chance-landing-mobile-btn">
                 Start playing

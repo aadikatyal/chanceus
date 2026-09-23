@@ -24,9 +24,14 @@ export default function LandingPhoneMockup({ live, priority = true }: LandingPho
             {queueActive ? <span className="chance-landing-phone-live">Live queue</span> : null}
           </div>
           <div className="chance-landing-phone-hero-card">
-            <p className="chance-landing-phone-kicker">Ranked skill</p>
-            <p className="chance-landing-phone-headline">Prove it.</p>
-            <span className={`chance-landing-phone-cta ${queueActive ? "is-pulse" : ""}`}>Queue now</span>
+            <div className="chance-landing-phone-hero-visual">
+              <Image src="/chanceus-eagle.png" alt="" width={56} height={56} className="chance-landing-phone-hero-eagle" priority={priority} />
+            </div>
+            <div className="chance-landing-phone-hero-copy">
+              <p className="chance-landing-phone-kicker">Skill-based gaming</p>
+              <p className="chance-landing-phone-headline">Prove it.</p>
+              <span className={`chance-landing-phone-cta ${queueActive ? "is-pulse" : ""}`}>Queue now</span>
+            </div>
           </div>
           <div className="chance-landing-phone-tiles">
             <div className="chance-landing-phone-tile chance-landing-phone-tile--large">
