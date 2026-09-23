@@ -84,6 +84,10 @@ html:has(.chance-landing) {
   color: var(--chance-brand);
 }
 
+.chance-landing-mobile-root .chance-landing-eyebrow {
+  color: var(--chance-brand);
+}
+
 .chance-landing-display-xl {
   margin-top: clamp(1rem, 3vh, 1.75rem);
   font-size: clamp(2.75rem, 10vw, 6.5rem);
