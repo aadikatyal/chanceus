@@ -545,27 +545,8 @@ export default function CreateMatchForm({ game, user }: CreateMatchFormProps) {
 
           // Refund tokens if you're player1
           if (match.player1_id === user.id) {
-            const { data: userData } = await supabase
-              .from("users")
-              .select("tokens")
-              .eq("id", user.id)
-              .single()
-
-            if (userData) {
-              await supabase
-                .from("users")
-                .update({ tokens: userData.tokens + match.bet_amount })
-                .eq("id", user.id)
-
-              // Create refund transaction
-              await supabase.from("transactions").insert({
-                user_id: user.id,
-                match_id: match.id,
-                amount: match.bet_amount,
-                type: "bonus",
-                description: `Match cancelled - refund of ${match.bet_amount} tokens`
-              })
-            }
+            const { refundMatchStake } = await import("@/lib/wallet/actions")
+            await refundMatchStake(match.id, user.id)
           }
         }
 

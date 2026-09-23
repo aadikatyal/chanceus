@@ -16,7 +16,6 @@ import CallInviteListener from "@/components/call/call-invite-listener"
 import Link from "next/link"
 import { signOut } from "@/lib/actions"
 import type { User as UserType } from "@/lib/supabase/client"
-import { createClient } from "@/lib/supabase/client"
 import Image from "next/image"
 import {
   Sheet,
@@ -31,66 +30,21 @@ interface HeaderProps {
 }
 
 export default function Header({ user }: HeaderProps) {
-  const [tokenCount, setTokenCount] = useState(user?.tokens || 0)
-  
-  // Debug logging (only log once)
-  useEffect(() => {
-    if (user) {
-      console.log("🔍 DEBUG: Header received user:", user.username, "Tokens:", user.tokens)
-      setTokenCount(user.tokens || 0)
-    }
-  }, [user?.id]) // Only log when user ID changes
+  const [tokenCount, setTokenCount] = useState(0)
   
   // Subscribe to real-time token updates
   useEffect(() => {
     if (!user?.id) return
     
-    const supabase = createClient()
-    
-    // Subscribe to user token updates
-    const channel = supabase
-      .channel(`user-tokens-${user.id}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'users',
-          filter: `id=eq.${user.id}`
-        },
-        (payload) => {
-          const updatedUser = payload.new as any
-          if (updatedUser.tokens !== undefined) {
-            console.log('💰 Token balance updated:', updatedUser.tokens)
-            setTokenCount(updatedUser.tokens)
-          }
-        }
-      )
-      .subscribe()
-    
-    // Also poll for updates every 2 seconds as a backup
-    const pollInterval = setInterval(async () => {
-      const { data: userData } = await supabase
-        .from('users')
-        .select('tokens')
-        .eq('id', user.id)
-        .single()
-      
-      if (userData) {
-        setTokenCount(prev => {
-          if (userData.tokens !== prev) {
-            console.log('💰 Token balance updated via polling:', userData.tokens)
-            return userData.tokens
-          }
-          return prev
-        })
-      }
-    }, 2000)
-    
-    return () => {
-      supabase.removeChannel(channel)
-      clearInterval(pollInterval)
+    const pull = async () => {
+      const response = await fetch("/api/v1/wallet")
+      if (!response.ok) return
+      const body = await response.json()
+      if (typeof body?.data?.spendable === "number") setTokenCount(body.data.spendable)
     }
+    pull()
+    const pollInterval = setInterval(pull, 5000)
+    return () => clearInterval(pollInterval)
   }, [user?.id])
   const displayName = user?.display_name || user?.username || "Guest"
   const username = user?.username || "guest"

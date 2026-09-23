@@ -10,6 +10,7 @@ import TournamentDetailClient from "@/components/tournaments/tournament-detail-c
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Trophy, Users, Coins, Calendar } from "lucide-react"
+import { spendable } from "@/lib/wallet/server"
 
 interface TournamentPageProps {
   params: Promise<{ tournamentId: string }>
@@ -36,6 +37,7 @@ export default async function TournamentPage({ params }: TournamentPageProps) {
   }
 
   const { data: user } = await supabase.from("users").select("*").eq("id", authUser.id).single()
+  if (user) user.tokens = await spendable(authUser.id).catch(() => 0)
 
   if (!user) {
     redirect("/auth/login")

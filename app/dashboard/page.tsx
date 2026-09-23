@@ -12,6 +12,7 @@ import UserRank from "@/components/dashboard/user-rank"
 import { handleAuthError } from "@/lib/auth-fix"
 import { Wallet, Trophy, Users, TrendingUp } from "lucide-react"
 import Image from "next/image"
+import { spendable } from "@/lib/wallet/server"
 
 export default async function DashboardPage() {
   if (!isSupabaseConfigured) {
@@ -38,6 +39,7 @@ export default async function DashboardPage() {
 
   // Get user profile data
   const { data: user } = await supabase.from("users").select("*").eq("id", authUser.id).single()
+  if (user) user.tokens = await spendable(authUser.id).catch(() => 0)
 
   if (!user) {
     redirect("/auth/login")

@@ -19,6 +19,7 @@ export async function transferTokens(
   const { data: sessionData } = await supabase.auth.getSession();
   if (!sessionData?.session) throw new Error('You must be signed in.');
 
+  throw new Error("Player transfers are disabled.")
   const { data, error } = await supabase.rpc('transfer_tokens', {
     p_recipient_username: username,
     p_amount: Math.floor(amount),

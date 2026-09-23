@@ -1,4 +1,5 @@
 // Direct database cleanup script that bypasses RLS
+throw new Error("Legacy token cleanup is disabled. Refunds go through the wallet ledger.")
 // Run with: node scripts/direct-cleanup.js
 
 const { createClient } = require('@supabase/supabase-js')
