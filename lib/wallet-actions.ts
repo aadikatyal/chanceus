@@ -3,6 +3,7 @@
 import { createServerActionClient } from "@supabase/auth-helpers-nextjs"
 import { cookies } from "next/headers"
 import { revalidatePath } from "next/cache"
+import { walletGrant } from "@/lib/wallet/server"
 
 // Add tokens to user account (simulated purchase)
 export async function addTokens(prevState: any, formData: FormData) {
@@ -36,14 +37,17 @@ export async function addTokens(prevState: any, formData: FormData) {
 
     // In a real app, this would integrate with a payment processor
     // For now, we'll simulate a successful purchase
-    const { error: transactionError } = await supabase.from("transactions").insert({
-      user_id: user.id,
-      type: "bonus",
-      amount: tokenAmount,
-      description: `Token purchase via ${paymentMethod} - ${tokenAmount} tokens`,
-    })
-
-    if (transactionError) {
+    try {
+      await walletGrant({
+        userId: user.id,
+        amount: tokenAmount,
+        account: "available",
+        type: "purchase",
+        referenceType: "purchase",
+        referenceId: user.id,
+        idempotencyKey: `manual:${user.id}:${tokenAmount}:${paymentMethod}`,
+      })
+    } catch (transactionError) {
       console.error("Transaction error:", transactionError)
       return { error: "Failed to process token purchase" }
     }
@@ -86,54 +90,7 @@ export async function transferTokens(prevState: any, formData: FormData) {
       return { error: "User not authenticated" }
     }
 
-    // Check if user has enough tokens
-    const { data: userData } = await supabase.from("users").select("tokens").eq("id", user.id).single()
-
-    if (!userData || userData.tokens < tokenAmount) {
-      return { error: "Insufficient token balance" }
-    }
-
-    // Find recipient user
-    const { data: recipientData } = await supabase
-      .from("users")
-      .select("id, username")
-      .eq("username", recipient.toString())
-      .single()
-
-    if (!recipientData) {
-      return { error: "Recipient user not found" }
-    }
-
-    if (recipientData.id === user.id) {
-      return { error: "Cannot transfer tokens to yourself" }
-    }
-
-    // Create debit transaction for sender
-    const { error: debitError } = await supabase.from("transactions").insert({
-      user_id: user.id,
-      type: "loss",
-      amount: -tokenAmount,
-      description: `Token transfer to @${recipient} - ${tokenAmount} tokens`,
-    })
-
-    if (debitError) {
-      return { error: "Failed to process transfer" }
-    }
-
-    // Create credit transaction for recipient
-    const { error: creditError } = await supabase.from("transactions").insert({
-      user_id: recipientData.id,
-      type: "bonus",
-      amount: tokenAmount,
-      description: `Token transfer from @${userData.username} - ${tokenAmount} tokens`,
-    })
-
-    if (creditError) {
-      return { error: "Failed to complete transfer" }
-    }
-
-    revalidatePath("/wallet")
-    return { success: `Successfully transferred ${tokenAmount} tokens to @${recipient}!` }
+    return { error: "Player transfers are disabled" }
   } catch (error) {
     console.error("Transfer tokens error:", error)
     return { error: "An unexpected error occurred. Please try again." }

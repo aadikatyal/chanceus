@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
+import { spendable, walletCapture, walletGrant, walletHold } from "@/lib/wallet/server"
 import { cookies } from "next/headers"
 import { createServerActionClient } from "@supabase/auth-helpers-nextjs"
 
@@ -276,33 +277,16 @@ export async function registerForTournament(tournamentId: string) {
     }
 
     // Check user has enough tokens
-    const { data: userData, error: userError } = await supabase
-      .from("users")
-      .select("tokens")
-      .eq("id", user.id)
-      .single()
-
-    if (userError || !userData || userData.tokens < tournament.entry_fee) {
+    const balance = await spendable(user.id).catch(() => null)
+    if (balance === null || balance < tournament.entry_fee) {
       return { error: "Insufficient token balance" }
     }
 
-    // Deduct entry fee
-    const { error: updateError } = await supabase
-      .from("users")
-      .update({ tokens: userData.tokens - tournament.entry_fee })
-      .eq("id", user.id)
-
-    if (updateError) {
+    try {
+      await walletHold(user.id, tournament.entry_fee, tournamentId, `hold:tournament:${tournamentId}:${user.id}`)
+    } catch {
       return { error: "Failed to deduct entry fee" }
     }
-
-    // Create transaction record
-    await supabase.from("transactions").insert({
-      user_id: user.id,
-      type: "bet",
-      amount: -tournament.entry_fee,
-      description: `Tournament entry fee: ${tournament.name}`,
-    })
 
     // Update prize pool
     const newPrizePool = (tournament.prize_pool || 0) + tournament.entry_fee
@@ -928,25 +912,19 @@ export async function advanceTournamentRound(tournamentId: string) {
     if (winners.length === 1) {
       // Award prize to winner
       const winner = winners[0]
-      const { data: winnerUser } = await supabase
-        .from("users")
-        .select("tokens")
-        .eq("id", winner.userId)
-        .single()
-
-      if (winnerUser) {
-        await supabase
-          .from("users")
-          .update({ tokens: winnerUser.tokens + tournament.prize_pool })
-          .eq("id", winner.userId)
-
-        await supabase.from("transactions").insert({
-          user_id: winner.userId,
-          type: "win",
-          amount: tournament.prize_pool,
-          description: `Tournament winner: ${tournament.name}`,
-        })
+      const { data: entrants } = await supabase.from("tournament_participants").select("user_id").eq("tournament_id", tournamentId)
+      for (const entrant of entrants ?? []) {
+        await walletCapture(entrant.user_id, tournamentId, `capture:${tournamentId}:${entrant.user_id}`)
       }
+      await walletGrant({
+        userId: winner.userId,
+        amount: tournament.prize_pool,
+        account: "available",
+        type: "reward",
+        referenceType: "tournament",
+        referenceId: tournamentId,
+        idempotencyKey: `tournament-prize:${tournamentId}`,
+      })
 
       // Update tournament
       await supabase

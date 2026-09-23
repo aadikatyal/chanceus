@@ -2,11 +2,10 @@ import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs"
 import { cookies } from "next/headers"
 import { NextRequest, NextResponse } from "next/server"
 import Stripe from "stripe"
+import { walletGrant } from "@/lib/wallet/server"
 
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY
 const stripe = stripeSecretKey ? new Stripe(stripeSecretKey, {}) : null
-
-const STRIPE_DESC_PREFIX = "Token purchase (Stripe session: "
 
 export async function POST(req: NextRequest) {
   try {
@@ -42,6 +41,9 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       )
     }
+    if (session.metadata?.userId !== user.id) {
+      return NextResponse.json({ error: "This payment belongs to another account" }, { status: 403 })
+    }
     const tokenAmount = parseInt(session.metadata?.tokenAmount ?? "0", 10)
     if (![100, 500, 1000].includes(tokenAmount)) {
       return NextResponse.json(
@@ -51,48 +53,19 @@ export async function POST(req: NextRequest) {
     }
 
     // Idempotency: already fulfilled if we have a transaction for this session
-    const { data: existing } = await supabase
-      .from("transactions")
-      .select("id")
-      .eq("user_id", user.id)
-      .like("description", `${STRIPE_DESC_PREFIX}${session_id}%`)
-      .limit(1)
-      .maybeSingle()
-    if (existing) {
-      return NextResponse.json({ success: true, alreadyFulfilled: true })
-    }
-
-    const { data: userRow } = await supabase
-      .from("users")
-      .select("tokens")
-      .eq("id", user.id)
-      .single()
-    const currentTokens = userRow?.tokens ?? 0
-
-    const { error: updateError } = await supabase
-      .from("users")
-      .update({ tokens: currentTokens + tokenAmount })
-      .eq("id", user.id)
-    if (updateError) {
-      console.error("fulfill-checkout update tokens:", updateError)
-      return NextResponse.json(
-        { error: "Failed to update balance" },
-        { status: 500 }
-      )
-    }
-
-    const { error: txError } = await supabase.from("transactions").insert({
-      user_id: user.id,
-      amount: tokenAmount,
-      type: "bonus",
-      description: `${STRIPE_DESC_PREFIX}${session_id}) - ${tokenAmount} tokens`,
-    })
-    if (txError) {
-      console.error("fulfill-checkout insert transaction:", txError)
-      return NextResponse.json(
-        { error: "Failed to record transaction" },
-        { status: 500 }
-      )
+    try {
+      await walletGrant({
+        userId: user.id,
+        amount: tokenAmount,
+        account: "available",
+        type: "purchase",
+        referenceType: "purchase",
+        referenceId: user.id,
+        idempotencyKey: `purchase:${session_id}`,
+      })
+    } catch (grantError) {
+      console.error("fulfill-checkout grant:", grantError)
+      return NextResponse.json({ error: "Failed to update balance" }, { status: 500 })
     }
 
     return NextResponse.json({ success: true })

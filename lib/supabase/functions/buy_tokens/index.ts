@@ -76,6 +76,7 @@ Deno.serve(async (req) => {
         console.log(`Processing token purchase: User ${userRes.user.id}, Amount: ${amount}`);
         
         // Do the update via your RPC
+        return j({ error: "Purchases are credited by the wallet API" }, 410);
         const { error: rpcErr } = await supabase.rpc("increment_tokens_and_log", {
           p_user_id: userRes.user.id,
           p_amount: amount
