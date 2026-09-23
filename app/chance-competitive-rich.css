@@ -388,9 +388,16 @@
 
 @media (max-width: 639px) {
   .chance-streak-float {
+    top: 0.75rem;
     right: 0.75rem;
-    bottom: 0.75rem;
+    bottom: auto;
     width: min(13.75rem, calc(100% - 1.5rem));
+  }
+  .chance-hero-identity {
+    padding-right: min(14.5rem, 58%);
+  }
+  .chance-hero-main {
+    margin-top: 2.25rem;
   }
   .chance-hero-art {
     opacity: 0.35;
