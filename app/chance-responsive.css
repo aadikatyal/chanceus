@@ -1,0 +1,197 @@
+/**
+ * ChanceUS responsive system — mobile / tablet / desktop / large desktop.
+ * Desktop layouts unchanged; smaller viewports get intentional adaptations.
+ */
+
+/* Tailwind `flex` on the sidebar used to override display:none — keep mobile fully hidden */
+@media (max-width: 767.98px) {
+  .chance-competitive-theme .chance-shell-sidebar {
+    display: none !important;
+  }
+}
+
+.chance-competitive-theme {
+  --chance-page-pad-x: 1rem;
+  --chance-page-pad-y: 1rem;
+  --chance-section-gap: 1rem;
+}
+
+@media (min-width: 768px) and (max-width: 1023.98px) {
+  .chance-competitive-theme .chance-shell-sidebar > a[href="/dashboard"] {
+    justify-content: center;
+  }
+}
+
+@media (min-width: 768px) {
+  .chance-competitive-theme {
+    --chance-page-pad-x: 1.5rem;
+    --chance-page-pad-y: 1.5rem;
+    --chance-section-gap: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .chance-competitive-theme {
+    --chance-page-pad-x: 2rem;
+    --chance-page-pad-y: 2rem;
+    --chance-section-gap: 2rem;
+  }
+}
+
+@media (min-width: 1440px) {
+  .chance-competitive-theme {
+    --chance-page-pad-x: 2.5rem;
+    --chance-section-gap: 2.5rem;
+  }
+}
+
+.chance-competitive-theme .chance-shell-main {
+  padding-left: max(var(--chance-page-pad-x), env(safe-area-inset-left, 0px));
+  padding-right: max(var(--chance-page-pad-x), env(safe-area-inset-right, 0px));
+  padding-bottom: max(var(--chance-page-pad-y), env(safe-area-inset-bottom, 0px));
+  overflow-x: clip;
+}
+
+.chance-competitive-theme .chance-shell-rail {
+  padding-left: max(var(--chance-page-pad-x), env(safe-area-inset-left, 0px));
+  padding-right: max(var(--chance-page-pad-x), env(safe-area-inset-right, 0px));
+}
+
+.chance-competitive-theme .chance-call-root {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (min-width: 1280px) {
+  .chance-competitive-theme .chance-call-root {
+    grid-template-columns: minmax(0, 340px) minmax(0, 1fr);
+  }
+}
+
+.chance-competitive-theme .chance-home-feed,
+.chance-competitive-theme .chance-shell-main > * {
+  max-width: 100%;
+}
+
+/* Touch targets */
+.chance-competitive-theme .chance-hero-cta-primary,
+.chance-competitive-theme .chance-hero-cta-ghost,
+.chance-competitive-theme .chance-nav-link,
+.chance-competitive-theme .chance-social-mobile-tab,
+.chance-competitive-theme .chance-toolbar-btn {
+  min-height: 2.75rem;
+}
+
+@media (max-width: 767.98px) {
+  .chance-competitive-theme .chance-hero-cta-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .chance-competitive-theme .chance-hero-cta-row .chance-hero-cta-primary,
+  .chance-competitive-theme .chance-hero-cta-row .chance-hero-cta-ghost,
+  .chance-competitive-theme .chance-hero-cta-row a.chance-hero-cta-ghost {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .chance-competitive-theme .chance-hero-title {
+    max-width: 100%;
+    font-size: clamp(1.5rem, 7vw, 2rem);
+  }
+
+  .chance-competitive-theme .chance-hero-cinematic {
+    min-height: 14rem;
+  }
+
+  .chance-competitive-theme .chance-hero-content {
+    min-height: 14rem;
+    padding: 1rem 1.125rem 1.25rem;
+  }
+
+  .chance-competitive-theme .chance-hero-art {
+    width: min(45%, 12rem);
+    opacity: 0.65;
+  }
+
+  .chance-competitive-theme .chance-premium-card {
+    max-width: 100%;
+  }
+}
+
+/* Tablet: hero slightly tighter */
+@media (min-width: 768px) and (max-width: 1023.98px) {
+  .chance-competitive-theme .chance-hero-title {
+    font-size: clamp(1.625rem, 3.5vw, 2.25rem);
+  }
+}
+
+/* Tables → stacked cards on mobile */
+@media (max-width: 767.98px) {
+  .chance-responsive-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .chance-responsive-table-stack thead {
+    display: none;
+  }
+
+  .chance-responsive-table-stack tbody,
+  .chance-responsive-table-stack tr,
+  .chance-responsive-table-stack td {
+    display: block;
+    width: 100%;
+  }
+
+  .chance-responsive-table-stack tr {
+    margin-bottom: 0.75rem;
+    border: 1px solid var(--chance-border);
+    border-radius: var(--chance-radius-md);
+    padding: 0.75rem;
+    background: var(--chance-surface);
+  }
+
+  .chance-responsive-table-stack td {
+    border: none;
+    padding: 0.25rem 0;
+    text-align: left;
+  }
+
+  .chance-responsive-table-stack td::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--chance-muted-fg);
+    margin-bottom: 0.125rem;
+  }
+}
+
+/* Dialogs / sheets safe area */
+.chance-mobile-nav-sheet,
+[data-slot="sheet-content"] {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+@media (max-width: 767.98px) {
+  [data-slot="dialog-content"] {
+    max-width: calc(100vw - 2rem);
+    max-height: calc(100dvh - 2rem - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  }
+}
+
+.chance-auth-marketing-shell,
+.chance-auth-panel {
+  padding-left: max(1rem, env(safe-area-inset-left));
+  padding-right: max(1rem, env(safe-area-inset-right));
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+@media (max-width: 767.98px) {
+  .chance-auth-marketing-shell form .chance-hero-cta-primary,
+  .chance-auth-marketing-shell form button[type="submit"] {
+    width: 100%;
+  }
+}

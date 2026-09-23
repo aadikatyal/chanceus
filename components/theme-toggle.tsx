@@ -4,15 +4,25 @@ import { useTheme } from "next-themes"
 import { useEffect, useState } from "react"
 import { Moon, Sun } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { startThemeTransition } from "@/lib/theme/start-theme-transition"
 
-export default function ThemeToggle() {
+type ThemeToggleProps = {
+  className?: string
+}
+
+export default function ThemeToggle({ className }: ThemeToggleProps) {
   const { resolvedTheme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => setMounted(true), [])
 
   if (!mounted) {
-    return <div className="h-9 w-9 rounded-md border border-border" />
+    return (
+      <div
+        className={`size-9 rounded-[var(--chance-radius-md)] border border-[var(--chance-border)] bg-[var(--chance-muted)] ${className ?? ""}`}
+        aria-hidden
+      />
+    )
   }
 
   const isDark = resolvedTheme === "dark"
@@ -20,13 +30,19 @@ export default function ThemeToggle() {
   return (
     <Button
       type="button"
-      variant="outline"
+      variant="ghost"
       size="icon"
       aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
-      onClick={() => setTheme(isDark ? "light" : "dark")}
-      className="border-border"
+      onClick={() => {
+        const next = isDark ? "light" : "dark"
+        startThemeTransition(() => setTheme(next))
+      }}
+      className={
+        className ??
+        "size-9 border border-[var(--chance-border)] bg-[var(--chance-surface)] text-[var(--chance-fg)] hover:bg-[var(--chance-muted)]"
+      }
     >
-      {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+      {isDark ? <Sun className="size-4 stroke-[1.75]" /> : <Moon className="size-4 stroke-[1.75]" />}
     </Button>
   )
 }
