@@ -29,7 +29,7 @@ export default function LandingHeader({ arenaActive = false }: LandingHeaderProp
   return (
     <header
       className={cn(
-        "chance-landing-header fixed inset-x-0 top-0 z-50 border-b transition-colors duration-300",
+        "chance-landing-header chance-landing-header--desktop fixed inset-x-0 top-0 z-50 border-b transition-colors duration-300",
         scrolled
           ? "border-[var(--chance-border)] bg-[color-mix(in_srgb,var(--chance-bg)_82%,transparent)] backdrop-blur-xl"
           : "border-transparent bg-transparent"

@@ -1,0 +1,650 @@
+/* Mobile-first landing — dedicated layout below desktop breakpoint (1024px). */
+
+.chance-landing-mobile-root {
+  --chance-mobile-header-h: 4rem;
+  --chance-mobile-pad-x: 1.5rem;
+  --chance-mobile-content-max: min(100%, 30rem);
+  --chance-mobile-section-gap: clamp(5rem, 14vw, 7.5rem);
+  display: block;
+  min-height: 100dvh;
+  overflow-x: clip;
+  background: var(--chance-bg);
+  color: var(--chance-fg);
+}
+
+.chance-landing-mobile-main {
+  padding-top: calc(var(--chance-mobile-header-h) + env(safe-area-inset-top, 0px));
+}
+
+.chance-landing-mobile-shell {
+  width: 100%;
+  max-width: var(--chance-mobile-content-max);
+  margin-inline: auto;
+  padding-inline: var(--chance-mobile-pad-x);
+}
+
+.chance-landing-mobile-shell--center {
+  text-align: center;
+}
+
+/* —— Header —— */
+.chance-landing-mobile-header {
+  position: fixed;
+  inset-inline: 0;
+  top: 0;
+  z-index: 60;
+  height: calc(var(--chance-mobile-header-h) + env(safe-area-inset-top, 0px));
+  padding-top: env(safe-area-inset-top, 0px);
+  border-bottom: 1px solid transparent;
+  background: color-mix(in srgb, var(--chance-bg) 88%, transparent);
+  backdrop-filter: blur(16px);
+}
+
+.chance-landing-mobile-header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--chance-mobile-header-h);
+  max-width: var(--chance-mobile-content-max);
+  margin-inline: auto;
+  padding-inline: var(--chance-mobile-pad-x);
+}
+
+.chance-landing-mobile-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--chance-fg);
+  text-decoration: none;
+}
+
+.chance-landing-mobile-live-dot {
+  width: 0.375rem;
+  height: 0.375rem;
+  border-radius: 9999px;
+  background: var(--chance-brand);
+  box-shadow: 0 0 8px var(--chance-brand);
+  animation: chance-landing-mobile-pulse 2s ease-in-out infinite;
+}
+
+.chance-landing-mobile-menu-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--chance-border);
+  background: color-mix(in srgb, var(--chance-surface-raised) 70%, transparent);
+  color: var(--chance-fg);
+}
+
+.chance-landing-mobile-nav {
+  position: fixed;
+  inset: 0;
+  z-index: 55;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: calc(var(--chance-mobile-header-h) + env(safe-area-inset-top, 0px) + 1.5rem) var(--chance-mobile-pad-x)
+    calc(2rem + env(safe-area-inset-bottom, 0px));
+  background: var(--chance-bg);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.25s ease, visibility 0.25s ease;
+}
+
+.chance-landing-mobile-nav.is-open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.chance-landing-mobile-nav-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  max-width: var(--chance-mobile-content-max);
+  margin-inline: auto;
+  width: 100%;
+}
+
+.chance-landing-mobile-nav-link {
+  display: block;
+  padding: 1rem 0.25rem;
+  font-size: 1.75rem;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  color: var(--chance-fg);
+  text-decoration: none;
+  border-bottom: 1px solid var(--chance-border);
+}
+
+.chance-landing-mobile-nav-cta {
+  margin-top: 1.5rem;
+  width: 100%;
+  justify-content: center;
+  font-size: 1rem;
+  padding: 1rem 1.25rem;
+}
+
+/* —— Hero —— */
+.chance-landing-mobile-hero {
+  min-height: max(100dvh, 640px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-block: clamp(2rem, 6vh, 3rem) var(--chance-mobile-section-gap);
+  text-align: center;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.chance-landing-mobile-hero.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+.chance-landing-mobile-eagle {
+  width: 4.5rem;
+  height: 4.5rem;
+  margin-inline: auto;
+  object-fit: contain;
+}
+
+.chance-landing-mobile-kicker {
+  margin-top: 1.25rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--chance-muted-fg);
+}
+
+.chance-landing-mobile-headline {
+  margin-top: 0.75rem;
+  font-size: clamp(2.5rem, 11vw, 3.5rem);
+  font-weight: 800;
+  line-height: 0.95;
+  letter-spacing: -0.04em;
+}
+
+.chance-landing-mobile-headline--final {
+  font-size: clamp(2.25rem, 10vw, 3rem);
+}
+
+.chance-landing-mobile-headline-accent {
+  color: var(--chance-brand);
+}
+
+.chance-landing-mobile-lede {
+  margin-top: 1rem;
+  font-size: clamp(1rem, 4.2vw, 1.125rem);
+  line-height: 1.5;
+  color: color-mix(in srgb, var(--chance-fg) 82%, var(--chance-muted-fg));
+  max-width: 22rem;
+  margin-inline: auto;
+}
+
+.chance-landing-mobile-cta-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1.75rem;
+  width: 100%;
+}
+
+.chance-landing-mobile-btn {
+  width: 100%;
+  justify-content: center;
+  font-size: 1rem;
+  padding: 0.95rem 1.25rem;
+  min-height: 3rem;
+}
+
+.chance-landing-mobile-live-wrap {
+  margin-top: 1.5rem;
+  width: 100%;
+}
+
+.chance-landing-mobile-live-wrap .chance-landing-live--strip {
+  width: 100%;
+  justify-content: center;
+}
+
+/* —— Phone mockup —— */
+.chance-landing-phone-stage {
+  position: relative;
+  width: min(92vw, 22rem);
+  margin: clamp(2rem, 6vh, 2.75rem) auto 0;
+  perspective: 900px;
+}
+
+.chance-landing-phone-glow {
+  position: absolute;
+  inset: 10% 5% -5%;
+  background: radial-gradient(ellipse at center, color-mix(in srgb, var(--chance-brand) 35%, transparent), transparent 70%);
+  filter: blur(24px);
+  pointer-events: none;
+  animation: chance-landing-mobile-float 5s ease-in-out infinite;
+}
+
+.chance-landing-phone-device {
+  position: relative;
+  border-radius: 2rem;
+  padding: 0.65rem;
+  background: linear-gradient(145deg, color-mix(in srgb, var(--chance-fg) 12%, var(--chance-bg)), var(--chance-bg));
+  border: 1px solid var(--chance-border-strong);
+  box-shadow:
+    0 32px 64px rgb(0 0 0 / 0.45),
+    inset 0 1px 0 rgb(255 255 255 / 0.06);
+  transform: rotateY(-6deg) rotateX(4deg);
+}
+
+.chance-landing-phone-notch {
+  position: absolute;
+  top: 0.85rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 28%;
+  height: 0.35rem;
+  border-radius: 9999px;
+  background: var(--chance-bg);
+  z-index: 2;
+}
+
+.chance-landing-phone-screen {
+  position: relative;
+  border-radius: 1.5rem;
+  overflow: hidden;
+  background: var(--chance-surface-raised);
+  padding: 2.25rem 0.85rem 1rem;
+  min-height: 22rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.chance-landing-phone-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.chance-landing-phone-status-title {
+  font-weight: 700;
+  font-size: 0.9375rem;
+}
+
+.chance-landing-phone-live {
+  margin-left: auto;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--chance-brand);
+}
+
+.chance-landing-phone-hero-card {
+  padding: 1rem;
+  border-radius: 1rem;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--chance-brand) 18%, var(--chance-surface)), var(--chance-surface));
+  border: 1px solid color-mix(in srgb, var(--chance-brand) 25%, var(--chance-border));
+}
+
+.chance-landing-phone-kicker {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--chance-muted-fg);
+}
+
+.chance-landing-phone-headline {
+  margin-top: 0.25rem;
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.chance-landing-phone-cta {
+  display: inline-flex;
+  margin-top: 0.75rem;
+  padding: 0.45rem 0.85rem;
+  border-radius: 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  background: var(--chance-brand);
+  color: var(--chance-brand-fg, #052e16);
+}
+
+.chance-landing-phone-cta.is-pulse {
+  animation: chance-landing-mobile-pulse 2s ease-in-out infinite;
+}
+
+.chance-landing-phone-tiles {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  flex: 1;
+  min-height: 9rem;
+}
+
+.chance-landing-phone-tile {
+  position: relative;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  border: 1px solid var(--chance-border);
+  min-height: 4.5rem;
+}
+
+.chance-landing-phone-tile--large {
+  grid-row: span 2;
+}
+
+/* —— Sections —— */
+.chance-landing-mobile-section {
+  padding-block: var(--chance-mobile-section-gap);
+  scroll-margin-top: calc(var(--chance-mobile-header-h) + 0.5rem);
+}
+
+.chance-landing-mobile-section.is-visible,
+.chance-landing-mobile-feature.is-visible {
+  animation: chance-landing-mobile-fade-up 0.65s ease forwards;
+}
+
+.chance-landing-mobile-eyebrow {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--chance-muted-fg);
+}
+
+.chance-landing-mobile-title {
+  margin-top: 0.65rem;
+  font-size: clamp(1.75rem, 7vw, 2.25rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+.chance-landing-mobile-body {
+  margin-top: 0.85rem;
+  font-size: 1.0625rem;
+  line-height: 1.55;
+  color: color-mix(in srgb, var(--chance-fg) 85%, var(--chance-muted-fg));
+}
+
+/* How it works */
+.chance-landing-mobile-steps {
+  list-style: none;
+  margin: 2rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.chance-landing-mobile-steps li {
+  position: relative;
+  display: grid;
+  grid-template-columns: 2.75rem 1fr;
+  gap: 0 1rem;
+  padding-bottom: 1.75rem;
+}
+
+.chance-landing-mobile-step-num {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 9999px;
+  font-weight: 800;
+  font-size: 1.125rem;
+  background: color-mix(in srgb, var(--chance-brand) 15%, var(--chance-surface));
+  border: 1px solid color-mix(in srgb, var(--chance-brand) 35%, var(--chance-border));
+  color: var(--chance-brand);
+}
+
+.chance-landing-mobile-step-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.chance-landing-mobile-step-line {
+  margin-top: 0.25rem;
+  font-size: 1rem;
+  line-height: 1.45;
+  color: var(--chance-muted-fg);
+}
+
+.chance-landing-mobile-step-connector {
+  position: absolute;
+  left: 1.35rem;
+  top: 2.85rem;
+  bottom: 0.35rem;
+  width: 2px;
+  background: linear-gradient(180deg, var(--chance-brand), color-mix(in srgb, var(--chance-brand) 20%, transparent));
+  border-radius: 2px;
+}
+
+/* Games */
+.chance-landing-mobile-games {
+  list-style: none;
+  margin: 2rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.chance-landing-mobile-game-card {
+  border-radius: 1.25rem;
+  overflow: hidden;
+  border: 1px solid var(--chance-border);
+  background: var(--chance-surface-raised);
+  box-shadow: 0 20px 40px rgb(0 0 0 / 0.2);
+}
+
+.chance-landing-mobile-game-art {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+}
+
+.chance-landing-mobile-game-body {
+  padding: 1.25rem 1.25rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.chance-landing-mobile-game-name {
+  font-size: 1.375rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.chance-landing-mobile-game-desc {
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--chance-muted-fg);
+}
+
+.chance-landing-mobile-game-stakes {
+  font-size: 0.875rem;
+  color: var(--chance-muted-fg);
+  margin-bottom: 0.5rem;
+}
+
+/* Feature blocks — always single column */
+.chance-landing-mobile-feature .chance-landing-mobile-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.chance-landing-mobile-feature-media {
+  width: 100%;
+}
+
+.chance-landing-mobile-feature-media .chance-landing-phone-stage {
+  margin-top: 0;
+}
+
+.chance-landing-mobile-feature-media--panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.chance-landing-mobile-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.chance-landing-mobile-tags li {
+  font-size: 0.875rem;
+  font-weight: 600;
+  padding: 0.45rem 0.75rem;
+  border-radius: 9999px;
+  border: 1px solid var(--chance-border);
+  background: color-mix(in srgb, var(--chance-surface) 80%, transparent);
+}
+
+.chance-landing-mobile-bracket-card {
+  min-height: 12rem;
+  border-radius: 1.25rem;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 0.35rem;
+  background: linear-gradient(160deg, color-mix(in srgb, var(--chance-brand) 22%, var(--chance-surface)), var(--chance-bg));
+  border: 1px solid color-mix(in srgb, var(--chance-brand) 30%, var(--chance-border));
+}
+
+.chance-landing-mobile-bracket-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--chance-muted-fg);
+}
+
+.chance-landing-mobile-bracket-pot {
+  font-size: 1.75rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+/* Stats */
+.chance-landing-mobile-stats {
+  margin: 2rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  text-align: center;
+}
+
+.chance-landing-mobile-stats dd {
+  margin: 0;
+  font-size: clamp(2.25rem, 12vw, 3.25rem);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+  color: var(--chance-brand);
+}
+
+.chance-landing-mobile-stats dd[data-zero] {
+  color: var(--chance-muted-fg);
+}
+
+.chance-landing-mobile-stats dt {
+  margin-top: 0.5rem;
+  font-size: 1rem;
+  color: var(--chance-muted-fg);
+}
+
+/* Final */
+.chance-landing-mobile-final {
+  padding-bottom: calc(var(--chance-mobile-section-gap) + env(safe-area-inset-bottom, 0px));
+}
+
+/* —— Breakpoint split with desktop —— */
+@media (min-width: 1024px) {
+  .chance-landing-mobile-root,
+  .chance-landing-mobile-header,
+  .chance-landing-mobile-nav {
+    display: none !important;
+  }
+}
+
+@media (max-width: 1023.98px) {
+  .chance-landing-desktop,
+  .chance-landing-header--desktop {
+    display: none !important;
+  }
+
+  .chance-landing-mobile-root .chance-landing-footer {
+    padding-bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+@keyframes chance-landing-mobile-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes chance-landing-mobile-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes chance-landing-mobile-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.65;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chance-landing-mobile-hero,
+  .chance-landing-mobile-section.is-visible,
+  .chance-landing-mobile-feature.is-visible,
+  .chance-landing-phone-glow,
+  .chance-landing-mobile-live-dot,
+  .chance-landing-phone-cta.is-pulse {
+    animation: none !important;
+    transition: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}

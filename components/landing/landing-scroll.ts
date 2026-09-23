@@ -7,7 +7,9 @@ export function scrollToLandingSection(hash: string) {
   const target = document.getElementById(id)
   if (!target) return
 
-  const header = document.querySelector(".chance-landing-header")
+  const header =
+    document.querySelector(".chance-landing-mobile-header") ??
+    document.querySelector(".chance-landing-header")
   const headerBottom = header ? header.getBoundingClientRect().bottom : 72
   const top = target.getBoundingClientRect().top + window.scrollY - headerBottom - 12
 

@@ -6,6 +6,8 @@ import { useEffect, useRef, useState } from "react"
 import { ChevronDown } from "lucide-react"
 import LandingFooter from "@/components/landing/landing-footer"
 import LandingHeader from "@/components/landing/landing-header"
+import LandingMobileHeader from "@/components/landing/landing-mobile-header"
+import LandingPageMobile from "@/components/landing/landing-page-mobile"
 import LandingLiveArena from "@/components/landing/landing-live-arena"
 import LandingMockup from "@/components/landing/landing-mockup"
 import { useCountUp } from "@/components/landing/use-count-up"
@@ -120,7 +122,10 @@ export default function LandingPageClient({ games, live: liveProp, stats }: Land
       <div className="chance-landing-ambient" aria-hidden />
       <div className="chance-landing-ambient-hero" aria-hidden />
       <LandingHeader arenaActive={arenaActive} />
+      <LandingMobileHeader arenaActive={arenaActive} />
+      <LandingPageMobile games={games ?? []} live={live} />
 
+      <div className="chance-landing-desktop">
       <main className="chance-landing-main">
         {/* Hero — headline owns the frame; product floats as proof */}
         <section className="chance-landing-panel chance-landing-panel--hero" aria-labelledby="landing-hero-title">
@@ -393,6 +398,7 @@ export default function LandingPageClient({ games, live: liveProp, stats }: Land
       </main>
 
       <LandingFooter />
+      </div>
     </div>
   )
 }

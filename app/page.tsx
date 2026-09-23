@@ -5,6 +5,7 @@ import { buildLandingLiveMetrics } from "@/lib/landing-live-metrics"
 import { fetchLandingPlatformAggregates } from "@/lib/fetch-landing-platform-stats"
 import { getAllTournaments } from "@/lib/tournament-actions"
 import "./chance-landing.css"
+import "./chance-landing-mobile.css"
 
 export default async function Home() {
   if (!isSupabaseConfigured) {
