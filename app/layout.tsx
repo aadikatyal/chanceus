@@ -26,8 +26,20 @@ const jetbrainsMono = JetBrains_Mono({
 })
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://chanceus.com"),
   title: "ChanceUS",
   description: "Skill-based games where talent maps to tokens",
+  openGraph: {
+    title: "ChanceUS",
+    description: "Skill-based games where talent maps to tokens",
+    siteName: "ChanceUS",
+    type: "website",
+    images: [{ url: "/chanceus-eagle.png", alt: "ChanceUS" }],
+  },
+  twitter: {
+    card: "summary",
+    images: ["/chanceus-eagle.png"],
+  },
   icons: {
     icon: [{ url: "/chanceus-eagle.png", type: "image/png" }],
     apple: [{ url: "/chanceus-eagle.png", type: "image/png" }],
