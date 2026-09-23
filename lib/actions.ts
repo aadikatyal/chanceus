@@ -1,12 +1,10 @@
 "use server"
 
+import { createServerActionClient } from "@supabase/auth-helpers-nextjs"
+import { cookies } from "next/headers"
 import { redirect } from "next/navigation"
-import { buildAuthCallbackUrl, getRequestOrigin } from "./auth-request-origin"
-import { getDashboardUrl } from "./config"
-import { isNextRedirect } from "./next-redirect"
-import { createSupabaseServerClient } from "./supabase/server-ssr"
+import { getCallbackUrl, getDashboardUrl } from "./config"
 import { uploadProfilePicture } from "./upload-utils"
-import { safeAppPath } from "./safe-redirect"
 
 // Sign in action
 export async function signIn(prevState: any, formData: FormData) {
@@ -24,7 +22,8 @@ export async function signIn(prevState: any, formData: FormData) {
     return { error: "Email and password are required" }
   }
 
-  const supabase = await createSupabaseServerClient()
+  const cookieStore = await cookies()
+  const supabase = createServerActionClient({ cookies: () => cookieStore })
 
   try {
     const { error } = await supabase.auth.signInWithPassword({
@@ -36,21 +35,23 @@ export async function signIn(prevState: any, formData: FormData) {
       return { error: error.message }
     }
 
-    redirect(safeAppPath(redirectUrl?.toString(), "/dashboard"))
+    // Redirect to the specified URL or dashboard
+    const finalRedirectUrl = redirectUrl ? redirectUrl.toString() : "/dashboard"
+    console.log("🔍 DEBUG: Sign in successful, redirecting to:", finalRedirectUrl)
+    redirect(finalRedirectUrl)
   } catch (error) {
-    if (isNextRedirect(error)) throw error
     console.error("Login error:", error)
     return { error: "An unexpected error occurred. Please try again." }
   }
 }
 
-export async function signInWithGoogle(formData?: FormData) {
+export async function signInWithGoogle() {
   try {
-    const supabase = await createSupabaseServerClient()
+    const cookieStore = await cookies()
+  const supabase = createServerActionClient({ cookies: () => cookieStore })
 
-    const origin = await getRequestOrigin()
-    const postLogin = formData?.get("redirect")?.toString()
-    const redirectUrl = buildAuthCallbackUrl(origin, postLogin)
+    const redirectUrl = getCallbackUrl()
+    console.log("Google OAuth redirect URL:", redirectUrl)
 
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: "google",
@@ -71,20 +72,24 @@ export async function signInWithGoogle(formData?: FormData) {
       console.error("No OAuth URL returned from Supabase")
       redirect("/auth/login?error=no_oauth_url")
     }
-  } catch (error: unknown) {
-    if (isNextRedirect(error)) throw error
+  } catch (error: any) {
+    // Check if this is a redirect error (which is expected)
+    if (error.message === "NEXT_REDIRECT") {
+      // This is actually a successful redirect, not an error
+      throw error
+    }
     console.error("Google sign-in exception:", error)
     redirect("/auth/login?error=" + encodeURIComponent("OAuth configuration error"))
   }
 }
 
-export async function signInWithApple(formData?: FormData) {
+export async function signInWithApple() {
   try {
-    const supabase = await createSupabaseServerClient()
+    const cookieStore = await cookies()
+    const supabase = createServerActionClient({ cookies: () => cookieStore })
 
-    const origin = await getRequestOrigin()
-    const postLogin = formData?.get("redirect")?.toString()
-    const redirectUrl = buildAuthCallbackUrl(origin, postLogin)
+    const redirectUrl = getCallbackUrl()
+    console.log("Apple OAuth redirect URL:", redirectUrl)
 
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: "apple",
@@ -105,8 +110,10 @@ export async function signInWithApple(formData?: FormData) {
       console.error("No OAuth URL returned from Supabase")
       redirect("/auth/login?error=no_oauth_url")
     }
-  } catch (error: unknown) {
-    if (isNextRedirect(error)) throw error
+  } catch (error: any) {
+    if (error.message === "NEXT_REDIRECT") {
+      throw error
+    }
     console.error("Apple sign-in exception:", error)
     redirect("/auth/login?error=" + encodeURIComponent("OAuth configuration error"))
   }
@@ -130,7 +137,8 @@ export async function signUp(prevState: any, formData: FormData) {
     return { error: "Email, password, username, and display name are required" }
   }
 
-  const supabase = await createSupabaseServerClient()
+  const cookieStore = await cookies()
+  const supabase = createServerActionClient({ cookies: () => cookieStore })
 
   try {
     // First, create the user account
@@ -173,7 +181,9 @@ export async function signUp(prevState: any, formData: FormData) {
 
 // Sign out action
 export async function signOut() {
-  const supabase = await createSupabaseServerClient()
+  const cookieStore = await cookies()
+  const supabase = createServerActionClient({ cookies: () => cookieStore })
+
   await supabase.auth.signOut()
-  redirect("/auth/login")
+  redirect(`${getCallbackUrl("/auth/login")}`)
 }

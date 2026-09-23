@@ -1,8 +1,6 @@
 "use client"
 
-import { useActionState, useEffect, useMemo } from "react"
-import { useSearchParams } from "next/navigation"
-import { toast } from "sonner"
+import { useActionState } from "react"
 import { useFormStatus } from "react-dom"
 import { Loader2 } from "lucide-react"
 import Link from "next/link"
@@ -38,28 +36,14 @@ function SubmitButton() {
 
 export default function SignUpForm() {
   const [state, formAction] = useActionState(signUp, null)
-  const searchParams = useSearchParams()
-  const oauthDisabled = useMemo(() => searchParams.get("error") === "rate_limit", [searchParams])
-
-  useEffect(() => {
-    const error = searchParams.get("error")
-    if (error === "rate_limit") {
-      toast.error("Too many sign-in attempts. Wait 5–10 minutes before trying Google or Apple again.")
-    }
-  }, [searchParams])
 
   return (
     <AuthPanel>
       <AuthPanelHeader title="Create account" description="One profile. Every match on your record." />
 
       <div className="chance-auth-form">
-        <GoogleOAuthButton oauthDisabled={oauthDisabled} />
-        <AppleOAuthButton oauthDisabled={oauthDisabled} />
-        {oauthDisabled ? (
-          <p className="chance-auth-hint text-center" role="status">
-            Social sign-in is paused briefly. Use email sign-up below.
-          </p>
-        ) : null}
+        <GoogleOAuthButton />
+        <AppleOAuthButton />
         <AuthDivider />
 
         <form action={formAction} className="chance-auth-form">

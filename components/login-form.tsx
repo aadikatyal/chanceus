@@ -5,8 +5,7 @@ import { useFormStatus } from "react-dom"
 import { Loader2 } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useEffect, useMemo } from "react"
-import { useSearchParams } from "next/navigation"
+import { useEffect } from "react"
 import { signIn } from "@/lib/actions"
 import { toast } from "sonner"
 import { AppleOAuthButton, GoogleOAuthButton } from "@/components/auth/auth-oauth-buttons"
@@ -35,8 +34,6 @@ interface LoginFormProps {
 
 export default function LoginForm({ redirectUrl }: LoginFormProps) {
   const router = useRouter()
-  const searchParams = useSearchParams()
-  const oauthDisabled = useMemo(() => searchParams.get("error") === "rate_limit", [searchParams])
   const [state, formAction] = useActionState(signIn, null)
 
   useEffect(() => {
@@ -53,7 +50,7 @@ export default function LoginForm({ redirectUrl }: LoginFormProps) {
 
     let errorMessage = "Login failed. Please try again."
     if (error === "rate_limit") {
-      errorMessage = "Too many sign-in attempts. Wait 5–10 minutes before trying Google or Apple again."
+      errorMessage = "Rate limit exceeded. Please wait a few minutes before trying again."
     } else if (error === "invalid_code") {
       errorMessage = "Login session expired. Please try logging in again."
     } else if (error === "auth_error") {
@@ -71,13 +68,8 @@ export default function LoginForm({ redirectUrl }: LoginFormProps) {
       <AuthPanelHeader title="Sign in" description="Pick up where you left off. Your record is waiting." />
 
       <div className="chance-auth-form">
-        <GoogleOAuthButton redirectUrl={redirectUrl} oauthDisabled={oauthDisabled} />
-        <AppleOAuthButton redirectUrl={redirectUrl} oauthDisabled={oauthDisabled} />
-        {oauthDisabled ? (
-          <p className="chance-auth-hint text-center" role="status">
-            Social sign-in is paused briefly after too many attempts. Email sign-in still works.
-          </p>
-        ) : null}
+        <GoogleOAuthButton redirectUrl={redirectUrl} />
+        <AppleOAuthButton redirectUrl={redirectUrl} />
         <AuthDivider />
 
         <form action={formAction} className="chance-auth-form">

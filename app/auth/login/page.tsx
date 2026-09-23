@@ -1,11 +1,9 @@
-import { Suspense } from "react"
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import LoginForm from "@/components/login-form"
 import AuthMarketingShell from "@/components/app/auth-marketing-shell"
 import { ChanceText } from "@/components/design-system/typography"
 import { fetchPublicLandingLive } from "@/lib/fetch-public-landing-live"
-import { ensurePublicUserProfile } from "@/lib/ensure-public-user-profile"
 import { safeAppPath } from "@/lib/safe-redirect"
 
 interface LoginPageProps {
@@ -34,17 +32,17 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   } = await supabase.auth.getUser()
 
   if (authUser) {
-    await ensurePublicUserProfile(authUser, supabase)
-    redirect(safeAppPath(params.redirect))
+    const { data: profile } = await supabase.from("users").select("id").eq("id", authUser.id).maybeSingle()
+    if (profile) {
+      redirect(safeAppPath(params.redirect))
+    }
   }
 
   const live = await fetchPublicLandingLive()
 
   return (
     <AuthMarketingShell variant="login" live={live}>
-      <Suspense fallback={null}>
-        <LoginForm redirectUrl={params.redirect} />
-      </Suspense>
+      <LoginForm redirectUrl={params.redirect} />
     </AuthMarketingShell>
   )
 }
