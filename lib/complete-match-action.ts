@@ -4,6 +4,7 @@ import { createServerActionClient } from "@supabase/auth-helpers-nextjs"
 import { cookies } from "next/headers"
 import { revalidatePath } from "next/cache"
 import { createReplay } from "./replay-actions"
+import { walletSettle } from "@/lib/wallet/server"
 
 export async function completeMatch(matchId: string, winnerId: string | null, gameData: any) {
   const cookieStore = await cookies()
@@ -36,46 +37,13 @@ export async function completeMatch(matchId: string, winnerId: string | null, ga
       const betAmount = match.bet_amount || 0
       
       if (betAmount > 0) {
+        const loserId = match.player1_id === winnerId ? match.player2_id : match.player1_id
+        if (!loserId) return { success: false, error: "Cannot settle a match without both players" }
         try {
-          // Check if tokens were already paid out (prevent duplicate payments)
-          const { data: existingTransaction } = await supabase
-            .from('transactions')
-            .select('id')
-            .eq('match_id', matchId)
-            .eq('user_id', winnerId)
-            .eq('type', 'win')
-            .single()
-          
-          if (existingTransaction) {
-            console.log('⚠️ Tokens already paid out for this match, skipping duplicate payment')
-            return { success: true, data, alreadyPaid: true }
-          }
-          
-          // Winner gets both players' bets (their refund + opponent's bet as profit)
-          const winnings = betAmount * 2 // Both players' bets
-          console.log('💰 Processing winner payout:', { winnerId, betAmount, winnings, netProfit: betAmount })
-          
-          // IMPORTANT: Only create transaction record - the database trigger will automatically update the user's token balance
-          // This prevents double-payout (direct update + trigger update)
-          const { error: transactionError } = await supabase.from('transactions').insert({
-            user_id: winnerId,
-            match_id: matchId,
-            amount: winnings,
-            type: 'win',
-            description: `Won match - ${winnings} tokens`
-          })
-          
-          if (transactionError) {
-            console.error('❌ Failed to create winner transaction:', transactionError)
-          } else {
-            console.log('✅ Winner transaction created successfully - trigger will update balance:', { 
-              winnerId, 
-              winnings
-            })
-          }
+          await walletSettle(winnerId, loserId, betAmount, matchId)
         } catch (payoutError) {
-          console.error('❌ Failed to process winner payout:', payoutError)
-          // Don't fail the entire completion process
+          console.error("Failed to settle match:", payoutError)
+          return { success: false, error: "Failed to settle escrow" }
         }
       }
     }

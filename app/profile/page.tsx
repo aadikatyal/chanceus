@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Trophy, Target, Calendar, Settings } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
+import { spendable } from "@/lib/wallet/server"
 
 export default async function ProfilePage() {
   // If Supabase is not configured, show setup message
@@ -38,6 +39,8 @@ export default async function ProfilePage() {
   if (!user) {
     redirect("/auth/login")
   }
+
+  user.tokens = await spendable(authUser.id).catch(() => 0)
 
   // Get recent matches for achievements
   const { data: recentMatches = [] } = await supabase
