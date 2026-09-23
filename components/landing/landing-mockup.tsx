@@ -77,17 +77,6 @@ export default function LandingMockup({ variant = "hero", live }: LandingMockupP
                     className="chance-landing-mockup-hero-eagle"
                     priority
                   />
-                  <div className="chance-landing-mockup-hero-chips" aria-hidden>
-                    <span className="chance-landing-mockup-hero-chip">
-                      <Image src="/4-in-a-row.JPG" alt="" width={40} height={40} className="size-full object-cover" />
-                    </span>
-                    <span className="chance-landing-mockup-hero-chip">
-                      <Image src="/math-blitz.JPG" alt="" width={40} height={40} className="size-full object-cover" />
-                    </span>
-                    <span className="chance-landing-mockup-hero-chip">
-                      <Image src="/trivia-blitz.JPG" alt="" width={40} height={40} className="size-full object-cover" />
-                    </span>
-                  </div>
                 </div>
                 <div className="chance-landing-mockup-hero-copy">
                   <p className="chance-landing-mockup-kicker">{matchesLive ? "Match live" : "Skill-based gaming"}</p>
@@ -96,10 +85,6 @@ export default function LandingMockup({ variant = "hero", live }: LandingMockupP
                     <br />
                     Win it.
                   </p>
-                  <div className="chance-landing-mockup-cta-row">
-                    <span className={`chance-landing-mockup-cta-primary ${queueActive ? "is-pulsing" : ""}`}>Queue now</span>
-                    <span className="chance-landing-mockup-cta-ghost">Wallet</span>
-                  </div>
                 </div>
               </div>
               <div className="chance-landing-mockup-tiles">

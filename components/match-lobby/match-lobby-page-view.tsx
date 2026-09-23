@@ -56,7 +56,7 @@ function PlayerColumn({
 
   return (
     <div
-      className={`chance-match-player-col ${side === "left" ? "chance-match-player-col--left" : "chance-match-player-col--right"}`}
+      className={`chance-match-player-col flex flex-col ${side === "left" ? "chance-match-player-col--left" : "chance-match-player-col--right"}`}
     >
       <div className="flex items-center gap-2">
         <ReadyRing ready={!!ready} />
@@ -64,7 +64,7 @@ function PlayerColumn({
       </div>
       <ChancePlayerAvatar
         name={player ? lobbyDisplayName(player) : "?"}
-        className={`chance-match-player-avatar mx-auto ${isYou ? "ring-2 ring-[var(--chance-brand)]" : ""}`}
+        className={`chance-match-player-avatar mx-auto mt-4 ${isYou ? "ring-2 ring-[var(--chance-brand)]" : ""}`}
       />
       <p className="mt-3 text-center text-base font-semibold tracking-tight">{name}</p>
       <dl className="mt-3 w-full space-y-1.5 text-[0.75rem]">

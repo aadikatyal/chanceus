@@ -138,14 +138,22 @@
   margin-top: clamp(0.5rem, 2vh, 1.5rem);
 }
 
+.chance-auth-preview .chance-landing-mockup-screen {
+  min-height: 0;
+  height: auto;
+  max-height: none;
+}
+
+.chance-auth-preview .chance-landing-mockup-tile img,
+.chance-auth-preview .chance-landing-mockup-hero-eagle {
+  object-fit: cover;
+  object-position: center;
+}
+
 @media (max-width: 1023.98px) {
   .chance-auth-preview {
     display: none;
   }
-}
-
-.chance-auth-preview .chance-landing-mockup-screen {
-  min-height: clamp(14rem, 28vh, 18rem);
 }
 
 .chance-auth-main {

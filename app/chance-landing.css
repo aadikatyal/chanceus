@@ -1139,16 +1139,9 @@ html:has(.chance-landing) {
 .chance-landing-mockup-content {
   flex: 1;
   padding: clamp(0.75rem, 2vw, 1.25rem);
-  display: grid;
-  gap: clamp(0.75rem, 2vw, 1.25rem);
-  grid-template-columns: 1fr;
-}
-
-@media (min-width: 768px) {
-  .chance-landing-mockup-content {
-    grid-template-columns: 1.05fr 1fr;
-    align-items: stretch;
-  }
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.75rem, 2vw, 1rem);
 }
 
 .chance-landing-mockup-hero-card {
@@ -1156,22 +1149,22 @@ html:has(.chance-landing) {
   border: 1px solid color-mix(in srgb, var(--chance-brand) 25%, var(--chance-border));
   background: linear-gradient(145deg, color-mix(in srgb, var(--chance-brand) 14%, var(--chance-surface)), var(--chance-surface-inset));
   display: flex;
-  flex-direction: column;
-  justify-content: stretch;
-  min-height: 10rem;
+  flex-direction: row;
+  align-items: center;
+  min-height: 0;
   overflow: hidden;
 }
 
 .chance-landing-mockup-hero-visual {
   position: relative;
-  flex: 1;
-  min-height: clamp(5.5rem, 14vw, 8.5rem);
+  flex: 0 0 auto;
+  min-height: 0;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
-  gap: 0.65rem;
-  padding: clamp(0.85rem, 2vw, 1.15rem) clamp(0.75rem, 2vw, 1rem) 0.65rem;
+  gap: 0.45rem;
+  padding: 0.65rem 0.85rem;
 }
 
 .chance-landing-mockup-hero-visual-bg {
@@ -1180,13 +1173,13 @@ html:has(.chance-landing) {
   background:
     radial-gradient(ellipse 80% 90% at 50% 0%, color-mix(in srgb, var(--chance-brand) 22%, transparent), transparent 65%),
     linear-gradient(180deg, color-mix(in srgb, var(--chance-brand) 8%, var(--chance-surface-inset)), transparent);
-  border-bottom: 1px solid color-mix(in srgb, var(--chance-brand) 18%, var(--chance-border));
+  border-right: 1px solid color-mix(in srgb, var(--chance-brand) 18%, var(--chance-border));
 }
 
 .chance-landing-mockup-hero-eagle {
   position: relative;
   z-index: 1;
-  width: clamp(3rem, 8vw, 4.5rem);
+  width: 2.75rem;
   height: auto;
   object-fit: contain;
   filter: drop-shadow(0 8px 24px color-mix(in srgb, var(--chance-brand) 35%, transparent));
@@ -1211,11 +1204,11 @@ html:has(.chance-landing) {
 }
 
 .chance-landing-mockup-hero-copy {
-  padding: clamp(0.85rem, 2vw, 1.15rem) clamp(1rem, 3vw, 1.75rem) clamp(1rem, 3vw, 1.75rem);
+  padding: 0.7rem 1rem 0.7rem 0.85rem;
 }
 
 .chance-landing-mockup-kicker {
-  font-size: clamp(0.625rem, 1.2vw, 0.75rem);
+  font-size: 0.625rem;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -1223,8 +1216,8 @@ html:has(.chance-landing) {
 }
 
 .chance-landing-mockup-headline {
-  margin-top: 0.35rem;
-  font-size: clamp(1.25rem, 3.5vw, 2.25rem);
+  margin-top: 0.2rem;
+  font-size: clamp(1.15rem, 2.4vw, 1.6rem);
   font-weight: 800;
   line-height: 0.95;
   letter-spacing: -0.03em;
@@ -1257,10 +1250,9 @@ html:has(.chance-landing) {
 
 .chance-landing-mockup-tiles {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-template-rows: 1fr 1fr;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: clamp(0.5rem, 1.5vw, 0.75rem);
-  min-height: 12rem;
+  min-height: 0;
 }
 
 .chance-landing-mockup-tile {
@@ -1268,12 +1260,13 @@ html:has(.chance-landing) {
   border-radius: 0.75rem;
   overflow: hidden;
   border: 1px solid var(--chance-border);
-  min-height: 5rem;
+  min-height: 7.5rem;
+  aspect-ratio: 3 / 4;
 }
 
 .chance-landing-mockup-tile--hero {
-  grid-row: span 2;
-  grid-column: 1;
+  grid-row: auto;
+  grid-column: auto;
 }
 
 .chance-landing-mockup-tile-label {

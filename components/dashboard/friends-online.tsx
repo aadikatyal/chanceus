@@ -320,6 +320,21 @@ export default function FriendsOnline({ appearance = 'legacy' }: FriendsOnlinePr
           variant: "destructive",
         })
       } else if (result.matchId) {
+        const { data: { user: currentUser } } = await supabase.auth.getUser()
+        const { data: profile } = currentUser
+          ? await supabase.from("users").select("display_name, username").eq("id", currentUser.id).single()
+          : { data: null }
+        const fromName = profile?.username || profile?.display_name || "A friend"
+        const { data: gameRow } = await supabase.from("games").select("name").eq("id", gameId).maybeSingle()
+        const gameName = gameRow?.name || "a game"
+        const inviteChannel = supabase.channel(`call-invite:${friend.id}`)
+        await inviteChannel.subscribe()
+        await inviteChannel.send({
+          type: "broadcast",
+          event: "match-invite",
+          payload: { matchId: result.matchId, gameName, fromName },
+        })
+        await supabase.removeChannel(inviteChannel)
         toast({
           title: "Match request sent!",
           description: result.message || "Your friend will be notified to accept the match",

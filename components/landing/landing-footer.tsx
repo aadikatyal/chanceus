@@ -53,10 +53,14 @@ export default function LandingFooter() {
             <p className="chance-landing-footer-label">Legal</p>
             <ul className="mt-3 space-y-2 text-sm">
               <li>
-                <span className="text-[var(--chance-muted-fg)]">Privacy</span>
+                <Link href="/privacy" className="chance-landing-footer-link">
+                  Privacy
+                </Link>
               </li>
               <li>
-                <span className="text-[var(--chance-muted-fg)]">Terms</span>
+                <Link href="/terms" className="chance-landing-footer-link">
+                  Terms
+                </Link>
               </li>
             </ul>
           </div>

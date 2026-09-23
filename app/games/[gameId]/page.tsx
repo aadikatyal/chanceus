@@ -87,7 +87,12 @@ export default async function GameLobbyPage({ params }: GameLobbyPageProps) {
   const stats = statsByGame[gameId]
 
   const rail = (
-    <GameQueueRail gameId={gameId} waitingMatches={(waitingMatches ?? []) as PlayLobbyMatch[]} />
+    <GameQueueRail
+      gameId={gameId}
+      waitingMatches={(waitingMatches ?? []) as PlayLobbyMatch[]}
+      betAmount={game.min_bet ?? 1}
+      tokens={user.tokens ?? 0}
+    />
   )
 
   return (
