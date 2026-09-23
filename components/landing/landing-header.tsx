@@ -35,8 +35,8 @@ export default function LandingHeader({ arenaActive = false }: LandingHeaderProp
           : "border-transparent bg-transparent"
       )}
     >
-      <div className="chance-landing-header-inner mx-auto flex h-[var(--chance-header-h)] max-w-[90rem] items-center gap-4 px-4 sm:px-6 lg:px-8 pt-[env(safe-area-inset-top,0px)]">
-        <Link href="/" className="chance-focus-ring chance-pressable flex shrink-0 items-center gap-2 rounded-md py-1">
+      <div className="chance-landing-header-inner mx-auto grid h-[var(--chance-header-h)] max-w-[90rem] grid-cols-[1fr_auto_1fr] items-center gap-4 px-4 sm:px-6 lg:px-8 pt-[env(safe-area-inset-top,0px)]">
+        <Link href="/" className="chance-focus-ring chance-pressable flex min-w-0 items-center justify-self-start gap-2 rounded-md py-1">
           <Image src="/chanceus-eagle.png" alt="ChanceUS" width={36} height={36} className="size-9 object-contain" priority />
           <span className="hidden text-sm font-semibold tracking-tight sm:inline">ChanceUS</span>
           {arenaActive ? (
@@ -47,12 +47,15 @@ export default function LandingHeader({ arenaActive = false }: LandingHeaderProp
           ) : null}
         </Link>
 
-        <nav className="flex min-w-0 flex-1 items-center justify-end gap-4 overflow-x-auto pr-1 sm:justify-center sm:gap-6 md:gap-8 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" aria-label="Landing">
+        <nav
+          className="flex min-w-0 items-center justify-center gap-4 overflow-x-auto sm:gap-6 md:gap-8 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          aria-label="Landing"
+        >
           {NAV.map((item) => (
             <a
               key={item.href}
               href={item.href}
-              className="chance-landing-nav-link chance-focus-ring text-sm font-medium"
+              className="chance-landing-nav-link chance-focus-ring whitespace-nowrap text-sm font-medium"
               onClick={(e) => onLandingHashClick(e, item.href)}
             >
               {item.label}
@@ -60,11 +63,11 @@ export default function LandingHeader({ arenaActive = false }: LandingHeaderProp
           ))}
         </nav>
 
-        <div className="ml-auto flex items-center gap-2 sm:gap-3">
+        <div className="flex min-w-0 items-center justify-self-end gap-2 sm:gap-3">
           <Link href="/auth/login" className="chance-landing-nav-link chance-focus-ring hidden px-3 py-2 text-sm font-medium sm:inline-flex">
             Sign in
           </Link>
-          <Link href="/auth/sign-up" className="chance-hero-cta-primary chance-focus-ring px-4 py-2.5 text-sm">
+          <Link href="/auth/sign-up" className="chance-hero-cta-primary chance-focus-ring whitespace-nowrap px-4 py-2.5 text-sm">
             Get started
           </Link>
         </div>

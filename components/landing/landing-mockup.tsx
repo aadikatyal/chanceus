@@ -67,15 +67,39 @@ export default function LandingMockup({ variant = "hero", live }: LandingMockupP
             </div>
             <div className="chance-landing-mockup-content">
               <div className={`chance-landing-mockup-hero-card ${matchesLive ? "is-live" : ""}`}>
-                <p className="chance-landing-mockup-kicker">{matchesLive ? "Match live" : "Ranked skill"}</p>
-                <p className="chance-landing-mockup-headline">
-                  Prove it.
-                  <br />
-                  Win it.
-                </p>
-                <div className="chance-landing-mockup-cta-row">
-                  <span className={`chance-landing-mockup-cta-primary ${queueActive ? "is-pulsing" : ""}`}>Queue now</span>
-                  <span className="chance-landing-mockup-cta-ghost">Wallet</span>
+                <div className="chance-landing-mockup-hero-visual">
+                  <div className="chance-landing-mockup-hero-visual-bg" aria-hidden />
+                  <Image
+                    src="/chanceus-eagle.png"
+                    alt=""
+                    width={88}
+                    height={88}
+                    className="chance-landing-mockup-hero-eagle"
+                    priority
+                  />
+                  <div className="chance-landing-mockup-hero-chips" aria-hidden>
+                    <span className="chance-landing-mockup-hero-chip">
+                      <Image src="/4-in-a-row.JPG" alt="" width={40} height={40} className="size-full object-cover" />
+                    </span>
+                    <span className="chance-landing-mockup-hero-chip">
+                      <Image src="/math-blitz.JPG" alt="" width={40} height={40} className="size-full object-cover" />
+                    </span>
+                    <span className="chance-landing-mockup-hero-chip">
+                      <Image src="/trivia-blitz.JPG" alt="" width={40} height={40} className="size-full object-cover" />
+                    </span>
+                  </div>
+                </div>
+                <div className="chance-landing-mockup-hero-copy">
+                  <p className="chance-landing-mockup-kicker">{matchesLive ? "Match live" : "Skill-based gaming"}</p>
+                  <p className="chance-landing-mockup-headline">
+                    Prove it.
+                    <br />
+                    Win it.
+                  </p>
+                  <div className="chance-landing-mockup-cta-row">
+                    <span className={`chance-landing-mockup-cta-primary ${queueActive ? "is-pulsing" : ""}`}>Queue now</span>
+                    <span className="chance-landing-mockup-cta-ghost">Wallet</span>
+                  </div>
                 </div>
               </div>
               <div className="chance-landing-mockup-tiles">
