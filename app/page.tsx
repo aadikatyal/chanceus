@@ -1,12 +1,15 @@
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
-import LandingPageClient, { type LandingGame, type LandingStats } from "@/components/landing/landing-page-client"
+import LandingPageClient, { type LandingGame } from "@/components/landing/landing-page-client"
+import { buildLandingLiveMetrics } from "@/lib/landing-live-metrics"
+import { fetchLandingPlatformAggregates } from "@/lib/fetch-landing-platform-stats"
+import { getAllTournaments } from "@/lib/tournament-actions"
 import "./chance-landing.css"
 
 export default async function Home() {
   if (!isSupabaseConfigured) {
     return (
-      <div className="dark chance-competitive-theme flex min-h-screen items-center justify-center bg-[var(--chance-bg)] px-4">
+      <div className="chance-competitive-theme flex min-h-screen items-center justify-center bg-[var(--chance-bg)] px-4">
         <h1 className="text-xl font-semibold text-[var(--chance-fg)]">Connect Supabase to get started</h1>
       </div>
     )
@@ -22,12 +25,31 @@ export default async function Home() {
     if (userProfile) redirect("/dashboard")
   }
 
-  const [{ data: gamesRaw }, { count: playerCount }, { count: matchCount }, { count: completedCount }] = await Promise.all([
+  const [
+    { data: gamesRaw },
+    { count: playersOnline },
+    { count: playersInArena },
+    { count: matchesLive },
+    { count: matchesDecided },
+    { data: completedPots },
+    { data: winTransactions },
+  ] = await Promise.all([
     supabase.from("games").select("id, name, description, min_bet, max_bet").order("name"),
-    supabase.from("users").select("*", { count: "exact", head: true }),
-    supabase.from("matches").select("*", { count: "exact", head: true }),
+    supabase.from("users").select("*", { count: "exact", head: true }).eq("is_online", true),
+    supabase.from("users").select("*", { count: "exact", head: true }).gt("total_games_played", 0),
+    supabase.from("matches").select("*", { count: "exact", head: true }).eq("status", "in_progress"),
     supabase.from("matches").select("*", { count: "exact", head: true }).eq("status", "completed"),
+    supabase.from("matches").select("bet_amount").eq("status", "completed").limit(2000),
+    supabase.from("transactions").select("amount").in("type", ["win", "bonus"]).gt("amount", 0).limit(2000),
   ])
+
+  let tournamentsLive = 0
+  try {
+    const tournaments = await getAllTournaments()
+    tournamentsLive = tournaments.filter((t) => t.status === "in_progress").length
+  } catch {
+    tournamentsLive = 0
+  }
 
   const { data: liveMatches } = await supabase.from("matches").select("game_id").eq("status", "in_progress")
 
@@ -73,19 +95,34 @@ export default async function Home() {
     },
   ]
 
-  const { data: tokenSum } = await supabase.from("matches").select("bet_amount").eq("status", "completed").limit(500)
+  const displayGames = games.length > 0 ? games : fallbackGames
+  const platform = await fetchLandingPlatformAggregates(matchesDecided ?? 0)
 
-  let tokensWon = 0
-  for (const row of tokenSum ?? []) {
-    tokensWon += (Number(row.bet_amount) || 0) * 2
+  let tokensFromMatches = 0
+  for (const row of completedPots ?? []) {
+    tokensFromMatches += (Number(row.bet_amount) || 0) * 2
   }
 
-  const stats: LandingStats = {
-    activePlayers: Math.max(playerCount ?? 0, 1),
-    matchesPlayed: matchCount ?? 0,
-    tokensWon: tokensWon || 10000,
-    gamesCompleted: completedCount ?? 0,
+  let tokensFromTransactions = 0
+  for (const row of winTransactions ?? []) {
+    tokensFromTransactions += Number(row.amount) || 0
   }
 
-  return <LandingPageClient games={games.length > 0 ? games : fallbackGames} stats={stats} />
+  const live = buildLandingLiveMetrics({
+    gamesPlayed: platform.gamesPlayed,
+    tokensInPlay: platform.tokensInCirculation,
+    moneyMadeUsd: platform.moneyMadeUsd,
+    playersOnline: playersOnline ?? 0,
+    matchesLive: matchesLive ?? 0,
+    inQueue: platform.inQueue,
+    openLobbies: platform.openLobbies,
+    registeredPlayers: platform.registeredPlayers,
+    openTournaments: platform.openTournaments,
+    playersInArena: playersInArena ?? 0,
+    tournamentsLive,
+    matchesDecided: matchesDecided ?? 0,
+    tokensEarned: Math.max(tokensFromMatches, tokensFromTransactions),
+  })
+
+  return <LandingPageClient games={displayGames} live={live} />
 }

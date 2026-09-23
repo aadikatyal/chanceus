@@ -3,22 +3,20 @@
 import Image from "next/image"
 import Link from "next/link"
 import { useEffect, useRef, useState } from "react"
-import {
-  ArrowDown,
-  Flame,
-  Gamepad2,
-  Mic,
-  Radio,
-  Search,
-  Swords,
-  Trophy,
-  Users,
-} from "lucide-react"
+import { ChevronDown } from "lucide-react"
 import LandingFooter from "@/components/landing/landing-footer"
 import LandingHeader from "@/components/landing/landing-header"
+import LandingLiveArena from "@/components/landing/landing-live-arena"
 import LandingMockup from "@/components/landing/landing-mockup"
 import { useCountUp } from "@/components/landing/use-count-up"
+import { onLandingHashClick, scrollToLandingSection } from "@/components/landing/landing-scroll"
 import { getGameDisplayName, getGameThumbnail } from "@/lib/games/game-visuals"
+import {
+  EMPTY_LANDING_LIVE_METRICS,
+  LANDING_SHOWCASE_LABELS,
+  buildLandingLiveMetrics,
+  type LandingLiveMetrics,
+} from "@/lib/landing-live-metrics"
 
 export type LandingGame = {
   id: string
@@ -29,37 +27,65 @@ export type LandingGame = {
   playersLive?: number
 }
 
-export type LandingStats = {
-  activePlayers: number
-  matchesPlayed: number
-  tokensWon: number
-  gamesCompleted: number
+const LOOP = ["Home", "Play", "Queue", "Lobby", "Match", "Results", "Rank"]
+
+/** @deprecated Pre-live-metrics prop shape — mapped when `live` is missing (HMR / stale bundles). */
+type LegacyLandingStats = {
+  activePlayers?: number
+  matchesPlayed?: number
+  tokensWon?: number
+  gamesCompleted?: number
 }
-
-const FLOW = [
-  { label: "Home", href: "/dashboard" },
-  { label: "Play", href: "/games" },
-  { label: "Queue", href: "/games" },
-  { label: "Lobby", href: "/games" },
-  { label: "Match", href: "/games" },
-  { label: "Results", href: "/matches" },
-  { label: "Progress", href: "/rankings" },
-]
-
-const COMMUNITY = [
-  { icon: Users, title: "Friends", copy: "See who's online, rematch rivals, climb together." },
-  { icon: Mic, title: "Voice rooms", copy: "Hang out before queue — party up on Live Call." },
-  { icon: Radio, title: "Live matches", copy: "Spectate tables in progress across the platform." },
-  { icon: Trophy, title: "Tournaments", copy: "Brackets, stakes, and scheduled run-it-back nights." },
-  { icon: Swords, title: "Leaderboards", copy: "Ranked ladders that reward consistency, not luck." },
-]
 
 type LandingPageClientProps = {
   games: LandingGame[]
-  stats: LandingStats
+  live?: LandingLiveMetrics
+  stats?: LegacyLandingStats
 }
 
-function useInView(threshold = 0.2) {
+function resolveLandingLive(live?: Partial<LandingLiveMetrics>, stats?: LegacyLandingStats): LandingLiveMetrics {
+  if (live) {
+    const legacy = live as Partial<LandingLiveMetrics> & {
+      tokensInCirculation?: number
+      gamesAvailable?: number
+    }
+    return buildLandingLiveMetrics({
+      gamesPlayed: legacy.gamesPlayed ?? legacy.matchesDecided ?? 0,
+      tokensInPlay: legacy.tokensInPlay ?? legacy.tokensInCirculation ?? legacy.tokensEarned ?? 0,
+      moneyMadeUsd: legacy.moneyMadeUsd ?? 0,
+      playersOnline: legacy.playersOnline ?? 0,
+      matchesLive: legacy.matchesLive ?? 0,
+      inQueue: legacy.inQueue ?? 0,
+      openLobbies: legacy.openLobbies ?? 0,
+      registeredPlayers: legacy.registeredPlayers ?? 0,
+      openTournaments: legacy.openTournaments ?? 0,
+      playersInArena: legacy.playersInArena ?? 0,
+      tournamentsLive: legacy.tournamentsLive ?? 0,
+      matchesDecided: legacy.matchesDecided ?? 0,
+      tokensEarned: legacy.tokensEarned ?? 0,
+    })
+  }
+  if (stats) {
+    return buildLandingLiveMetrics({
+      gamesPlayed: stats.matchesPlayed ?? stats.gamesCompleted ?? 0,
+      tokensInPlay: stats.tokensWon ?? 0,
+      moneyMadeUsd: 0,
+      playersOnline: 0,
+      matchesLive: 0,
+      inQueue: 0,
+      openLobbies: 0,
+      registeredPlayers: stats.activePlayers ?? 0,
+      openTournaments: 0,
+      playersInArena: stats.activePlayers ?? stats.gamesCompleted ?? 0,
+      tournamentsLive: 0,
+      matchesDecided: stats.matchesPlayed ?? stats.gamesCompleted ?? 0,
+      tokensEarned: stats.tokensWon ?? 0,
+    })
+  }
+  return EMPTY_LANDING_LIVE_METRICS
+}
+
+function useInView(threshold = 0.15) {
   const ref = useRef<HTMLElement | null>(null)
   const [visible, setVisible] = useState(false)
   useEffect(() => {
@@ -72,242 +98,295 @@ function useInView(threshold = 0.2) {
   return { ref, visible }
 }
 
-export default function LandingPageClient({ games, stats }: LandingPageClientProps) {
-  const statsRef = useInView(0.25)
-  const players = useCountUp(stats.activePlayers, 1600, statsRef.visible)
-  const matches = useCountUp(stats.matchesPlayed, 1600, statsRef.visible)
-  const tokens = useCountUp(stats.tokensWon, 1600, statsRef.visible)
-  const completed = useCountUp(stats.gamesCompleted, 1600, statsRef.visible)
+export default function LandingPageClient({ games, live: liveProp, stats }: LandingPageClientProps) {
+  const live = resolveLandingLive(liveProp, stats)
+
+  useEffect(() => {
+    const hash = window.location.hash
+    if (!hash) return
+    requestAnimationFrame(() => scrollToLandingSection(hash))
+  }, [])
+
+  const recordRef = useInView(0.2)
+  const recordGames = useCountUp(live.gamesPlayed, 1800, recordRef.visible)
+  const recordTokens = useCountUp(live.tokensInPlay, 1800, recordRef.visible)
+  const recordMoney = useCountUp(live.moneyMadeUsd, 1800, recordRef.visible)
+
+  const spotlightGames = (games ?? []).slice(0, 3)
+  const arenaActive = live.matchesLive > 0 || live.playersOnline > 0 || live.inQueue > 0
 
   return (
-    <div className="chance-landing dark chance-competitive-theme min-h-screen bg-[var(--chance-bg)] text-[var(--chance-fg)]">
+    <div className="chance-landing chance-competitive-theme min-h-screen bg-[var(--chance-bg)] text-[var(--chance-fg)]">
       <div className="chance-landing-ambient" aria-hidden />
-      <LandingHeader />
+      <div className="chance-landing-ambient-hero" aria-hidden />
+      <LandingHeader arenaActive={arenaActive} />
 
       <main className="chance-landing-main">
-        {/* Hero */}
-        <section className="chance-landing-hero" aria-labelledby="landing-hero-title">
-          <div className="chance-landing-hero-grid mx-auto max-w-[90rem] px-4 pb-16 pt-[calc(var(--chance-header-h)+2rem)] sm:px-6 lg:px-8 lg:pb-24 lg:pt-[calc(var(--chance-header-h)+3rem)]">
+        {/* Hero — headline owns the frame; product floats as proof */}
+        <section className="chance-landing-panel chance-landing-panel--hero" aria-labelledby="landing-hero-title">
+          <div className="chance-landing-hero-inner">
             <div className="chance-landing-hero-copy">
-              <p className="chance-hero-kicker">
-                <span className="size-1.5 rounded-full bg-[var(--chance-brand)] shadow-[0_0_8px_var(--chance-brand)]" aria-hidden />
-                Competitive gaming
-              </p>
-              <h1 id="landing-hero-title" className="chance-landing-hero-title">
-                Play.
-                <br />
-                Compete.
-                <br />
-                Win.
+              <LandingLiveArena live={live} variant="strip" />
+              <h1 id="landing-hero-title" className="chance-landing-display-xl">
+                Prove you&apos;re
+                <span className="chance-landing-display-accent"> better.</span>
               </h1>
-              <p className="mt-4 max-w-md text-[1.0625rem] leading-relaxed text-[var(--chance-muted-fg)]">
-                Skill decides every match. Stake tokens, beat real opponents, and build a record that means something.
+              <p className="chance-landing-hero-lede">
+                Skill beats luck. Every match builds your reputation. Your rank remembers.
               </p>
-              <div className="chance-hero-cta-row mt-8">
-                <Link href="/auth/sign-up" className="chance-hero-cta-primary chance-focus-ring chance-pressable">
-                  Get started
+              <div className="chance-landing-hero-actions">
+                <Link href="/auth/sign-up" className="chance-hero-cta-primary chance-focus-ring chance-pressable chance-landing-cta-lg">
+                  Enter the arena
                 </Link>
-                <a href="#community" className="chance-hero-cta-ghost chance-focus-ring">
-                  Watch demo
+                <a href="#games" className="chance-hero-cta-ghost chance-focus-ring chance-landing-cta-lg" onClick={(e) => onLandingHashClick(e, "#games")}>
+                  Browse games
                 </a>
               </div>
             </div>
-            <div className="chance-landing-hero-visual">
-              <LandingMockup />
+            <div className="chance-landing-hero-product">
+              <LandingMockup
+                variant="hero"
+                live={{ playersOnline: live.playersOnline, matchesLive: live.matchesLive, inQueue: live.inQueue }}
+              />
             </div>
           </div>
+          <a
+            href="#story"
+            className="chance-landing-scroll-hint chance-focus-ring"
+            aria-label="Scroll to learn more"
+            onClick={(e) => onLandingHashClick(e, "#story")}
+          >
+            <ChevronDown className="size-6" strokeWidth={1.5} />
+          </a>
         </section>
 
-        {/* How it works */}
-        <section className="chance-landing-section" aria-labelledby="landing-how">
-          <div className="mx-auto max-w-[90rem] px-4 sm:px-6 lg:px-8">
-            <header className="chance-landing-section-head">
-              <h2 id="landing-how" className="chance-landing-section-title">
-                How it works
-              </h2>
-              <p className="chance-text-caption mt-2 max-w-lg">Three steps from idle to in-match.</p>
-            </header>
-            <ol className="chance-landing-steps">
-              {[
-                { n: "01", title: "Choose a game", body: "Four in a Row, Math Blitz, or Trivia — pick your edge.", icon: Gamepad2 },
-                { n: "02", title: "Find a match", body: "Queue for stakes that fit your bankroll or invite a rival.", icon: Search },
-                { n: "03", title: "Win tokens", body: "Outplay your opponent. Winner takes the pot.", icon: Trophy },
-              ].map((step, i) => (
-                <li key={step.n} className="chance-landing-step">
-                  {i < 2 ? <span className="chance-landing-step-connector" aria-hidden /> : null}
-                  <div className="chance-landing-step-icon">
-                    <step.icon className="size-6 stroke-[1.75] text-[var(--chance-brand)]" aria-hidden />
-                  </div>
-                  <p className="chance-text-mono text-xs font-semibold text-[var(--chance-brand)]">{step.n}</p>
-                  <h3 className="mt-2 text-lg font-semibold tracking-tight">{step.title}</h3>
-                  <p className="chance-text-caption mt-2">{step.body}</p>
-                </li>
-              ))}
+        {/* Three moves */}
+        <section id="story" className="chance-landing-panel chance-landing-panel--story" aria-labelledby="landing-story">
+          <div className="chance-landing-panel-inner chance-landing-panel-inner--wide">
+            <p className="chance-landing-eyebrow">How you win</p>
+            <h2 id="landing-story" className="chance-landing-display-lg">
+              Three moves.
+              <br />
+              One outcome.
+            </h2>
+            <ol className="chance-landing-story-list">
+              <li>
+                <span className="chance-landing-story-index">01</span>
+                <div>
+                  <p className="chance-landing-story-title">Pick your battlefield</p>
+                  <p className="chance-landing-story-line">Go where your skill hits hardest.</p>
+                </div>
+              </li>
+              <li>
+                <span className="chance-landing-story-index">02</span>
+                <div>
+                  <p className="chance-landing-story-title">Queue with intent</p>
+                  <p className="chance-landing-story-line">Real opponents. Real stakes. No house.</p>
+                </div>
+              </li>
+              <li>
+                <span className="chance-landing-story-index">03</span>
+                <div>
+                  <p className="chance-landing-story-title">Earn every win</p>
+                  <p className="chance-landing-story-line">Take the pot. Watch your record move.</p>
+                </div>
+              </li>
             </ol>
           </div>
         </section>
 
-        {/* Games */}
-        <section id="games" className="chance-landing-section" aria-labelledby="landing-games">
-          <div className="mx-auto max-w-[90rem] px-4 sm:px-6 lg:px-8">
-            <header className="chance-landing-section-head">
-              <h2 id="landing-games" className="chance-landing-section-title">
-                Games
-              </h2>
-              <p className="chance-text-caption mt-2">Head-to-head skill. Real stakes.</p>
-            </header>
-            <div className="chance-landing-games-track">
-              {games.map((game, i) => {
-                const name = getGameDisplayName(game.name)
-                const thumb = getGameThumbnail(game.name)
-                return (
-                  <article key={game.id} className={`chance-landing-game-card ${i === 0 ? "is-featured" : ""}`}>
-                    <Link href={`/games/${game.id}`} className="chance-landing-game-link chance-focus-ring group">
-                      <div className="chance-landing-game-visual">
-                        <Image src={thumb} alt="" fill className="object-cover transition-transform duration-300 group-hover:scale-[1.04]" sizes="(max-width:768px) 85vw, 360px" />
-                        <div className="chance-landing-game-scrim" aria-hidden />
-                        {(game.playersLive ?? 0) > 0 ? (
-                          <span className="chance-play-live-badge">
-                            <span className="chance-play-live-dot" aria-hidden />
-                            {game.playersLive} live
-                          </span>
-                        ) : null}
-                      </div>
-                      <div className="chance-landing-game-body">
-                        <h3 className="text-lg font-semibold tracking-tight">{name}</h3>
-                        <p className="chance-text-caption mt-1 line-clamp-2">{game.description}</p>
-                        <p className="chance-text-mono mt-3 text-sm font-semibold tabular-nums text-[var(--chance-brand)]">
-                          {game.min_bet}–{game.max_bet} tokens
-                        </p>
-                      </div>
-                    </Link>
-                  </article>
-                )
-              })}
-              <article className="chance-landing-game-card chance-landing-game-card--soon">
-                <div className="chance-landing-game-body flex h-full flex-col justify-center p-6">
-                  <p className="chance-text-mono text-xs font-bold uppercase tracking-widest text-[var(--chance-muted-fg)]">Soon</p>
-                  <h3 className="mt-2 text-lg font-semibold">More ranked modes</h3>
-                  <p className="chance-text-caption mt-2">New skill games drop as the ladder grows.</p>
+        {/* Featured games — alternating rhythm */}
+        {spotlightGames.map((game, i) => {
+          const name = getGameDisplayName(game.name)
+          const thumb = getGameThumbnail(game.name)
+          const reversed = i % 2 === 1
+          return (
+            <section
+              key={game.id}
+              id={i === 0 ? "games" : undefined}
+              className={`chance-landing-panel chance-landing-panel--game ${reversed ? "chance-landing-panel--game-reversed" : ""} chance-landing-panel--game-tone-${i % 3}`}
+              aria-labelledby={`game-${game.id}`}
+            >
+              <div className="chance-landing-panel-inner">
+                <div className="chance-landing-game-copy">
+                  <p className="chance-landing-eyebrow">
+                    {game.playersLive ? (
+                      <>
+                        <span className="chance-landing-inline-live" aria-hidden /> {game.playersLive} in match now
+                      </>
+                    ) : (
+                      "Head-to-head ranked"
+                    )}
+                  </p>
+                  <h2 id={`game-${game.id}`} className="chance-landing-display-lg">
+                    {name}
+                  </h2>
+                  <p className="chance-landing-lede chance-landing-lede--tight">
+                    {game.description ?? "Outplay them. Leave with the tokens."}
+                  </p>
+                  <p className="chance-landing-stakes chance-text-mono">
+                    {game.min_bet}–{game.max_bet} tokens per match
+                  </p>
+                  <Link href={`/games/${game.id}`} className="chance-hero-cta-primary chance-focus-ring chance-landing-cta-lg mt-10 inline-flex">
+                    Enter queue
+                  </Link>
                 </div>
-              </article>
-            </div>
-          </div>
-        </section>
+                <div className="chance-landing-game-backdrop">
+                  <div className="chance-landing-game-backdrop-glow" aria-hidden />
+                  <Image src={thumb} alt="" fill className="object-contain p-3" sizes="(max-width:900px) 90vw, 380px" priority={i === 0} />
+                </div>
+              </div>
+            </section>
+          )
+        })}
 
-        {/* Ecosystem flow */}
-        <section className="chance-landing-section" aria-labelledby="landing-flow">
-          <div className="mx-auto max-w-[90rem] px-4 sm:px-6 lg:px-8">
-            <header className="chance-landing-section-head">
-              <h2 id="landing-flow" className="chance-landing-section-title">
-                The competitive loop
-              </h2>
-              <p className="chance-text-caption mt-2 max-w-xl">One ecosystem — from opening the app to climbing rank.</p>
-            </header>
-            <div className="chance-landing-flow">
-              {FLOW.map((node, i) => (
-                <div key={node.label} className="chance-landing-flow-node">
-                  <span className="chance-landing-flow-pill">{node.label}</span>
-                  {i < FLOW.length - 1 ? <ArrowDown className="chance-landing-flow-arrow hidden sm:block" aria-hidden /> : null}
-                </div>
+        {/* Competitive loop */}
+        <section className="chance-landing-panel chance-landing-panel--journey" aria-labelledby="landing-journey">
+          <div className="chance-landing-panel-inner">
+            <p className="chance-landing-eyebrow">Competitive loop</p>
+            <h2 id="landing-journey" className="sr-only">
+              Player journey through ChanceUS
+            </h2>
+            <p className="chance-landing-journey-line" aria-label="Player journey">
+              {LOOP.map((word, i) => (
+                <span key={word}>
+                  <span className="chance-landing-journey-word">{word}</span>
+                  {i < LOOP.length - 1 ? <span className="chance-landing-journey-sep" aria-hidden /> : null}
+                </span>
               ))}
-            </div>
+            </p>
+            <p className="chance-landing-lede mt-12 max-w-2xl">
+              One ecosystem — from opening the app to holding rank. Every screen is built for competition, not browsing.
+            </p>
           </div>
         </section>
 
-        {/* Community */}
-        <section id="community" className="chance-landing-section" aria-labelledby="landing-community">
-          <div className="mx-auto max-w-[90rem] px-4 sm:px-6 lg:px-8">
-            <header className="chance-landing-section-head">
-              <h2 id="landing-community" className="chance-landing-section-title">
-                Community
+        {/* Tournaments — in-page anchor (app route requires sign-in) */}
+        <section id="tournaments" className="chance-landing-panel chance-landing-panel--tournaments" aria-labelledby="landing-tournaments">
+          <div className="chance-landing-panel-inner chance-landing-tournaments-layout">
+            <div>
+              <p className="chance-landing-eyebrow">
+                {live.tournamentsLive > 0 ? (
+                  <>
+                    <span className="chance-landing-inline-live" aria-hidden /> {live.tournamentsLive} bracket
+                    {live.tournamentsLive === 1 ? "" : "s"} live
+                  </>
+                ) : (
+                  "Tournaments"
+                )}
+              </p>
+              <h2 id="landing-tournaments" className="chance-landing-display-lg">
+                Run the
+                <br />
+                bracket.
               </h2>
-              <p className="chance-text-caption mt-2">The floor is always moving.</p>
-            </header>
-            <ul className="chance-landing-community-grid">
-              {COMMUNITY.map((item) => (
-                <li key={item.title} className="chance-premium-card chance-landing-community-card p-5 sm:p-6">
-                  <item.icon className="size-5 text-[var(--chance-brand)]" aria-hidden />
-                  <h3 className="mt-3 text-base font-semibold">{item.title}</h3>
-                  <p className="chance-text-caption mt-2">{item.copy}</p>
-                </li>
+              <p className="chance-landing-lede mt-8 max-w-xl">
+                Open brackets. Winner-take-all pots. A stage when head-to-head isn&apos;t enough — prove it in front of everyone.
+              </p>
+              <div className="chance-landing-hero-actions mt-10 !justify-start">
+                <Link href="/auth/sign-up" className="chance-hero-cta-primary chance-focus-ring chance-landing-cta-lg">
+                  Join a bracket
+                </Link>
+                <Link href="/auth/login" className="chance-hero-cta-ghost chance-focus-ring chance-landing-cta-lg">
+                  Sign in to compete
+                </Link>
+              </div>
+            </div>
+            <ul className="chance-landing-tournament-feats" aria-label="Tournament features">
+              {["Single elimination", "Live brackets", "Token prizes", "Seasonal ladders"].map((item) => (
+                <li key={item}>{item}</li>
               ))}
             </ul>
           </div>
         </section>
 
-        {/* Progression */}
-        <section className="chance-landing-section" aria-labelledby="landing-progress">
-          <div className="mx-auto max-w-[90rem] px-4 sm:px-6 lg:px-8">
-            <div className="chance-landing-progress chance-premium-card overflow-hidden">
-              <div className="chance-landing-progress-copy p-6 sm:p-10 lg:max-w-md">
-                <h2 id="landing-progress" className="chance-landing-section-title text-2xl sm:text-3xl">
-                  Progression that sticks
-                </h2>
-                <p className="chance-text-caption mt-3">Rank ladder, streaks, match history, and a career profile that follows every win.</p>
-                <ul className="mt-6 space-y-3 text-sm">
-                  {["Rank tiers & seasonal ladders", "Win streaks & achievement moments", "Full match history & rematch"].map((line) => (
-                    <li key={line} className="flex items-center gap-2">
-                      <Flame className="size-4 shrink-0 text-[var(--chance-brand)]" aria-hidden />
-                      {line}
-                    </li>
-                  ))}
-                </ul>
-                <Link href="/auth/sign-up" className="chance-hero-cta-primary chance-focus-ring mt-8 inline-flex px-5 py-2.5 text-sm">
-                  Build your record
-                </Link>
-              </div>
-              <div className="chance-landing-progress-visual p-6 sm:p-8" aria-hidden>
-                <div className="chance-landing-ladder">
-                  {["Diamond", "Platinum", "Gold", "Silver"].map((tier, i) => (
-                    <div key={tier} className="chance-landing-ladder-rung" style={{ ["--rung-i" as string]: i }}>
-                      <span>{tier}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
+        {/* Community */}
+        <section id="community" className="chance-landing-panel chance-landing-panel--community" aria-labelledby="landing-community">
+          <div className="chance-landing-panel-inner chance-landing-community-layout">
+            <div>
+              <p className="chance-landing-eyebrow">Community</p>
+              <h2 id="landing-community" className="chance-landing-display-lg">
+                Never
+                <br />
+                sleeps.
+              </h2>
+              <p className="chance-landing-lede mt-8 max-w-xl">
+                Friends online. Voice rooms open. Tables running. Leaderboards moving while you queue.
+              </p>
+            </div>
+            <LandingLiveArena live={live} variant="grid" />
+          </div>
+          <ul className="chance-landing-community-tags chance-landing-panel-inner" aria-label="Community surfaces">
+            {["Friends", "Live Call", "Spectate", "Tournaments", "Rankings"].map((tag) => (
+              <li key={tag}>{tag}</li>
+            ))}
+          </ul>
+          <div className="chance-landing-community-glow" aria-hidden />
+        </section>
+
+        {/* Rank */}
+        <section className="chance-landing-panel chance-landing-panel--progress" aria-labelledby="landing-progress">
+          <div className="chance-landing-panel-inner chance-landing-progress-layout">
+            <div>
+              <p className="chance-landing-eyebrow">Progression</p>
+              <h2 id="landing-progress" className="chance-landing-display-lg">
+                Your rank
+                <br />
+                remembers.
+              </h2>
+              <p className="chance-landing-lede mt-8 max-w-lg">
+                Streaks. History. Seasonal ladders. A profile that reads like a career — not a buried settings page.
+              </p>
+            </div>
+            <div className="chance-landing-rank-stack" aria-hidden>
+              {["Diamond", "Platinum", "Gold"].map((tier) => (
+                <span key={tier} className="chance-landing-rank-tier">
+                  {tier}
+                </span>
+              ))}
             </div>
           </div>
         </section>
 
-        {/* Stats */}
-        <section ref={statsRef.ref} className="chance-landing-section" aria-labelledby="landing-stats">
-          <div className="mx-auto max-w-[90rem] px-4 sm:px-6 lg:px-8">
-            <header className="chance-landing-section-head text-center">
-              <h2 id="landing-stats" className="chance-landing-section-title">
-                By the numbers
-              </h2>
-            </header>
-            <dl className="chance-landing-stats-grid">
-              <div>
-                <dt className="chance-text-caption">Active players</dt>
-                <dd className="chance-landing-stat-value">{players.toLocaleString()}+</dd>
+        {/* Platform record — real totals only */}
+        <section ref={recordRef.ref} className="chance-landing-panel chance-landing-panel--record" aria-labelledby="landing-record">
+          <div className="chance-landing-panel-inner">
+            <p className="chance-landing-eyebrow">Platform record</p>
+            <h2 id="landing-record" className="chance-landing-display-md">
+              Every match matters.
+            </h2>
+            <dl className="chance-landing-stats-row">
+              <div className="chance-landing-stat-item">
+                <dd className="chance-landing-stat-huge" data-zero={live.gamesPlayed === 0 || undefined}>
+                  {recordGames.toLocaleString()}
+                </dd>
+                <dt className="chance-landing-stat-label">{LANDING_SHOWCASE_LABELS.gamesPlayed}</dt>
               </div>
-              <div>
-                <dt className="chance-text-caption">Matches played</dt>
-                <dd className="chance-landing-stat-value">{matches.toLocaleString()}+</dd>
+              <div className="chance-landing-stat-item">
+                <dd className="chance-landing-stat-huge" data-zero={live.tokensInPlay === 0 || undefined}>
+                  {recordTokens.toLocaleString()}
+                </dd>
+                <dt className="chance-landing-stat-label">{LANDING_SHOWCASE_LABELS.tokensInPlay}</dt>
               </div>
-              <div>
-                <dt className="chance-text-caption">Tokens won</dt>
-                <dd className="chance-landing-stat-value">{tokens.toLocaleString()}+</dd>
-              </div>
-              <div>
-                <dt className="chance-text-caption">Games completed</dt>
-                <dd className="chance-landing-stat-value">{completed.toLocaleString()}+</dd>
+              <div className="chance-landing-stat-item">
+                <dd className="chance-landing-stat-huge" data-zero={live.moneyMadeUsd === 0 || undefined}>
+                  ${recordMoney.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                </dd>
+                <dt className="chance-landing-stat-label">{LANDING_SHOWCASE_LABELS.moneyMade}</dt>
               </div>
             </dl>
           </div>
         </section>
 
         {/* Final CTA */}
-        <section className="chance-landing-section chance-landing-final" aria-labelledby="landing-cta">
-          <div className="mx-auto max-w-3xl px-4 text-center sm:px-6 lg:px-8">
-            <h2 id="landing-cta" className="chance-landing-hero-title text-3xl sm:text-4xl md:text-5xl">
-              Ready to prove you&apos;re better?
+        <section className="chance-landing-panel chance-landing-panel--final" aria-labelledby="landing-cta">
+          <div className="chance-landing-panel-inner chance-landing-final-inner">
+            <p className="chance-landing-eyebrow">Your move</p>
+            <h2 id="landing-cta" className="chance-landing-display-xl">
+              Prove it.
             </h2>
-            <p className="chance-text-caption mx-auto mt-4 max-w-md text-base">Create your account. Queue your first match. Let skill do the talking.</p>
-            <Link href="/auth/sign-up" className="chance-hero-cta-primary chance-focus-ring chance-pressable mt-8 inline-flex min-h-11 px-8 py-3 text-base">
-              Get started
+            <Link href="/auth/sign-up" className="chance-hero-cta-primary chance-focus-ring chance-pressable chance-landing-cta-lg mt-12">
+              Enter the arena
             </Link>
           </div>
         </section>

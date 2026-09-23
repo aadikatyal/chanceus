@@ -18,9 +18,19 @@ export default function LandingFooter() {
                 </Link>
               </li>
               <li>
-                <Link href="/games" className="chance-landing-footer-link">
+                <a href="#games" className="chance-landing-footer-link">
                   Games
-                </Link>
+                </a>
+              </li>
+              <li>
+                <a href="#community" className="chance-landing-footer-link">
+                  Community
+                </a>
+              </li>
+              <li>
+                <a href="#tournaments" className="chance-landing-footer-link">
+                  Tournaments
+                </a>
               </li>
             </ul>
           </div>

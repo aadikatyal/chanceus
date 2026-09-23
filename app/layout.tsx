@@ -5,9 +5,11 @@ import "./chance-design-tokens.css"
 import "./chance-competitive-rich.css"
 import "./chance-responsive.css"
 import "./globals.css"
+import "./chance-theme-fab.css"
 import ClientInit from "./client-init"
 import { Toaster } from "@/components/ui/toaster"
 import FloatingFeedbackButton from "@/components/feedback/floating-feedback-button"
+import GlobalThemeToggle from "@/components/global-theme-toggle"
 import { ThemeProvider } from "@/components/theme-provider"
 
 const inter = Inter({
@@ -26,6 +28,10 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "ChanceUS",
   description: "Skill-based games where talent maps to tokens",
+  icons: {
+    icon: [{ url: "/chanceus-eagle.png", type: "image/png" }],
+    apple: [{ url: "/chanceus-eagle.png", type: "image/png" }],
+  },
 }
 
 export const viewport: Viewport = {
@@ -55,6 +61,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <ClientInit />
           {children}
+          <GlobalThemeToggle />
           <Toaster />
           <FloatingFeedbackButton />
         </ThemeProvider>

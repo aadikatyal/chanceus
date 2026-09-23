@@ -1,0 +1,59 @@
+.chance-theme-fab {
+  position: fixed;
+  z-index: 60;
+  bottom: max(1.25rem, env(safe-area-inset-bottom, 0px));
+  left: max(1.25rem, env(safe-area-inset-left, 0px));
+  pointer-events: none;
+}
+
+.chance-theme-fab-btn {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 9999px;
+  border: 1px solid color-mix(in srgb, var(--chance-border) 90%, transparent);
+  background: color-mix(in srgb, var(--chance-surface-raised) 92%, transparent);
+  color: var(--chance-fg);
+  box-shadow:
+    var(--chance-shadow-md),
+    0 0 0 1px color-mix(in srgb, var(--chance-brand) 8%, transparent);
+  backdrop-filter: blur(12px);
+  cursor: pointer;
+  transition:
+    transform var(--chance-duration-fast) var(--chance-ease),
+    box-shadow var(--chance-duration-fast) var(--chance-ease),
+    background var(--chance-duration-fast) var(--chance-ease);
+}
+
+.chance-theme-fab-btn:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    var(--chance-shadow-lg),
+    0 0 20px color-mix(in srgb, var(--chance-brand) 18%, transparent);
+  background: color-mix(in srgb, var(--chance-surface) 95%, transparent);
+}
+
+.chance-theme-fab-btn:active {
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chance-theme-fab-btn:hover {
+    transform: none;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .chance-theme-fab {
+    bottom: max(1rem, env(safe-area-inset-bottom, 0px));
+    left: max(1rem, env(safe-area-inset-left, 0px));
+  }
+
+  .chance-theme-fab-btn {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+}

@@ -1,0 +1,540 @@
+/* Cinematic auth — arena entrance, split layout */
+
+.chance-auth-marketing-shell {
+  position: relative;
+  overflow-x: clip;
+  background: var(--chance-bg);
+}
+
+.chance-auth-ambient {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 0%, color-mix(in srgb, var(--chance-brand) 18%, transparent), transparent 55%),
+    radial-gradient(ellipse 50% 40% at 90% 80%, color-mix(in srgb, var(--chance-brand) 8%, transparent), transparent 50%),
+    linear-gradient(180deg, color-mix(in srgb, var(--chance-surface-inset) 40%, var(--chance-bg)), var(--chance-bg));
+}
+
+.chance-auth-ambient-glow {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.7;
+  background: radial-gradient(circle at 30% 40%, color-mix(in srgb, var(--chance-brand) 12%, transparent), transparent 45%);
+  animation: chance-auth-glow-drift 18s ease-in-out infinite alternate;
+}
+
+.chance-auth-vignette {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  box-shadow: inset 0 0 120px rgb(0 0 0 / 0.45);
+}
+
+@keyframes chance-auth-glow-drift {
+  from {
+    transform: translate3d(0, 0, 0);
+    opacity: 0.55;
+  }
+  to {
+    transform: translate3d(2%, -1%, 0);
+    opacity: 0.85;
+  }
+}
+
+.chance-auth-topbar {
+  position: relative;
+  z-index: 2;
+  padding: max(1rem, env(safe-area-inset-top)) 1.25rem 0;
+}
+
+@media (min-width: 1024px) {
+  .chance-auth-topbar {
+    position: absolute;
+    inset-inline: 0;
+    top: 0;
+    padding: max(1.25rem, env(safe-area-inset-top)) clamp(1.5rem, 4vw, 3rem) 0;
+  }
+}
+
+.chance-auth-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  text-decoration: none;
+  color: var(--chance-fg);
+}
+
+.chance-auth-logo-text {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.chance-auth-grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  min-height: 100vh;
+  min-height: 100dvh;
+  grid-template-columns: 1fr;
+  gap: clamp(2rem, 5vh, 3rem);
+  padding: 1rem clamp(1.25rem, 4vw, 2rem) max(2rem, env(safe-area-inset-bottom));
+}
+
+@media (min-width: 1024px) {
+  .chance-auth-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(380px, 440px);
+    align-items: center;
+    gap: clamp(2rem, 5vw, 4rem);
+    padding: clamp(5rem, 10vh, 6.5rem) clamp(2rem, 5vw, 4rem);
+  }
+}
+
+.chance-auth-story {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1rem, 2.5vh, 1.5rem);
+  max-width: 40rem;
+}
+
+@media (max-width: 1023.98px) {
+  .chance-auth-story {
+    text-align: center;
+    align-items: center;
+    margin-inline: auto;
+  }
+}
+
+.chance-auth-eyebrow {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--chance-brand);
+}
+
+.chance-auth-headline {
+  font-size: clamp(2rem, 6vw, 3.25rem);
+  font-weight: 800;
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+}
+
+.chance-auth-subline {
+  font-size: clamp(1rem, 2vw, 1.125rem);
+  line-height: 1.55;
+  color: var(--chance-muted-fg);
+  max-width: 32rem;
+}
+
+.chance-auth-preview {
+  width: 100%;
+  max-width: 36rem;
+  margin-top: clamp(0.5rem, 2vh, 1.5rem);
+}
+
+@media (max-width: 1023.98px) {
+  .chance-auth-preview {
+    display: none;
+  }
+}
+
+.chance-auth-preview .chance-landing-mockup-screen {
+  min-height: clamp(14rem, 28vh, 18rem);
+}
+
+.chance-auth-main {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+@media (min-width: 1024px) {
+  .chance-auth-main {
+    justify-content: flex-end;
+  }
+}
+
+.chance-auth-panel-wrap {
+  width: 100%;
+  max-width: 440px;
+}
+
+/* Live strip */
+.chance-auth-live {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: 0.85rem 1rem;
+  border-radius: 0.875rem;
+  border: 1px solid color-mix(in srgb, var(--chance-border) 85%, transparent);
+  background: color-mix(in srgb, var(--chance-surface) 65%, transparent);
+  backdrop-filter: blur(10px);
+}
+
+.chance-auth-live-beacon {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--chance-muted-fg);
+}
+
+.chance-auth-live-beacon[data-active] {
+  color: var(--chance-brand);
+}
+
+.chance-auth-live-dot {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 9999px;
+  background: var(--chance-border-strong);
+}
+
+.chance-auth-live-beacon[data-active] .chance-auth-live-dot {
+  background: var(--chance-brand);
+  box-shadow: 0 0 10px var(--chance-brand);
+  animation: chance-auth-pulse 2s ease-in-out infinite;
+}
+
+.chance-auth-live-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem 1rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+@media (min-width: 640px) {
+  .chance-auth-live-list {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.chance-auth-live-list li {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.chance-auth-live-value {
+  font-size: 1.0625rem;
+  font-weight: 800;
+}
+
+.chance-auth-live-value[data-zero] {
+  color: var(--chance-muted-fg);
+  font-weight: 600;
+}
+
+.chance-auth-live-label {
+  font-size: 0.6875rem;
+  color: var(--chance-muted-fg);
+  line-height: 1.3;
+}
+
+@keyframes chance-auth-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+/* Panel */
+.chance-auth-panel {
+  padding: clamp(1.5rem, 4vw, 2rem);
+  border-radius: 1.25rem;
+  border: 1px solid color-mix(in srgb, var(--chance-brand) 18%, var(--chance-border));
+  background: color-mix(in srgb, var(--chance-surface-raised) 88%, transparent);
+  box-shadow:
+    0 32px 64px rgb(0 0 0 / 0.35),
+    0 0 0 1px color-mix(in srgb, var(--chance-brand) 8%, transparent),
+    0 0 48px color-mix(in srgb, var(--chance-brand) 10%, transparent);
+  backdrop-filter: blur(16px);
+  transition: transform 0.35s ease, box-shadow 0.35s ease;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .chance-auth-panel-wrap:hover .chance-auth-panel {
+    transform: translateY(-2px);
+    box-shadow:
+      0 40px 72px rgb(0 0 0 / 0.4),
+      0 0 0 1px color-mix(in srgb, var(--chance-brand) 12%, transparent),
+      0 0 56px color-mix(in srgb, var(--chance-brand) 14%, transparent);
+  }
+}
+
+.chance-auth-panel-header {
+  margin-bottom: 1.5rem;
+}
+
+.chance-auth-panel-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+}
+
+.chance-auth-panel-desc {
+  margin-top: 0.5rem;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--chance-muted-fg);
+}
+
+.chance-auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.chance-auth-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.chance-auth-label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--chance-fg);
+}
+
+.chance-auth-input {
+  height: 3rem !important;
+  border-radius: 0.625rem !important;
+  border: 1px solid var(--chance-border) !important;
+  background: var(--chance-surface-inset) !important;
+  color: var(--chance-fg) !important;
+  font-size: 0.9375rem !important;
+  padding-inline: 0.875rem !important;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.chance-auth-input::placeholder {
+  color: color-mix(in srgb, var(--chance-muted-fg) 80%, transparent);
+}
+
+.chance-auth-input:focus-visible {
+  outline: none;
+  border-color: color-mix(in srgb, var(--chance-brand) 55%, var(--chance-border)) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--chance-brand) 22%, transparent) !important;
+}
+
+.chance-auth-input-wrap {
+  position: relative;
+}
+
+.chance-auth-input-wrap .chance-auth-input {
+  padding-right: 2.75rem !important;
+}
+
+.chance-auth-input-toggle {
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  translate: 0 -50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: none;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: var(--chance-muted-fg);
+  cursor: pointer;
+}
+
+.chance-auth-input-toggle:hover {
+  color: var(--chance-fg);
+  background: color-mix(in srgb, var(--chance-surface) 80%, transparent);
+}
+
+.chance-auth-hint {
+  font-size: 0.75rem;
+  color: var(--chance-muted-fg);
+}
+
+.chance-auth-input--file {
+  height: auto !important;
+  min-height: 3rem;
+  padding-block: 0.65rem !important;
+  cursor: pointer;
+}
+
+.chance-auth-input--file::file-selector-button {
+  margin-right: 0.75rem;
+  border: none;
+  border-radius: 0.375rem;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  background: color-mix(in srgb, var(--chance-brand) 90%, #000);
+  color: var(--chance-brand-fg, #052e16);
+  cursor: pointer;
+}
+
+.chance-auth-divider {
+  position: relative;
+  text-align: center;
+  margin: 0.25rem 0;
+}
+
+.chance-auth-divider::before {
+  content: "";
+  position: absolute;
+  inset: 50% 0 auto;
+  height: 1px;
+  background: var(--chance-border);
+}
+
+.chance-auth-divider span {
+  position: relative;
+  display: inline-block;
+  padding: 0 0.65rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--chance-muted-fg);
+  background: color-mix(in srgb, var(--chance-surface-raised) 92%, transparent);
+}
+
+.chance-auth-oauth {
+  display: inline-flex;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  min-height: 3rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.625rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.chance-auth-oauth--google {
+  border: 1px solid color-mix(in srgb, var(--chance-border) 90%, #fff);
+  background: #fff;
+  color: #1f1f1f;
+}
+
+.chance-auth-oauth--google:hover {
+  background: #f5f5f5;
+}
+
+.chance-auth-oauth--apple {
+  border: 1px solid var(--chance-border-strong);
+  background: #000;
+  color: #fff;
+}
+
+.chance-auth-oauth--apple:hover {
+  background: #141414;
+}
+
+.chance-auth-submit {
+  display: inline-flex;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 3rem;
+  padding: 0.75rem 1.25rem;
+  border: none;
+  border-radius: 0.625rem;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.chance-auth-submit:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.chance-auth-footer-link {
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--chance-muted-fg);
+}
+
+.chance-auth-footer-link a {
+  color: var(--chance-brand);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.chance-auth-footer-link a:hover {
+  text-decoration: underline;
+}
+
+.chance-auth-alert {
+  padding: 0.75rem 1rem;
+  border-radius: 0.625rem;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  text-align: center;
+}
+
+.chance-auth-alert--error {
+  border: 1px solid color-mix(in srgb, var(--chance-danger, #ef4444) 35%, transparent);
+  background: color-mix(in srgb, var(--chance-danger, #ef4444) 10%, transparent);
+  color: color-mix(in srgb, var(--chance-danger, #f87171) 90%, var(--chance-fg));
+}
+
+.chance-auth-alert--success {
+  border: 1px solid color-mix(in srgb, var(--chance-brand) 35%, transparent);
+  background: color-mix(in srgb, var(--chance-brand) 10%, transparent);
+  color: var(--chance-brand);
+}
+
+.chance-auth-enter {
+  animation: chance-auth-fade-in 0.65s ease both;
+}
+
+.chance-auth-enter--delayed {
+  animation-delay: 0.12s;
+}
+
+.chance-auth-enter--panel {
+  animation-delay: 0.06s;
+}
+
+@keyframes chance-auth-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chance-auth-ambient-glow,
+  .chance-auth-live-beacon[data-active] .chance-auth-live-dot,
+  .chance-auth-enter {
+    animation: none !important;
+  }
+
+  .chance-auth-panel-wrap:hover .chance-auth-panel {
+    transform: none;
+  }
+}

@@ -11,11 +11,20 @@ Presentation-only · `/` · branch `landing` · tokens: `chance-competitive-them
 | Before | After |
 |--------|--------|
 | Orange/gray startup marketing page | Dark premium **competitive** aesthetic aligned with in-app shell |
-| Giant eagle logo hero, generic “Skill-Based Gaming” | **Play. Compete. Win.** + product mockup (Apple-style frame) |
-| shadcn cards, “Why Choose ChanceUS” feature grid | **Journey flow**, community, progression — no SaaS feature wall |
+| Eagle logo + side-by-side small mockup | **Product UI is the hero** — full-width frame (~1280px, 50vh+ screen) |
+| Feature grids & small cards | **Full-viewport cinematic panels** — one idea per scroll |
+| “Why Choose ChanceUS” SaaS blocks | **Storytelling**: typographic journey, game spotlights, keynote stats |
 | Static “10K+” stats | **Live Supabase counts** with count-up animation |
 | Legacy `Header` component | Dedicated **sticky blurred** landing header + minimal footer |
 | Logged-in users saw same page briefly | Unchanged: **redirect to `/dashboard`** when authenticated |
+
+### Cinematic pass (latest)
+
+- First **~920px+** is dominated by the **ChanceUS product mockup** (shell, Play, real game art).
+- Headline **“Skill wins here.”** sits under the product, not competing for above-the-fold space.
+- Games = **full-bleed panels** per title (not card carousel).
+- Community = **one statement** + tag line (no 5-card grid).
+- Stats = **three huge numbers** in a row (Apple keynote scale).
 
 **Unchanged:** Auth routes, sign-up/sign-in links, game IDs/routing, Supabase config gate.
 

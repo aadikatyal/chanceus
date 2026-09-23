@@ -1,8 +1,25 @@
-/* Public landing — matches authenticated competitive theme */
+/* Cinematic public landing — full-viewport panels, product-first hero */
+
+html:has(.chance-landing) {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html:has(.chance-landing) {
+    scroll-behavior: auto;
+  }
+}
 
 .chance-landing {
   position: relative;
   overflow-x: clip;
+}
+
+.chance-landing #games,
+.chance-landing #community,
+.chance-landing #tournaments,
+.chance-landing #story {
+  scroll-margin-top: calc(var(--chance-header-h) + env(safe-area-inset-top, 0px) + 1rem);
 }
 
 .chance-landing-ambient {
@@ -11,9 +28,20 @@
   z-index: 0;
   pointer-events: none;
   background:
-    radial-gradient(ellipse 50% 40% at 15% -5%, color-mix(in srgb, var(--chance-brand) 14%, transparent), transparent 55%),
-    radial-gradient(ellipse 40% 35% at 90% 10%, color-mix(in srgb, var(--chance-info) 8%, transparent), transparent 50%),
+    radial-gradient(ellipse 55% 45% at 50% -10%, color-mix(in srgb, var(--chance-brand) 16%, transparent), transparent 58%),
+    radial-gradient(ellipse 40% 30% at 100% 40%, color-mix(in srgb, var(--chance-info) 6%, transparent), transparent 50%),
     var(--chance-bg);
+}
+
+.chance-landing-ambient-hero {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 70% 55% at 50% 0%, color-mix(in srgb, var(--chance-brand) 22%, transparent), transparent 62%),
+    radial-gradient(ellipse 45% 35% at 15% 55%, color-mix(in srgb, var(--chance-brand) 8%, transparent), transparent 55%);
+  opacity: 0.85;
 }
 
 .chance-landing-main {
@@ -31,285 +59,764 @@
   color: var(--chance-fg);
 }
 
-.chance-landing-hero-grid {
-  display: grid;
-  gap: 2.5rem;
-  align-items: center;
+/* —— Full-screen panels —— */
+.chance-landing-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: clamp(5rem, 14vh, 9rem) clamp(1.25rem, 5vw, 4rem) clamp(3rem, 8vh, 6rem);
 }
 
-@media (min-width: 1024px) {
-  .chance-landing-hero-grid {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
-    gap: 3rem;
-  }
+.chance-landing-panel-inner {
+  width: 100%;
+  max-width: 72rem;
+  margin-inline: auto;
 }
 
-.chance-landing-hero-title {
-  font-size: clamp(2.5rem, 8vw, 4.25rem);
+.chance-landing-eyebrow {
+  font-size: clamp(0.6875rem, 1.5vw, 0.8125rem);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--chance-brand);
+}
+
+.chance-landing-display-xl {
+  margin-top: clamp(1rem, 3vh, 1.75rem);
+  font-size: clamp(2.75rem, 10vw, 6.5rem);
   font-weight: 800;
   line-height: 0.92;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.04em;
   text-transform: uppercase;
   color: var(--chance-fg);
 }
 
-.chance-landing-section {
-  padding-block: clamp(3rem, 8vw, 5rem);
+.chance-landing-display-accent {
+  display: block;
+  background: linear-gradient(105deg, var(--chance-brand), color-mix(in srgb, var(--chance-brand) 55%, var(--chance-fg)));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
-.chance-landing-section-head {
-  margin-bottom: 2rem;
+.chance-landing-display-md {
+  margin-top: 0.75rem;
+  font-size: clamp(1.75rem, 5vw, 3rem);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
 }
 
-.chance-landing-section-title {
-  font-size: clamp(1.5rem, 4vw, 2.25rem);
+.chance-landing-hero-lede {
+  margin-top: clamp(1.25rem, 3vh, 2rem);
+  font-size: clamp(1.0625rem, 2.2vw, 1.375rem);
+  line-height: 1.55;
+  color: var(--chance-muted-fg);
+  max-width: 34rem;
+}
+
+.chance-landing-lede--tight {
+  max-width: 28rem;
+}
+
+.chance-landing-display-lg {
+  font-size: clamp(2.25rem, 7vw, 4.75rem);
+  font-weight: 800;
+  line-height: 0.95;
+  letter-spacing: -0.035em;
+  text-transform: uppercase;
+}
+
+.chance-landing-lede {
+  font-size: clamp(1.0625rem, 2.2vw, 1.375rem);
+  line-height: 1.55;
+  color: var(--chance-muted-fg);
+  max-width: 36rem;
+}
+
+.chance-landing-cta-lg {
+  padding: 0.875rem 1.75rem !important;
+  font-size: 1rem !important;
+}
+
+/* —— Hero: headline first, product floats —— */
+.chance-landing-panel--hero {
+  justify-content: center;
+  padding-top: calc(var(--chance-header-h) + clamp(2rem, 6vh, 4rem));
+  padding-bottom: clamp(3rem, 10vh, 6rem);
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+.chance-landing-hero-inner {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(3rem, 10vh, 6.5rem);
+  width: 100%;
+  max-width: 72rem;
+  margin-inline: auto;
+}
+
+.chance-landing-hero-copy {
+  width: 100%;
+  max-width: 44rem;
+  text-align: center;
+  margin-inline: auto;
+}
+
+.chance-landing-hero-product {
+  width: 100%;
+  max-width: min(92vw, 980px);
+  margin-inline: auto;
+  transform: translateZ(0);
+}
+
+.chance-landing-panel-inner--wide {
+  max-width: 80rem;
+}
+
+.chance-landing-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-top: clamp(1.5rem, 4vh, 2.5rem);
+}
+
+.chance-landing-scroll-hint {
+  position: absolute;
+  bottom: clamp(1.25rem, 4vh, 2.5rem);
+  left: 50%;
+  translate: -50% 0;
+  color: var(--chance-muted-fg);
+  opacity: 0.7;
+  animation: chance-landing-bob 2.5s ease-in-out infinite;
+}
+
+@keyframes chance-landing-bob {
+  0%,
+  100% {
+    transform: translate(-50%, 0);
+  }
+  50% {
+    transform: translate(-50%, 6px);
+  }
+}
+
+/* —— Story panel —— */
+.chance-landing-panel--story {
+  justify-content: center;
+  background:
+    linear-gradient(180deg, transparent, color-mix(in srgb, var(--chance-surface-inset) 55%, transparent) 40%, transparent),
+    var(--chance-bg);
+  border-block: 1px solid color-mix(in srgb, var(--chance-border) 60%, transparent);
+}
+
+.chance-landing-story-list {
+  list-style: none;
+  margin: clamp(3rem, 8vh, 5rem) 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(2.5rem, 6vh, 4rem);
+}
+
+.chance-landing-story-list li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: clamp(1.25rem, 4vw, 2.5rem);
+  align-items: start;
+}
+
+.chance-landing-story-index {
+  font-size: clamp(2.5rem, 6vw, 4rem);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: color-mix(in srgb, var(--chance-brand) 55%, var(--chance-muted-fg));
+  font-variant-numeric: tabular-nums;
+}
+
+.chance-landing-story-title {
+  font-size: clamp(1.375rem, 3vw, 2rem);
   font-weight: 700;
   letter-spacing: -0.02em;
 }
 
-.chance-landing-steps {
-  display: grid;
-  gap: 1.5rem;
-  list-style: none;
-  margin: 0;
-  padding: 0;
+.chance-landing-story-line {
+  margin-top: 0.5rem;
+  font-size: clamp(1rem, 2vw, 1.25rem);
+  line-height: 1.5;
+  color: var(--chance-muted-fg);
+  max-width: 32rem;
 }
 
-@media (min-width: 768px) {
-  .chance-landing-steps {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 1.25rem;
-  }
-}
-
-.chance-landing-step {
-  position: relative;
-  border-radius: var(--chance-radius-shell);
-  border: 1px solid var(--chance-border);
-  background: color-mix(in srgb, var(--chance-surface) 90%, transparent);
-  padding: 1.5rem 1.25rem;
-}
-
-.chance-landing-step-icon {
-  display: grid;
-  place-items: center;
-  width: 2.75rem;
-  height: 2.75rem;
-  border-radius: 0.75rem;
-  background: color-mix(in srgb, var(--chance-brand) 12%, var(--chance-surface-inset));
-  margin-bottom: 0.75rem;
-}
-
-.chance-landing-step-connector {
-  display: none;
-}
-
-@media (min-width: 768px) {
-  .chance-landing-step-connector {
-    display: block;
-    position: absolute;
-    top: 2.25rem;
-    right: -0.75rem;
-    width: 1.5rem;
-    height: 2px;
-    background: linear-gradient(90deg, var(--chance-brand), transparent);
-    z-index: 2;
-  }
-}
-
-.chance-landing-games-track {
-  display: flex;
-  gap: 1rem;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  padding-bottom: 0.5rem;
-  -webkit-overflow-scrolling: touch;
-}
-
-@media (min-width: 1024px) {
-  .chance-landing-games-track {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    overflow: visible;
-    scroll-snap-type: none;
-  }
-}
-
-.chance-landing-game-card {
-  flex: 0 0 min(85vw, 320px);
-  scroll-snap-align: start;
-  border-radius: var(--chance-radius-shell);
-  border: 1px solid var(--chance-border);
-  background: var(--chance-surface);
+/* —— Game spotlights —— */
+.chance-landing-panel--game {
+  justify-content: center;
   overflow: hidden;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  min-height: max(75vh, 560px);
+  background: var(--chance-bg);
 }
 
-.chance-landing-game-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 16px 40px color-mix(in srgb, var(--chance-brand) 10%, transparent);
+.chance-landing-panel--game-tone-1 {
+  background: linear-gradient(135deg, var(--chance-bg), color-mix(in srgb, var(--chance-surface-inset) 35%, var(--chance-bg)));
 }
 
-.chance-landing-game-card.is-featured {
-  border-color: color-mix(in srgb, var(--chance-brand) 40%, var(--chance-border));
+.chance-landing-panel--game-tone-2 {
+  background: radial-gradient(ellipse 80% 60% at 100% 50%, color-mix(in srgb, var(--chance-brand) 5%, transparent), var(--chance-bg));
 }
 
-.chance-landing-game-card--soon {
-  border-style: dashed;
-  min-height: 100%;
+.chance-landing-panel--game-reversed .chance-landing-panel-inner {
+  direction: rtl;
 }
 
-.chance-landing-game-link {
-  display: block;
-  color: inherit;
-  text-decoration: none;
+.chance-landing-panel--game-reversed .chance-landing-panel-inner > * {
+  direction: ltr;
 }
 
-.chance-landing-game-visual {
+.chance-landing-inline-live {
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  margin-right: 0.35rem;
+  border-radius: 9999px;
+  background: var(--chance-brand);
+  box-shadow: 0 0 12px var(--chance-brand);
+  vertical-align: middle;
+}
+
+.chance-landing-game-backdrop-glow {
+  position: absolute;
+  inset: -20%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--chance-brand) 25%, transparent), transparent 65%);
+  filter: blur(40px);
+  pointer-events: none;
+  z-index: -1;
+}
+
+.chance-landing-panel--game .chance-landing-panel-inner {
+  display: grid;
+  align-items: center;
+  gap: clamp(2rem, 5vw, 3rem);
+}
+
+@media (min-width: 900px) {
+  .chance-landing-panel--game .chance-landing-panel-inner {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 380px);
+  }
+}
+
+.chance-landing-game-backdrop {
   position: relative;
-  aspect-ratio: 16 / 10;
+  z-index: 0;
+  width: 100%;
+  max-width: 380px;
+  margin-inline: auto;
+  aspect-ratio: 4 / 3;
+  border-radius: 1rem;
   overflow: hidden;
+  border: 1px solid var(--chance-border);
+  background: var(--chance-surface-inset);
+  box-shadow:
+    0 24px 48px rgb(0 0 0 / 0.35),
+    0 0 0 1px color-mix(in srgb, var(--chance-brand) 12%, transparent);
+}
+
+@media (min-width: 900px) {
+  .chance-landing-game-backdrop {
+    order: 2;
+    margin-inline: 0 0;
+    margin-left: auto;
+  }
+}
+
+.chance-landing-game-backdrop img {
+  object-fit: contain;
+  object-position: center;
+  transform: none;
+  padding: 0.75rem;
 }
 
 .chance-landing-game-scrim {
+  display: none;
+}
+
+.chance-landing-game-copy {
+  position: relative;
+  z-index: 1;
+}
+
+.chance-landing-stakes {
+  margin-top: 1.25rem;
+  font-size: clamp(1.125rem, 2vw, 1.5rem);
+  font-weight: 700;
+  color: var(--chance-brand);
+}
+
+/* —— Journey —— */
+.chance-landing-panel--journey {
+  justify-content: center;
+  min-height: max(70vh, 520px);
+  background: color-mix(in srgb, var(--chance-surface-inset) 30%, var(--chance-bg));
+}
+
+.chance-landing-journey-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.15rem;
+  line-height: 1.1;
+}
+
+.chance-landing-journey-word {
+  font-size: clamp(1.75rem, 5vw, 3.5rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+}
+
+.chance-landing-journey-sep {
+  display: inline-block;
+  width: clamp(1.5rem, 4vw, 2.5rem);
+  height: 2px;
+  margin-inline: 0.35rem;
+  background: linear-gradient(90deg, var(--chance-brand), transparent);
+  vertical-align: middle;
+}
+
+/* —— Tournaments —— */
+.chance-landing-panel--tournaments {
+  justify-content: center;
+  min-height: max(75vh, 560px);
+  background:
+    radial-gradient(ellipse 70% 50% at 0% 50%, color-mix(in srgb, var(--chance-brand) 8%, transparent), transparent 55%),
+    var(--chance-bg);
+  border-block: 1px solid color-mix(in srgb, var(--chance-border) 50%, transparent);
+}
+
+.chance-landing-tournaments-layout {
+  display: grid;
+  gap: clamp(2.5rem, 6vw, 4rem);
+  align-items: center;
+}
+
+@media (min-width: 900px) {
+  .chance-landing-tournaments-layout {
+    grid-template-columns: 1fr minmax(0, 18rem);
+  }
+}
+
+.chance-landing-tournament-feats {
+  list-style: none;
+  margin: 0;
+  padding: clamp(1.25rem, 3vw, 1.75rem);
+  border-radius: 1rem;
+  border: 1px solid var(--chance-border);
+  background: color-mix(in srgb, var(--chance-surface-raised) 80%, transparent);
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.chance-landing-tournament-feats li {
+  font-size: clamp(0.9375rem, 2vw, 1.0625rem);
+  font-weight: 600;
+  padding-left: 1.25rem;
+  position: relative;
+  color: var(--chance-fg);
+}
+
+.chance-landing-tournament-feats li::before {
+  content: "";
   position: absolute;
-  inset: 0;
-  background: linear-gradient(to top, rgb(0 0 0 / 0.55), transparent 50%);
+  left: 0;
+  top: 0.55em;
+  width: 0.375rem;
+  height: 0.375rem;
+  border-radius: 9999px;
+  background: var(--chance-brand);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--chance-brand) 60%, transparent);
 }
 
-.chance-landing-game-body {
-  padding: 1rem 1.125rem 1.25rem;
+/* —— Community —— */
+.chance-landing-panel--community {
+  justify-content: center;
+  min-height: max(80vh, 600px);
 }
 
-.chance-landing-flow {
+.chance-landing-community-layout {
+  display: grid;
+  gap: clamp(2.5rem, 6vw, 4rem);
+  align-items: start;
+}
+
+@media (min-width: 900px) {
+  .chance-landing-community-layout {
+    grid-template-columns: 1fr minmax(0, 22rem);
+    align-items: end;
+  }
+}
+
+.chance-landing-progress-layout {
+  display: grid;
+  gap: clamp(2rem, 5vw, 3rem);
+  align-items: end;
+}
+
+@media (min-width: 768px) {
+  .chance-landing-progress-layout {
+    grid-template-columns: 1fr auto;
+  }
+}
+
+.chance-landing-community-glow {
+  position: absolute;
+  inset: 20% 10%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--chance-brand) 20%, transparent), transparent 65%);
+  filter: blur(60px);
+  pointer-events: none;
+}
+
+.chance-landing-community-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1rem;
+  list-style: none;
+  margin: clamp(2.5rem, 6vh, 4rem) auto 0;
+  padding: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.chance-landing-community-tags li {
+  font-size: clamp(0.875rem, 2vw, 1.125rem);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--chance-fg);
+  padding-bottom: 0.25rem;
+  border-bottom: 2px solid color-mix(in srgb, var(--chance-brand) 50%, transparent);
+}
+
+/* —— Progress —— */
+.chance-landing-panel--progress {
+  justify-content: center;
+  background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--chance-brand) 6%, var(--chance-surface-inset)));
+}
+
+.chance-landing-rank-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  margin-top: clamp(3rem, 8vh, 5rem);
+  max-width: 20rem;
+}
+
+.chance-landing-rank-tier {
+  font-size: clamp(1.25rem, 3vw, 1.75rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--chance-border);
+  opacity: 0.85;
+}
+
+.chance-landing-rank-tier:first-child {
+  color: var(--chance-brand);
+  opacity: 1;
+  font-size: clamp(1.5rem, 4vw, 2.25rem);
+}
+
+/* —— Live arena + platform record —— */
+.chance-landing-live {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1.25rem;
+  margin-bottom: clamp(0.5rem, 2vh, 1rem);
+}
+
+.chance-landing-live--strip {
+  justify-content: center;
+  padding: 0.55rem 1rem;
+  border-radius: 9999px;
+  border: 1px solid color-mix(in srgb, var(--chance-border) 80%, transparent);
+  background: color-mix(in srgb, var(--chance-surface) 70%, transparent);
+  backdrop-filter: blur(8px);
+  max-width: min(100%, 52rem);
+  margin-inline: auto;
+}
+
+.chance-landing-live--strip .chance-landing-live-list {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: center;
-  gap: 0.75rem 1rem;
+  gap: 0.35rem 1rem;
+}
+
+.chance-landing-live-list--showcase {
+  gap: 0.5rem 1.25rem;
 }
 
 @media (min-width: 640px) {
-  .chance-landing-flow {
-    flex-direction: column;
-    gap: 0.5rem;
+  .chance-landing-live--strip .chance-landing-live-list--showcase {
+    flex-wrap: nowrap;
+    gap: 0.65rem 1.75rem;
   }
 }
 
-.chance-landing-flow-node {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+.chance-landing-live--strip .chance-landing-live-item {
+  flex-direction: row;
+  align-items: baseline;
+  flex-wrap: nowrap;
   gap: 0.35rem;
 }
 
-.chance-landing-flow-pill {
+.chance-landing-live--strip .chance-landing-live-item-label {
+  white-space: nowrap;
+}
+
+@media (max-width: 639.98px) {
+  .chance-landing-live--strip {
+    border-radius: 1rem;
+    padding: 0.65rem 0.85rem;
+  }
+
+  .chance-landing-live--strip .chance-landing-live-list {
+    gap: 0.5rem 0.85rem;
+  }
+}
+
+.chance-landing-live--grid {
+  flex-direction: column;
+  align-items: stretch;
+  padding: 1.25rem 1.35rem;
+  border-radius: 1rem;
+  border: 1px solid var(--chance-border);
+  background: color-mix(in srgb, var(--chance-surface-raised) 85%, transparent);
+  box-shadow: 0 24px 48px rgb(0 0 0 / 0.25);
+}
+
+.chance-landing-live-beacon {
   display: inline-flex;
-  min-width: 7rem;
-  justify-content: center;
-  padding: 0.65rem 1.25rem;
-  border-radius: 9999px;
-  border: 1px solid color-mix(in srgb, var(--chance-brand) 35%, var(--chance-border));
-  background: color-mix(in srgb, var(--chance-brand) 8%, var(--chance-surface));
-  font-size: 0.875rem;
-  font-weight: 600;
-  box-shadow: 0 0 20px color-mix(in srgb, var(--chance-brand) 15%, transparent);
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--chance-muted-fg);
 }
 
-.chance-landing-flow-arrow {
-  width: 1.25rem;
-  height: 1.25rem;
+.chance-landing-live-beacon[data-active] {
   color: var(--chance-brand);
-  opacity: 0.7;
 }
 
-.chance-landing-community-grid {
-  display: grid;
-  gap: 1rem;
+.chance-landing-live-beacon-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 9999px;
+  background: var(--chance-border-strong);
+}
+
+.chance-landing-live-beacon[data-active] .chance-landing-live-beacon-dot {
+  background: var(--chance-brand);
+  box-shadow: 0 0 10px var(--chance-brand);
+  animation: chance-landing-pulse-dot 2s ease-in-out infinite;
+}
+
+.chance-landing-live-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem 1.25rem;
   list-style: none;
   margin: 0;
   padding: 0;
 }
 
-@media (min-width: 768px) {
-  .chance-landing-community-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
+.chance-landing-live--grid .chance-landing-live-list {
+  flex-direction: column;
+  gap: 1rem;
 }
 
-@media (min-width: 1024px) {
-  .chance-landing-community-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-
-.chance-landing-community-card {
-  min-height: 100%;
-}
-
-.chance-landing-progress {
-  display: grid;
-  gap: 0;
-}
-
-@media (min-width: 1024px) {
-  .chance-landing-progress {
-    grid-template-columns: 1fr 1fr;
-  }
-}
-
-.chance-landing-progress-visual {
-  background: linear-gradient(135deg, color-mix(in srgb, var(--chance-brand) 8%, var(--chance-surface-inset)), var(--chance-surface-inset));
+.chance-landing-live-item {
+  position: relative;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 14rem;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem 0.65rem;
 }
 
-.chance-landing-ladder {
+.chance-landing-live--grid .chance-landing-live-item {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.2rem;
+}
+
+.chance-landing-live-value {
+  font-size: 1.125rem;
+  font-weight: 800;
+  color: var(--chance-fg);
+}
+
+.chance-landing-live-value[data-zero] {
+  color: var(--chance-muted-fg);
+  font-weight: 600;
+}
+
+.chance-landing-live--grid .chance-landing-live-value {
+  font-size: 1.5rem;
+}
+
+.chance-landing-live-item-label {
+  font-size: 0.8125rem;
+  color: var(--chance-muted-fg);
+}
+
+.chance-landing-live-pulse {
+  width: 0.375rem;
+  height: 0.375rem;
+  border-radius: 9999px;
+  background: var(--chance-brand);
+  box-shadow: 0 0 8px var(--chance-brand);
+  animation: chance-landing-pulse-dot 2s ease-in-out infinite;
+}
+
+.chance-landing-header-live {
+  align-items: center;
+  gap: 0.35rem;
+  margin-left: 0.25rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 9999px;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--chance-brand);
+  border: 1px solid color-mix(in srgb, var(--chance-brand) 35%, transparent);
+  background: color-mix(in srgb, var(--chance-brand) 10%, transparent);
+}
+
+.chance-landing-header-live-dot {
+  width: 0.375rem;
+  height: 0.375rem;
+  border-radius: 9999px;
+  background: var(--chance-brand);
+  animation: chance-landing-pulse-dot 2s ease-in-out infinite;
+}
+
+@keyframes chance-landing-pulse-dot {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.55;
+    transform: scale(0.85);
+  }
+}
+
+.chance-landing-panel--record {
+  justify-content: center;
+  text-align: left;
+  background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--chance-brand) 4%, var(--chance-bg)));
+}
+
+.chance-landing-panel--record .chance-landing-stats-row {
+  margin-top: clamp(2.5rem, 6vh, 4rem);
+}
+
+.chance-landing-stats-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: clamp(2.5rem, 6vh, 3.5rem);
+  margin: 0;
+  padding: 0;
+}
+
+@media (min-width: 640px) {
+  .chance-landing-stats-row {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(1.25rem, 3vw, 2rem);
+    align-items: start;
+  }
+}
+
+.chance-landing-stat-item {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  width: min(100%, 16rem);
-}
-
-.chance-landing-ladder-rung {
-  padding: 0.65rem 1rem;
-  border-radius: 0.5rem;
-  border: 1px solid var(--chance-border);
-  font-size: 0.8125rem;
-  font-weight: 600;
-  opacity: calc(1 - var(--rung-i, 0) * 0.15);
-  transform: translateX(calc(var(--rung-i, 0) * 8px));
-  background: var(--chance-surface);
-}
-
-.chance-landing-stats-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1.5rem;
+  align-items: center;
   text-align: center;
+  min-width: 0;
 }
 
-@media (min-width: 768px) {
-  .chance-landing-stats-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+.chance-landing-stat-huge {
+  font-size: clamp(2.25rem, 8vw, 5.5rem);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+  color: var(--chance-brand);
+  margin: 0;
+  width: 100%;
+  white-space: nowrap;
+}
+
+.chance-landing-stat-huge[data-zero] {
+  color: var(--chance-muted-fg);
+  font-size: clamp(2rem, 7vw, 4.5rem);
+}
+
+@media (min-width: 640px) {
+  .chance-landing-stat-huge {
+    font-size: clamp(2rem, 5.5vw, 4.75rem);
   }
 }
 
-.chance-landing-stat-value {
-  margin-top: 0.35rem;
-  font-size: clamp(1.75rem, 4vw, 2.5rem);
-  font-weight: 800;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: -0.02em;
-  color: var(--chance-brand);
+@media (max-width: 639.98px) {
+  .chance-landing-stat-huge {
+    white-space: normal;
+    font-size: clamp(2rem, 11vw, 3.25rem);
+  }
 }
 
-.chance-landing-final {
-  padding-bottom: clamp(4rem, 10vw, 6rem);
+.chance-landing-stat-label {
+  margin-top: 0.875rem;
+  font-size: clamp(0.875rem, 1.8vw, 1rem);
+  line-height: 1.35;
+  color: var(--chance-muted-fg);
+  max-width: 11rem;
+  min-height: 2.75em;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  text-wrap: balance;
 }
 
+/* —— Final —— */
+.chance-landing-panel--final {
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  min-height: 80vh;
+}
+
+.chance-landing-final-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Footer */
 .chance-landing-footer-label {
   font-size: 0.6875rem;
   font-weight: 700;
@@ -327,181 +834,438 @@
   color: var(--chance-fg);
 }
 
-/* Product mockup */
+/* —— Product mockup (hero scale: ~3–4× prior) —— */
 .chance-landing-mockup-stage {
   position: relative;
-  perspective: 1200px;
-  padding: 1rem 0 2rem;
+  width: 100%;
+  perspective: 1400px;
+}
+
+.chance-landing-mockup-stage--hero {
+  width: 100%;
+}
+
+.chance-landing-mockup-spotlight {
+  position: absolute;
+  inset: -15% 5% 0;
+  background: radial-gradient(ellipse at 50% 30%, color-mix(in srgb, var(--chance-brand) 28%, transparent), transparent 62%);
+  filter: blur(40px);
+  pointer-events: none;
+  z-index: 0;
 }
 
 .chance-landing-mockup-glow {
   position: absolute;
-  inset: 10% 5% 20%;
-  background: radial-gradient(ellipse at center, color-mix(in srgb, var(--chance-brand) 35%, transparent), transparent 70%);
-  filter: blur(40px);
+  inset: 5% 0 15%;
+  background: radial-gradient(ellipse at center, color-mix(in srgb, var(--chance-brand) 40%, transparent), transparent 68%);
+  filter: blur(50px);
   pointer-events: none;
 }
 
 .chance-landing-mockup-device {
   position: relative;
+  z-index: 1;
   margin-inline: auto;
-  max-width: 36rem;
-  transform: rotateY(-8deg) rotateX(4deg);
-  transition: transform 0.4s ease;
+  width: 100%;
+  transform: rotateX(4deg) translateY(0);
+  transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+  animation: chance-landing-float 7s ease-in-out infinite;
+}
+
+.chance-landing-mockup-stage--hero .chance-landing-mockup-device {
+  transform: rotateX(5deg);
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .chance-landing-mockup-device:hover {
-    transform: rotateY(-4deg) rotateX(2deg) translateY(-4px);
+  .chance-landing-mockup-stage--hero .chance-landing-mockup-device:hover {
+    transform: rotateX(2deg) translateY(-8px);
+    animation-play-state: paused;
+  }
+}
+
+@keyframes chance-landing-float {
+  0%,
+  100% {
+    transform: rotateX(5deg) translateY(0);
+  }
+  50% {
+    transform: rotateX(4deg) translateY(-6px);
   }
 }
 
 .chance-landing-mockup-chrome {
   display: flex;
-  gap: 0.35rem;
-  padding: 0.5rem 0.75rem;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1rem;
   border: 1px solid var(--chance-border);
   border-bottom: none;
-  border-radius: 0.75rem 0.75rem 0 0;
+  border-radius: 1rem 1rem 0 0;
   background: var(--chance-surface-raised);
 }
 
+.chance-landing-mockup-chrome-title {
+  margin-left: auto;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--chance-muted-fg);
+}
+
 .chance-landing-mockup-dot {
-  width: 0.5rem;
-  height: 0.5rem;
+  width: 0.625rem;
+  height: 0.625rem;
   border-radius: 9999px;
   background: var(--chance-border-strong);
 }
 
 .chance-landing-mockup-screen {
   display: flex;
-  min-height: 16rem;
-  border: 1px solid color-mix(in srgb, var(--chance-brand) 25%, var(--chance-border));
-  border-radius: 0 0 1rem 1rem;
+  min-height: clamp(18rem, 42vh, 30rem);
+  border: 1px solid color-mix(in srgb, var(--chance-brand) 30%, var(--chance-border));
+  border-radius: 0 0 1.25rem 1.25rem;
   overflow: hidden;
   background: var(--chance-bg);
   box-shadow:
-    0 24px 60px rgb(0 0 0 / 0.45),
-    0 0 0 1px color-mix(in srgb, var(--chance-brand) 12%, transparent);
+    0 48px 120px rgb(0 0 0 / 0.6),
+    0 16px 40px rgb(0 0 0 / 0.35),
+    0 0 0 1px color-mix(in srgb, var(--chance-brand) 18%, transparent),
+    0 0 100px color-mix(in srgb, var(--chance-brand) 14%, transparent);
+  animation: chance-landing-shadow-breathe 6s ease-in-out infinite;
+}
+
+@keyframes chance-landing-shadow-breathe {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 0 transparent);
+  }
+  50% {
+    filter: drop-shadow(0 12px 28px color-mix(in srgb, var(--chance-brand) 18%, transparent));
+  }
 }
 
 .chance-landing-mockup-sidebar {
-  width: 3.25rem;
+  width: clamp(4.5rem, 12vw, 7.5rem);
   flex-shrink: 0;
-  padding: 0.75rem 0.35rem;
+  padding: 1rem 0.65rem;
   border-right: 1px solid var(--chance-border);
-  background: var(--chance-surface-inset);
+  background: linear-gradient(180deg, var(--chance-surface-inset), var(--chance-bg));
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.65rem;
+  align-items: stretch;
+}
+
+.chance-landing-mockup-eagle {
+  width: 2.25rem;
+  height: 2.25rem;
+  margin: 0 auto 0.5rem;
+  object-fit: contain;
+}
+
+.chance-landing-mockup-nav-row {
+  display: flex;
   align-items: center;
-}
-
-.chance-landing-mockup-logo {
-  width: 1.75rem;
-  height: 1.75rem;
-  border-radius: 0.375rem;
-  background: color-mix(in srgb, var(--chance-brand) 40%, var(--chance-surface));
-}
-
-.chance-landing-mockup-nav {
-  width: 2rem;
-  height: 2rem;
+  gap: 0.5rem;
+  padding: 0.5rem 0.55rem;
   border-radius: 0.5rem;
-  background: var(--chance-muted);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--chance-muted-fg);
 }
 
-.chance-landing-mockup-nav.is-active {
-  background: color-mix(in srgb, var(--chance-brand) 25%, var(--chance-surface));
-  box-shadow: 0 0 12px color-mix(in srgb, var(--chance-brand) 30%, transparent);
+.chance-landing-mockup-nav-row.is-active {
+  background: color-mix(in srgb, var(--chance-brand) 14%, var(--chance-surface));
+  color: var(--chance-fg);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--chance-brand) 35%, transparent);
 }
 
-.chance-landing-mockup-main {
+.chance-landing-mockup-nav-dot {
+  width: 0.375rem;
+  height: 0.375rem;
+  border-radius: 9999px;
+  background: var(--chance-border-strong);
+  flex-shrink: 0;
+}
+
+.chance-landing-mockup-nav-row.is-active .chance-landing-mockup-nav-dot {
+  background: var(--chance-brand);
+  box-shadow: 0 0 8px var(--chance-brand);
+}
+
+.chance-landing-mockup-nav-row.is-queue-live {
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--chance-brand) 45%, transparent),
+    0 0 20px color-mix(in srgb, var(--chance-brand) 15%, transparent);
+}
+
+.chance-landing-mockup-queue-pulse {
+  margin-left: auto;
+  width: 0.375rem;
+  height: 0.375rem;
+  border-radius: 9999px;
+  background: var(--chance-brand);
+  animation: chance-landing-pulse-dot 1.5s ease-in-out infinite;
+}
+
+.chance-landing-mockup-online {
+  display: none;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: var(--chance-brand);
+}
+
+@media (min-width: 640px) {
+  .chance-landing-mockup-online {
+    display: inline-flex;
+  }
+}
+
+.chance-landing-mockup-online-dot {
+  width: 0.375rem;
+  height: 0.375rem;
+  border-radius: 9999px;
+  background: var(--chance-brand);
+  animation: chance-landing-pulse-dot 2s ease-in-out infinite;
+}
+
+.chance-landing-mockup-balance-shimmer {
+  display: inline-block;
+}
+
+.chance-landing-mockup-hero-card.is-live {
+  border-color: color-mix(in srgb, var(--chance-brand) 45%, var(--chance-border));
+  box-shadow: inset 0 0 40px color-mix(in srgb, var(--chance-brand) 8%, transparent);
+}
+
+.chance-landing-mockup-cta-primary.is-pulsing {
+  animation: chance-landing-cta-glow 2.5s ease-in-out infinite;
+}
+
+@keyframes chance-landing-cta-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--chance-brand) 0%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 20px color-mix(in srgb, var(--chance-brand) 35%, transparent);
+  }
+}
+
+.chance-landing-mockup-tile.is-active {
+  border-color: color-mix(in srgb, var(--chance-brand) 50%, var(--chance-border));
+}
+
+.chance-landing-mockup-tile-live {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  z-index: 2;
+  font-size: 0.625rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.45rem;
+  border-radius: 0.25rem;
+  background: color-mix(in srgb, var(--chance-brand) 90%, #000);
+  color: var(--chance-brand-fg, #052e16);
+}
+
+.chance-landing-mockup-nav-label {
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .chance-landing-mockup-nav-label {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.chance-landing-mockup-body {
   flex: 1;
   min-width: 0;
-  padding: 0.75rem;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
 }
 
-.chance-landing-mockup-hero {
-  border-radius: 0.65rem;
-  border: 1px solid color-mix(in srgb, var(--chance-brand) 20%, var(--chance-border));
-  padding: 0.85rem 1rem;
-  background: linear-gradient(135deg, color-mix(in srgb, var(--chance-brand) 12%, var(--chance-surface)), var(--chance-surface-inset));
+.chance-landing-mockup-topbar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 1rem;
+  border-bottom: 1px solid var(--chance-border);
+  background: color-mix(in srgb, var(--chance-surface) 80%, transparent);
+}
+
+.chance-landing-mockup-search {
+  flex: 1;
+  font-size: 0.75rem;
+  color: var(--chance-muted-fg);
+  padding: 0.45rem 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--chance-border);
+  background: var(--chance-surface-inset);
+}
+
+.chance-landing-mockup-balance {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--chance-brand);
+}
+
+.chance-landing-mockup-avatar {
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, var(--chance-brand), color-mix(in srgb, var(--chance-brand) 60%, #000));
+}
+
+.chance-landing-mockup-content {
+  flex: 1;
+  padding: clamp(0.75rem, 2vw, 1.25rem);
+  display: grid;
+  gap: clamp(0.75rem, 2vw, 1.25rem);
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 768px) {
+  .chance-landing-mockup-content {
+    grid-template-columns: 1.05fr 1fr;
+    align-items: stretch;
+  }
+}
+
+.chance-landing-mockup-hero-card {
+  border-radius: 1rem;
+  border: 1px solid color-mix(in srgb, var(--chance-brand) 25%, var(--chance-border));
+  padding: clamp(1rem, 3vw, 1.75rem);
+  background: linear-gradient(145deg, color-mix(in srgb, var(--chance-brand) 14%, var(--chance-surface)), var(--chance-surface-inset));
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  min-height: 10rem;
 }
 
 .chance-landing-mockup-kicker {
-  font-size: 0.5625rem;
+  font-size: clamp(0.625rem, 1.2vw, 0.75rem);
   font-weight: 700;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--chance-brand);
 }
 
 .chance-landing-mockup-headline {
-  margin-top: 0.25rem;
-  font-size: 1.125rem;
+  margin-top: 0.35rem;
+  font-size: clamp(1.25rem, 3.5vw, 2.25rem);
   font-weight: 800;
-  line-height: 1;
-  letter-spacing: -0.02em;
+  line-height: 0.95;
+  letter-spacing: -0.03em;
   text-transform: uppercase;
 }
 
 .chance-landing-mockup-cta-row {
   display: flex;
-  gap: 0.35rem;
-  margin-top: 0.65rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1rem;
 }
 
 .chance-landing-mockup-cta-primary {
-  font-size: 0.625rem;
+  font-size: clamp(0.6875rem, 1.5vw, 0.8125rem);
   font-weight: 700;
-  padding: 0.35rem 0.65rem;
-  border-radius: 0.375rem;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
   background: var(--chance-brand);
   color: var(--chance-brand-fg, #052e16);
 }
 
 .chance-landing-mockup-cta-ghost {
-  font-size: 0.625rem;
+  font-size: clamp(0.6875rem, 1.5vw, 0.8125rem);
   font-weight: 600;
-  padding: 0.35rem 0.65rem;
-  border-radius: 0.375rem;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
   border: 1px solid var(--chance-border);
 }
 
 .chance-landing-mockup-tiles {
   display: grid;
-  grid-template-columns: 1.4fr 1fr 1fr;
-  gap: 0.35rem;
-  flex: 1;
-  min-height: 5.5rem;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: clamp(0.5rem, 1.5vw, 0.75rem);
+  min-height: 12rem;
 }
 
 .chance-landing-mockup-tile {
   position: relative;
-  border-radius: 0.5rem;
+  border-radius: 0.75rem;
   overflow: hidden;
   border: 1px solid var(--chance-border);
-  min-height: 4.5rem;
+  min-height: 5rem;
 }
 
-.chance-landing-mockup-tile--featured {
-  grid-row: span 1;
+.chance-landing-mockup-tile--hero {
+  grid-row: span 2;
+  grid-column: 1;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .chance-landing-game-card:hover,
-  .chance-landing-mockup-device:hover {
-    transform: none;
-  }
+.chance-landing-mockup-tile-label {
+  position: absolute;
+  left: 0.65rem;
+  bottom: 0.65rem;
+  z-index: 1;
+  font-size: clamp(0.6875rem, 1.5vw, 0.8125rem);
+  font-weight: 700;
+  text-shadow: 0 2px 12px rgb(0 0 0 / 0.8);
 }
 
 @media (max-width: 767.98px) {
+  .chance-landing-panel--hero {
+    min-height: max(100dvh, 780px);
+  }
+
   .chance-landing-mockup-device {
     transform: none;
-    max-width: 100%;
+  }
+
+  .chance-landing-hero-actions {
+    flex-direction: column;
+  }
+
+  .chance-landing-hero-actions .chance-hero-cta-primary,
+  .chance-landing-hero-actions .chance-hero-cta-ghost {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .chance-landing-journey-line {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .chance-landing-journey-sep {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chance-landing-scroll-hint,
+  .chance-landing-mockup-device,
+  .chance-landing-mockup-screen,
+  .chance-landing-live-beacon-dot,
+  .chance-landing-live-pulse,
+  .chance-landing-header-live-dot,
+  .chance-landing-mockup-queue-pulse,
+  .chance-landing-mockup-online-dot,
+  .chance-landing-mockup-cta-primary.is-pulsing {
+    animation: none !important;
+  }
+
+  .chance-landing-mockup-device:hover {
+    transform: rotateX(5deg);
   }
 }
