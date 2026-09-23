@@ -3,6 +3,7 @@ import { redirect } from "next/navigation"
 import LoginForm from "@/components/login-form"
 import AuthMarketingShell from "@/components/app/auth-marketing-shell"
 import { ChanceText } from "@/components/design-system/typography"
+import { fetchPlatformLiveStats } from "@/lib/platform-live-stats"
 
 interface LoginPageProps {
   searchParams: Promise<{ redirect?: string }>
@@ -36,8 +37,10 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
     redirect(redirectUrl)
   }
 
+  const live = await fetchPlatformLiveStats()
+
   return (
-    <AuthMarketingShell>
+    <AuthMarketingShell variant="login" live={live}>
       <LoginForm redirectUrl={params.redirect} />
     </AuthMarketingShell>
   )

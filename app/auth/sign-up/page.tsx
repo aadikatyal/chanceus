@@ -3,6 +3,7 @@ import { redirect } from "next/navigation"
 import SignUpForm from "@/components/sign-up-form"
 import AuthMarketingShell from "@/components/app/auth-marketing-shell"
 import { ChanceText } from "@/components/design-system/typography"
+import { fetchPlatformLiveStats } from "@/lib/platform-live-stats"
 
 export default async function SignUpPage() {
   // If Supabase is not configured, show setup message directly
@@ -27,8 +28,10 @@ export default async function SignUpPage() {
     redirect("/dashboard")
   }
 
+  const live = await fetchPlatformLiveStats()
+
   return (
-    <AuthMarketingShell>
+    <AuthMarketingShell variant="signup" live={live}>
       <SignUpForm />
     </AuthMarketingShell>
   )

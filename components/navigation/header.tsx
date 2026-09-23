@@ -14,7 +14,6 @@ import {
 import { LogOut, Settings, User, Coins, Menu, ChevronDown } from "lucide-react"
 import { isNavActive, MORE_NAV, PRIMARY_NAV } from "@/lib/navigation/app-nav"
 import CallInviteListener from "@/components/call/call-invite-listener"
-import ThemeToggle from "@/components/theme-toggle"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
@@ -172,7 +171,6 @@ export default function Header({ user }: HeaderProps) {
           <div className="chance-header-actions flex items-center space-x-3">
             {user && (
               <>
-                <ThemeToggle />
                 <Link
                   href="/wallet"
                   className="chance-token-pill hidden items-center space-x-2 rounded-[var(--chance-radius-md)] border border-[var(--chance-border)] bg-[var(--chance-muted)] px-3 py-2 transition-colors hover:border-[var(--chance-border-strong)] hover:bg-[var(--chance-surface-inset)] sm:flex"
@@ -317,7 +315,6 @@ export default function Header({ user }: HeaderProps) {
             <CallInviteListener userId={user?.id} />
             {!user && (
               <div className="flex items-center space-x-3">
-                <ThemeToggle />
                 <Link href="/auth/login">
                   <Button variant="ghost">Sign In</Button>
                 </Link>

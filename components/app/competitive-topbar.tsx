@@ -6,7 +6,6 @@ import { Bell, Coins, Menu, Search } from "lucide-react"
 import { usePathname } from "next/navigation"
 import { useEffect, useState } from "react"
 import CompetitiveMobileNav from "@/components/app/competitive-mobile-nav"
-import ThemeToggle from "@/components/theme-toggle"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import {
@@ -155,7 +154,6 @@ export default function CompetitiveTopbar({ user }: CompetitiveTopbarProps) {
               {tokenCount.toLocaleString()}
             </span>
           </Link>
-          <ThemeToggle className="chance-toolbar-btn chance-focus-ring hidden size-9 shrink-0 border border-[var(--chance-border)] bg-[var(--chance-glass-fill)] text-[var(--chance-fg)] hover:bg-[var(--chance-glass-fill-hover)] md:inline-flex" />
           <Button
             variant="ghost"
             size="icon"
