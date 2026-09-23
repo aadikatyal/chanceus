@@ -35,7 +35,7 @@ export default function CompetitiveMobileNav({ open, onOpenChange }: Competitive
             const active = isNavActive(pathname, matchPrefix)
             return (
               <Link
-                key={href}
+                key={label}
                 href={href}
                 className={cn(
                   "chance-nav-link chance-focus-ring flex min-h-11 items-center gap-3 rounded-[var(--chance-radius-md)] px-3 py-2.5 text-sm",

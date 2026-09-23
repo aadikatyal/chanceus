@@ -20,12 +20,12 @@ export default async function SignUpPage() {
   // Check if user is already logged in
   const supabase = await createClient()
   const {
-    data: { session },
-  } = await supabase.auth.getSession()
+    data: { user: authUser },
+  } = await supabase.auth.getUser()
 
-  // If user is logged in, redirect to dashboard
-  if (session) {
-    redirect("/dashboard")
+  if (authUser) {
+    const { data: profile } = await supabase.from("users").select("id").eq("id", authUser.id).maybeSingle()
+    if (profile) redirect("/dashboard")
   }
 
   const live = await fetchPlatformLiveStats()

@@ -19,7 +19,7 @@ export default function CompetitiveShell({ user, children, rail }: CompetitiveSh
       >
         Skip to main content
       </a>
-      <CompetitiveSidebar />
+      <CompetitiveSidebar userId={user.id} />
       <div className="chance-shell-body flex min-w-0 flex-1 flex-col">
         <CompetitiveTopbar user={user} />
         <div className="chance-shell-main-wrap flex min-h-0 flex-1 flex-col lg:flex-row">

@@ -31,6 +31,7 @@ export async function updateSession(request: NextRequest) {
     request.nextUrl.pathname.startsWith("/rankings") ||
     request.nextUrl.pathname.startsWith("/replays") ||
     request.nextUrl.pathname.startsWith("/chat") ||
+    request.nextUrl.pathname.startsWith("/dms") ||
     request.nextUrl.pathname.startsWith("/friends") ||
     request.nextUrl.pathname.startsWith("/bars") ||
     request.nextUrl.pathname.startsWith("/bar") ||
@@ -44,21 +45,13 @@ export async function updateSession(request: NextRequest) {
 
     // Refresh session if expired - required for Server Components
     const {
-      data: { session },
-    } = await supabase.auth.getSession()
+      data: { user },
+    } = await supabase.auth.getUser()
 
-    console.log("🔍 DEBUG: Middleware session check:", { 
-      path: request.nextUrl.pathname, 
-      hasSession: !!session,
-      userId: session?.user?.id 
-    })
-
-    // Redirect unauthenticated users from protected routes
-      if (!session) {
-        const redirectUrl = `/auth/login?redirect=${encodeURIComponent(request.nextUrl.pathname)}`
-      console.log("🔍 DEBUG: Redirecting unauthenticated user from protected route to login")
-        return NextResponse.redirect(new URL(redirectUrl, request.url))
-      }
+    if (!user) {
+      const redirectUrl = `/auth/login?redirect=${encodeURIComponent(request.nextUrl.pathname)}`
+      return NextResponse.redirect(new URL(redirectUrl, request.url))
+    }
     }
 
     return res
