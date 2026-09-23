@@ -4450,3 +4450,104 @@
     0 0 0 1px color-mix(in srgb, var(--chance-brand) 15%, var(--chance-border)),
     0 24px 48px color-mix(in srgb, #000 35%, transparent);
 }
+
+.chance-dm-app {
+  display: grid;
+  grid-template-columns: minmax(16rem, 22rem) minmax(0, 1fr);
+  height: calc(100dvh - 6.5rem);
+  min-height: 28rem;
+  overflow: hidden;
+  border: 1px solid var(--chance-border);
+  border-radius: 1rem;
+  background: var(--chance-surface);
+}
+
+.chance-dm-list {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  border-right: 1px solid var(--chance-border);
+}
+
+.chance-dm-list-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.85rem 1rem 0.35rem;
+}
+
+.chance-dm-search {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.5rem 0.75rem 0.35rem;
+  padding: 0.55rem 0.85rem;
+  border-radius: 9999px;
+  background: var(--chance-surface-inset);
+}
+
+.chance-dm-threads {
+  min-height: 0;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.chance-dm-thread-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  text-decoration: none;
+  color: inherit;
+}
+
+.chance-dm-thread-row:hover,
+.chance-dm-thread-row.is-active {
+  background: color-mix(in srgb, var(--chance-fg) 6%, transparent);
+}
+
+.chance-dm-pane {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  flex-direction: column;
+}
+
+.chance-dm-compose {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgb(0 0 0 / 0.55);
+}
+
+.chance-dm-compose-card {
+  width: min(100%, 36rem);
+  overflow: hidden;
+  border: 1px solid var(--chance-border);
+  border-radius: 1rem;
+  background: var(--chance-surface);
+  box-shadow: var(--chance-shadow-elevated);
+}
+
+@media (max-width: 767.98px) {
+  .chance-dm-app {
+    grid-template-columns: 1fr;
+    height: calc(100dvh - 8rem);
+  }
+
+  .chance-dm-app .chance-dm-pane {
+    display: none;
+  }
+
+  .chance-dm-app--open .chance-dm-list {
+    display: none;
+  }
+
+  .chance-dm-app--open .chance-dm-pane {
+    display: flex;
+  }
+}

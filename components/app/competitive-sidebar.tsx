@@ -5,8 +5,9 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { isNavActive, MORE_NAV, PRIMARY_NAV } from "@/lib/navigation/app-nav"
+import SidebarDms from "@/components/app/sidebar-dms"
 
-export default function CompetitiveSidebar() {
+export default function CompetitiveSidebar({ userId }: { userId?: string }) {
   const pathname = usePathname()
 
   return (
@@ -31,7 +32,7 @@ export default function CompetitiveSidebar() {
           const active = isNavActive(pathname, matchPrefix)
           return (
             <Link
-              key={href}
+              key={label}
               href={href}
               className={cn(
                 "chance-nav-link chance-focus-ring flex items-center gap-3 rounded-[var(--chance-radius-md)] px-3 py-2.5 text-[0.8125rem] font-medium tracking-[-0.01em]",
@@ -62,7 +63,7 @@ export default function CompetitiveSidebar() {
           const active = isNavActive(pathname, matchPrefix)
           return (
             <Link
-              key={href}
+              key={label}
               href={href}
               className={cn(
                 "chance-nav-link chance-focus-ring flex items-center gap-3 rounded-[var(--chance-radius-md)] px-3 py-2 text-[0.8125rem]",
@@ -79,6 +80,8 @@ export default function CompetitiveSidebar() {
           )
         })}
       </nav>
+
+      {userId ? <SidebarDms userId={userId} /> : null}
 
       <div className="chance-invite-card chance-nav-label-only relative mt-4 p-4">
         <p className="text-sm font-semibold">Invite friends</p>

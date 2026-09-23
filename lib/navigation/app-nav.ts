@@ -5,6 +5,7 @@ import {
   History,
   Home,
   MessageSquare,
+  MessagesSquare,
   Trophy,
   UserPlus,
   Video,
@@ -28,6 +29,7 @@ export const PRIMARY_NAV: AppNavItem[] = [
 export const MORE_NAV: AppNavItem[] = [
   { href: "/tournaments", label: "Compete", matchPrefix: "/tournaments", icon: Trophy },
   { href: "/chat", label: "Social", matchPrefix: "/chat", icon: MessageSquare },
+  { href: "/dms", label: "DMs", matchPrefix: "/dms", icon: MessagesSquare },
   { href: "/friends/add", label: "Add friends", matchPrefix: "/friends", icon: UserPlus },
   { href: "/bars", label: "Venues", matchPrefix: "/bars", icon: Building2 },
   { href: "/call", label: "Live call", matchPrefix: "/call", icon: Video },
@@ -35,5 +37,7 @@ export const MORE_NAV: AppNavItem[] = [
 
 export function isNavActive(pathname: string, matchPrefix: string) {
   if (matchPrefix === "/dashboard") return pathname === "/dashboard"
+  if (matchPrefix === "/chat") return pathname === "/chat"
+  if (matchPrefix === "/dms") return pathname === "/dms" || pathname.startsWith("/chat/dm")
   return pathname === matchPrefix || pathname.startsWith(`${matchPrefix}/`)
 }

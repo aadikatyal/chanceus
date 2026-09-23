@@ -131,7 +131,7 @@ export default function Header({ user }: HeaderProps) {
             >
               {PRIMARY_NAV.map(({ href, label, matchPrefix }) => (
                 <Link
-                  key={href}
+                  key={label}
                   href={href}
                   className={primaryNavClass(isNavActive(pathname, matchPrefix))}
                   aria-current={isNavActive(pathname, matchPrefix) ? "page" : undefined}
@@ -156,7 +156,7 @@ export default function Header({ user }: HeaderProps) {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start" className="w-48 rounded-xl">
                   {MORE_NAV.map(({ href, label, icon: Icon }) => (
-                    <DropdownMenuItem key={href} asChild className="rounded-lg m-1">
+                    <DropdownMenuItem key={label} asChild className="rounded-lg m-1">
                       <Link href={href}>
                         <Icon className="mr-2 h-4 w-4" aria-hidden />
                         {label}
@@ -260,7 +260,7 @@ export default function Header({ user }: HeaderProps) {
                       <p className="px-4 pb-1 chance-text-label">Main</p>
                       {PRIMARY_NAV.map(({ href, label, matchPrefix, icon: Icon }) => (
                         <Link
-                          key={href}
+                          key={label}
                           href={href}
                           className={cn(
                             "flex items-center space-x-3 rounded-lg px-4 py-3 transition-colors",
@@ -277,7 +277,7 @@ export default function Header({ user }: HeaderProps) {
                       <p className="px-4 pb-1 pt-4 chance-text-label">More</p>
                       {MORE_NAV.map(({ href, label, icon: Icon }) => (
                         <Link
-                          key={href}
+                          key={label}
                           href={href}
                           className="flex items-center space-x-3 rounded-lg px-4 py-3 transition-colors hover:bg-secondary"
                         >

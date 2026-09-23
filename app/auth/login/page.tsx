@@ -4,6 +4,7 @@ import LoginForm from "@/components/login-form"
 import AuthMarketingShell from "@/components/app/auth-marketing-shell"
 import { ChanceText } from "@/components/design-system/typography"
 import { fetchPlatformLiveStats } from "@/lib/platform-live-stats"
+import { safeAppPath } from "@/lib/safe-redirect"
 
 interface LoginPageProps {
   searchParams: Promise<{ redirect?: string }>
@@ -27,14 +28,14 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   // Check if user is already logged in
   const supabase = await createClient()
   const {
-    data: { session },
-  } = await supabase.auth.getSession()
+    data: { user: authUser },
+  } = await supabase.auth.getUser()
 
-  // If user is logged in, redirect to original URL or dashboard
-  if (session) {
-    const redirectUrl = params.redirect || "/dashboard"
-    console.log("🔍 DEBUG: User already logged in, redirecting to:", redirectUrl)
-    redirect(redirectUrl)
+  if (authUser) {
+    const { data: profile } = await supabase.from("users").select("id").eq("id", authUser.id).maybeSingle()
+    if (profile) {
+      redirect(safeAppPath(params.redirect))
+    }
   }
 
   const live = await fetchPlatformLiveStats()
