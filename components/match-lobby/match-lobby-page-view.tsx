@@ -159,6 +159,8 @@ function LobbyShare({
     </div>
   )
 }
+
+function ReadyRing({ ready }: { ready: boolean }) {
   return (
     <span
       className={`inline-flex size-3 rounded-full ${ready ? "bg-[var(--chance-yes)] shadow-[0_0_10px_var(--chance-yes)]" : "bg-[var(--chance-border-strong)]"}`}
