@@ -8,14 +8,23 @@ import type { Transaction } from "@/lib/supabase/client"
 import BuyButtons from "@/app/wallet/BuyButtons"
 import TransferTokensForm from "@/components/wallet/transfer-tokens-form"
 import TransactionHistory from "@/components/wallet/transaction-history"
+import RewardedAdCard from "@/components/wallet/rewarded-ad-card"
 
 type WalletPageClientProps = {
   userId: string
   initialTokens: number
   transactions: Transaction[]
+  adWatches?: number | null
+  adRemaining?: number | null
 }
 
-export default function WalletPageClient({ userId, initialTokens, transactions }: WalletPageClientProps) {
+export default function WalletPageClient({
+  userId,
+  initialTokens,
+  transactions,
+  adWatches,
+  adRemaining,
+}: WalletPageClientProps) {
   const [tokens, setTokens] = useState(initialTokens)
 
   useEffect(() => {
@@ -87,6 +96,10 @@ export default function WalletPageClient({ userId, initialTokens, transactions }
       </section>
 
       <div className="mt-8 space-y-8">
+        {adWatches != null && adRemaining != null ? (
+          <RewardedAdCard watches={adWatches} remaining={adRemaining} />
+        ) : null}
+
         <section id="wallet-add-tokens" className="scroll-mt-24">
           <header className="mb-4">
             <h2 className="chance-section-title">Add tokens</h2>

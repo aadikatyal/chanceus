@@ -4,6 +4,9 @@ import { Suspense } from "react"
 import Link from "next/link"
 import CompetitiveShell from "@/components/app/competitive-shell"
 import WalletPageClient from "@/components/wallet/wallet-page-client"
+import { getRewardedAdStatus } from "@/lib/economy/actions"
+import { spendableGems } from "@/lib/economy/ledger"
+import { createAdminClient } from "@/lib/supabase/admin"
 import StripeCheckoutSuccess from "@/components/wallet/stripe-checkout-success"
 import { ChanceText } from "@/components/design-system/typography"
 import { Gamepad2 } from "lucide-react"
@@ -60,6 +63,10 @@ export default async function WalletPage() {
     .order("created_at", { ascending: false })
     .limit(20)
 
+  const adStatus = await getRewardedAdStatus()
+  const spendable = await spendableGems(createAdminClient(), authUser.id).catch(() => null)
+  if (spendable != null) user.tokens = spendable
+
   const rail = <WalletPlayRail />
 
   return (
@@ -67,7 +74,13 @@ export default async function WalletPage() {
       <Suspense fallback={null}>
         <StripeCheckoutSuccess />
       </Suspense>
-      <WalletPageClient userId={user.id} initialTokens={user.tokens ?? 0} transactions={transactions} />
+      <WalletPageClient
+        userId={user.id}
+        initialTokens={user.tokens ?? 0}
+        transactions={transactions}
+        adWatches={adStatus?.watches ?? null}
+        adRemaining={adStatus?.remaining ?? null}
+      />
     </CompetitiveShell>
   )
 }

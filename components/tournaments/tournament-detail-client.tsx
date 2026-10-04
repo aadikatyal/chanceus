@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
-import { registerForTournament, startTournament, advanceTournamentRound, syncTournamentPrizePool, deleteTournament } from "@/lib/tournament-actions"
+import { registerForTournament, startTournament, advanceTournamentRound, syncTournamentPrizePool, deleteTournament, settleProBracket } from "@/lib/tournament-actions"
+import { isBracketCode, TOURNAMENT_BRACKETS } from "@/lib/economy/spec"
 import { toast } from "@/hooks/use-toast"
 import { Trophy, Users, Play, ArrowRight, CheckCircle2, XCircle, Trash2 } from "lucide-react"
 import Link from "next/link"
@@ -52,6 +53,8 @@ export default function TournamentDetailClient({
   const [isStarting, setIsStarting] = useState(false)
   const [isSyncing, setIsSyncing] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [isSettling, setIsSettling] = useState(false)
+  const [finishOrder, setFinishOrder] = useState<string[]>(() => initialParticipants.map((p) => p.user_id))
   const [participants, setParticipants] = useState(initialParticipants)
   const [matches, setMatches] = useState(initialMatches)
   const supabase = createClient()
@@ -273,10 +276,12 @@ export default function TournamentDetailClient({
 
   // Creator can start without registering; others must be registered
   const isCreator = tournament.creator_id === currentUser.id
+  const bracket = isBracketCode(tournament.bracket_code) ? TOURNAMENT_BRACKETS[tournament.bracket_code] : null
+  const requiredPlayers = bracket?.players ?? null
   const canStartTournament =
     tournament.status === "registration" &&
     (isRegistered || isCreator) &&
-    participants.length >= 4
+    (requiredPlayers ? participants.length === requiredPlayers : participants.length >= 4)
 
   // Get match IDs for current round for auto-advance
   const currentRoundMatches = matches.filter((m) => m.round_number === tournament.current_round)
@@ -352,6 +357,79 @@ export default function TournamentDetailClient({
       )}
 
       {/* Auto-advance component (hidden) */}
+      {tournament.bracket_code === "B" && tournament.status === "in_progress" && isCreator && (
+        <Card className="bg-gray-900/80 border-gray-800">
+          <CardHeader>
+            <CardTitle className="text-white">Finishing order</CardTitle>
+            <CardDescription>
+              Pro bracket pays 60 / 25 / 15 gems to 1st, 2nd, and 3rd. 4th and 5th receive nothing.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {finishOrder.map((userId, index) => {
+              const player = participants.find((p) => p.user_id === userId)
+              const label = player?.users?.display_name || player?.users?.username || userId
+              return (
+                <div key={userId} className="flex items-center justify-between gap-3 text-white">
+                  <span>
+                    {index + 1}. {label}
+                  </span>
+                  <span className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="h-8 border-gray-600 text-gray-200"
+                      disabled={index === 0}
+                      onClick={() =>
+                        setFinishOrder((current) => {
+                          const next = [...current]
+                          ;[next[index - 1], next[index]] = [next[index], next[index - 1]]
+                          return next
+                        })
+                      }
+                    >
+                      Up
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="h-8 border-gray-600 text-gray-200"
+                      disabled={index === finishOrder.length - 1}
+                      onClick={() =>
+                        setFinishOrder((current) => {
+                          const next = [...current]
+                          ;[next[index + 1], next[index]] = [next[index], next[index + 1]]
+                          return next
+                        })
+                      }
+                    >
+                      Down
+                    </Button>
+                  </span>
+                </div>
+              )
+            })}
+            <Button
+              className="w-full bg-green-600 hover:bg-green-700 text-white"
+              disabled={isSettling || finishOrder.length !== 5}
+              onClick={async () => {
+                setIsSettling(true)
+                const result = await settleProBracket(tournament.id, finishOrder)
+                setIsSettling(false)
+                if (result.error) {
+                  toast({ title: "Could not pay the bracket", description: result.error, variant: "destructive" })
+                  return
+                }
+                toast({ title: "Bracket paid", description: "Gems were sent to the top three." })
+                router.refresh()
+              }}
+            >
+              {isSettling ? "Paying..." : "Pay bracket"}
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
       {tournament.status === "in_progress" && tournament.current_round > 0 && (
         <TournamentAutoAdvance
           tournamentId={tournament.id}
@@ -371,7 +449,7 @@ export default function TournamentDetailClient({
             </CardTitle>
             <CardDescription>
               {participants.length} of {tournament.max_participants} players registered
-              {participants.length >= 4 && participants.length < tournament.max_participants && (
+              {!requiredPlayers && participants.length >= 4 && participants.length < tournament.max_participants && (
                 <span className="text-orange-400 ml-2">(Can start now with {participants.length} players)</span>
               )}
             </CardDescription>
@@ -383,7 +461,7 @@ export default function TournamentDetailClient({
                   {tournament.status === "in_progress" ? (
                     <>
                       Late registration is open! Join this tournament. Entry fee:{" "}
-                      <span className="font-semibold text-white">{tournament.entry_fee} tokens</span>
+                      <span className="font-semibold text-white">{tournament.entry_fee} {bracket ? "gems" : "tokens"}</span>
                       <span className="text-yellow-400 text-sm block mt-1">
                         Note: Late registrants may be added to future rounds or as replacements.
                       </span>
@@ -391,7 +469,7 @@ export default function TournamentDetailClient({
                   ) : (
                     <>
                       Register now to compete in this tournament. Entry fee:{" "}
-                      <span className="font-semibold text-white">{tournament.entry_fee} tokens</span>
+                      <span className="font-semibold text-white">{tournament.entry_fee} {bracket ? "gems" : "tokens"}</span>
                     </>
                   )}
                 </p>
@@ -400,11 +478,11 @@ export default function TournamentDetailClient({
                   disabled={isRegistering || currentUser.tokens < tournament.entry_fee}
                   className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-black font-semibold"
                 >
-                  {isRegistering ? "Registering..." : `Register for ${tournament.entry_fee} tokens`}
+                  {isRegistering ? "Registering..." : `Register for ${tournament.entry_fee} ${bracket ? "gems" : "tokens"}`}
                 </Button>
                 {currentUser.tokens < tournament.entry_fee && (
                   <p className="text-sm text-red-400 text-center">
-                    You need {tournament.entry_fee - currentUser.tokens} more tokens to register
+                    You need {tournament.entry_fee - currentUser.tokens} more {bracket ? "gems" : "tokens"} to register
                   </p>
                 )}
                 {isCreator && canStartTournament && (

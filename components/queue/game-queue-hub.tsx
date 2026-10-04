@@ -10,6 +10,7 @@ import MatchmakingInterface from "@/components/games/matchmaking-interface"
 import { createMatch } from "@/lib/game-actions"
 import { getGameDisplayName, getGameThumbnail } from "@/lib/games/game-visuals"
 import { formatQueueEstimate, type GameLiveStats } from "@/lib/games/play-catalog"
+import { HEADS_UP_TIERS } from "@/lib/economy/spec"
 
 type GameQueueHubProps = {
   game: Game
@@ -27,19 +28,15 @@ type StakeOption = {
   betAmount: number
 }
 
-function buildStakes(game: Game): StakeOption[] {
-  const min = game.min_bet ?? 10
-  const max = game.max_bet ?? 500
-  const mid = Math.min(max, Math.max(min, Math.round((min + max) / 2 / 5) * 5))
-  const stakes = [...new Set([min, mid, max])].map((amount) => ({
-    id: `tokens-${amount}`,
-    label: `${amount} tokens`,
-    matchType: "tokens" as const,
-    betAmount: amount,
-  }))
+function buildStakes(_game: Game): StakeOption[] {
   return [
     { id: "free", label: "Free play", matchType: "free", betAmount: 0 },
-    ...stakes,
+    ...HEADS_UP_TIERS.map((tier) => ({
+      id: tier.id,
+      label: `${tier.stake} gems · pot ${tier.pot}`,
+      matchType: "tokens" as const,
+      betAmount: tier.stake,
+    })),
   ]
 }
 
@@ -169,7 +166,7 @@ export default function GameQueueHub({
 
               {!canAfford ? (
                 <p className="chance-text-caption mt-3 text-[var(--chance-no)]">
-                  Need {selected.betAmount} tokens for this stake.{" "}
+                  Need {selected.betAmount} gems for this stake.{" "}
                   <Link href="/wallet" className="font-medium text-[var(--chance-brand)] hover:underline">
                     Add tokens
                   </Link>

@@ -4,6 +4,8 @@ import { createServerActionClient } from "@supabase/auth-helpers-nextjs"
 import { cookies } from "next/headers"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
+import { isHeadsUpStake } from "@/lib/economy/spec"
+import { lockHeadsUpEscrow } from "@/lib/economy/escrow"
 
 // Join matchmaking queue with 3-minute wait
 export async function joinMatchmakingQueue(
@@ -100,26 +102,49 @@ export async function joinMatchmakingQueue(
         return { error: "Failed to update match" }
       }
 
-      // Deduct tokens for player2 if not free
-      if (matchType !== 'free') {
-        const { error: tokenError } = await supabase
-          .from("users")
-          .update({ tokens: userData.tokens - betAmount })
-          .eq("id", user.id)
+      if (matchType !== "free" && betAmount > 0) {
+        if (isHeadsUpStake(betAmount)) {
+          const locked = await lockHeadsUpEscrow({
+            matchId: priorityMatch.original_match_id,
+            player1Id: priorityMatch.player1_id,
+            player2Id: user.id,
+            stake: betAmount,
+          })
+          if (!locked.success) {
+            await supabase
+              .from("matches")
+              .update({ player2_id: null, status: "waiting" })
+              .eq("id", priorityMatch.original_match_id)
+            await supabase
+              .from("priority_matches")
+              .update({ player2_id: null, status: "waiting_player2" })
+              .eq("id", priorityMatch.id)
+            return { error: locked.error || "Failed to lock escrow" }
+          }
+          await supabase
+            .from("matches")
+            .update({ winner_takes_all: true, escrow_status: "ESCROW_LOCKED" })
+            .eq("id", priorityMatch.original_match_id)
+        } else {
+          const { data: joiner } = await supabase.from("users").select("tokens").eq("id", user.id).single()
+          const { error: tokenError } = await supabase
+            .from("users")
+            .update({ tokens: (joiner?.tokens ?? betAmount) - betAmount })
+            .eq("id", user.id)
 
-        if (tokenError) {
-          console.error("Failed to deduct tokens:", tokenError)
-          return { error: "Failed to process bet" }
+          if (tokenError) {
+            console.error("Failed to deduct tokens:", tokenError)
+            return { error: "Failed to process bet" }
+          }
+
+          await supabase.from("transactions").insert({
+            user_id: user.id,
+            match_id: priorityMatch.original_match_id,
+            amount: -betAmount,
+            type: "bet",
+            description: `Bet ${betAmount} tokens on priority match`
+          })
         }
-
-        // Create transaction record
-        await supabase.from("transactions").insert({
-          user_id: user.id,
-          match_id: priorityMatch.original_match_id,
-          amount: -betAmount,
-          type: "bet",
-          description: `Bet ${betAmount} tokens on priority match`
-        })
       }
 
       revalidatePath("/games")
@@ -188,6 +213,7 @@ export async function joinMatchmakingQueue(
           player2_id: user.id,
           bet_amount: betAmount,
           status: "waiting",
+          winner_takes_all: isHeadsUpStake(betAmount),
           game_data: matchCategory ? { category: matchCategory } : {}
         })
         .select()
@@ -213,51 +239,62 @@ export async function joinMatchmakingQueue(
         .eq("user_id", user.id)
         .eq("status", "waiting")
 
-      // Deduct tokens for both players if not free
-      if (matchType !== 'free') {
-        // Deduct for player1 (existing queue user)
-        const { data: player1Data } = await supabase
-          .from("users")
-          .select("tokens")
-          .eq("id", existingQueue.user_id)
-          .single()
-
-        if (player1Data) {
-          await supabase
+      if (matchType !== "free" && betAmount > 0) {
+        if (isHeadsUpStake(betAmount)) {
+          const locked = await lockHeadsUpEscrow({
+            matchId: matchData.id,
+            player1Id: existingQueue.user_id,
+            player2Id: user.id,
+            stake: betAmount,
+          })
+          if (!locked.success) {
+            await supabase.from("matches").update({ status: "cancelled" }).eq("id", matchData.id)
+            await supabase.from("matchmaking_queue").update({ status: "waiting" }).eq("id", existingQueue.id)
+            return { error: locked.error || "Failed to lock escrow" }
+          }
+        } else {
+          const { data: player1Data } = await supabase
             .from("users")
-            .update({ tokens: player1Data.tokens - betAmount })
+            .select("tokens")
             .eq("id", existingQueue.user_id)
+            .single()
+
+          if (player1Data) {
+            await supabase
+              .from("users")
+              .update({ tokens: player1Data.tokens - betAmount })
+              .eq("id", existingQueue.user_id)
+
+            await supabase.from("transactions").insert({
+              user_id: existingQueue.user_id,
+              match_id: matchData.id,
+              amount: -betAmount,
+              type: "bet",
+              description: `Bet ${betAmount} tokens on match`
+            })
+          }
+
+          const { data: player2Data } = await supabase
+            .from("users")
+            .select("tokens")
+            .eq("id", user.id)
+            .single()
+
+          if (player2Data) {
+            await supabase
+              .from("users")
+              .update({ tokens: player2Data.tokens - betAmount })
+              .eq("id", user.id)
+          }
 
           await supabase.from("transactions").insert({
-            user_id: existingQueue.user_id,
+            user_id: user.id,
             match_id: matchData.id,
             amount: -betAmount,
             type: "bet",
             description: `Bet ${betAmount} tokens on match`
           })
         }
-
-        // Deduct for player2 (current user)
-        const { data: player2Data } = await supabase
-          .from("users")
-          .select("tokens")
-          .eq("id", user.id)
-          .single()
-
-        if (player2Data) {
-          await supabase
-            .from("users")
-            .update({ tokens: player2Data.tokens - betAmount })
-            .eq("id", user.id)
-        }
-
-        await supabase.from("transactions").insert({
-          user_id: user.id,
-          match_id: matchData.id,
-          amount: -betAmount,
-          type: "bet",
-          description: `Bet ${betAmount} tokens on match`
-        })
       }
 
       revalidatePath("/games")
@@ -358,6 +395,7 @@ async function handleMatchmakingTimeout(queueId: string, supabase: any) {
         player1_id: queueEntry.user_id,
         bet_amount: queueEntry.bet_amount,
         status: "waiting",
+        winner_takes_all: isHeadsUpStake(queueEntry.bet_amount),
         game_data: {}
       })
       .select()
@@ -391,8 +429,8 @@ async function handleMatchmakingTimeout(queueId: string, supabase: any) {
       })
       .eq("id", queueId)
 
-    // Deduct tokens if not free
-    if (queueEntry.match_type !== 'free') {
+    // Heads-up stakes stay in the wallet until the opponent confirms. Other stakes debit the host now.
+    if (queueEntry.match_type !== "free" && !isHeadsUpStake(queueEntry.bet_amount)) {
       const { data: userData } = await supabase
         .from("users")
         .select("tokens")

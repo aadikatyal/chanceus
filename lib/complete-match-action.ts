@@ -4,6 +4,7 @@ import { createServerActionClient } from "@supabase/auth-helpers-nextjs"
 import { cookies } from "next/headers"
 import { revalidatePath } from "next/cache"
 import { createReplay } from "./replay-actions"
+import { releaseHeadsUpEscrow } from "@/lib/economy/escrow"
 
 export async function completeMatch(matchId: string, winnerId: string | null, gameData: any) {
   const cookieStore = await cookies()
@@ -30,8 +31,19 @@ export async function completeMatch(matchId: string, winnerId: string | null, ga
 
     console.log('✅ Server action: Match completed successfully:', data)
 
-    // Transfer tokens to winner if there is one
-    if (winnerId && data && data.length > 0) {
+    let escrowResult: Awaited<ReturnType<typeof releaseHeadsUpEscrow>> = { skipped: true }
+    try {
+      escrowResult = await releaseHeadsUpEscrow(matchId, winnerId)
+    } catch (escrowError) {
+      console.error("❌ Escrow release failed:", escrowError)
+    }
+    if ("error" in escrowResult && escrowResult.error) {
+      console.error("❌ Escrow release failed:", escrowResult.error)
+    }
+    const useLegacyPayout = "skipped" in escrowResult && escrowResult.skipped === true
+
+    // Legacy payout for matches that never entered winner-take-all escrow.
+    if (useLegacyPayout && winnerId && data && data.length > 0) {
       const match = data[0]
       const betAmount = match.bet_amount || 0
       

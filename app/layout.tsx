@@ -11,6 +11,7 @@ import { Toaster } from "@/components/ui/toaster"
 import FloatingFeedbackButton from "@/components/feedback/floating-feedback-button"
 import GlobalThemeToggle from "@/components/global-theme-toggle"
 import { ThemeProvider } from "@/components/theme-provider"
+import RewardedAdBootstrap from "@/components/ads/rewarded-ad-bootstrap"
 
 const inter = Inter({
   subsets: ["latin"],
@@ -59,19 +60,13 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`} suppressHydrationWarning>
-      <head>
-        <script
-          async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7434250143961922"
-          crossOrigin="anonymous"
-        ></script>
-      </head>
       <body
         className="chance-body font-sans antialiased bg-background text-foreground"
         suppressHydrationWarning
       >
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <ClientInit />
+          <RewardedAdBootstrap />
           {children}
           <GlobalThemeToggle />
           <Toaster />
