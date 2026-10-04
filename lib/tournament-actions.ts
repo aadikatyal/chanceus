@@ -4,6 +4,8 @@ import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
 import { cookies } from "next/headers"
 import { createServerActionClient } from "@supabase/auth-helpers-nextjs"
+import { isBracketCode, TOURNAMENT_BRACKETS, type BracketCode } from "@/lib/economy/spec"
+import { bracketFromTournament, orderedPlacements, payBracketPlacements } from "@/lib/economy/tournament-payouts"
 
 export interface Tournament {
   id: string
@@ -18,6 +20,8 @@ export interface Tournament {
   total_rounds: number
   winner_id: string | null
   creator_id: string | null
+  bracket_code: string | null
+  payout_schedule: number[] | null
   started_at: string | null
   completed_at: string | null
   created_at: string
@@ -55,6 +59,7 @@ export interface TournamentMatch {
   player2_bracket_position: number | null
   winner_bracket_position: number | null
   is_bye: boolean
+  is_placement?: boolean
   status: string
   created_at: string
   matches?: {
@@ -116,7 +121,8 @@ export async function createTournament(
   name: string,
   description: string | null,
   entryFee: number,
-  maxParticipants: number = 100
+  maxParticipants: number = 100,
+  bracketCode?: BracketCode | null
 ) {
   const supabase = await createClient()
   
@@ -140,10 +146,16 @@ export async function createTournament(
     throw new Error("Game not found or inactive")
   }
 
-  // Calculate total rounds
-  const totalRounds = calculateTotalRounds(maxParticipants)
+  const bracket = isBracketCode(bracketCode) ? TOURNAMENT_BRACKETS[bracketCode] : null
+  if (bracket) {
+    entryFee = bracket.entryStake
+    maxParticipants = bracket.players
+  }
 
-  if (maxParticipants < 4 || maxParticipants > 512 || !isPowerOfTwo(maxParticipants)) {
+  // Calculate total rounds
+  const totalRounds = bracket?.code === "B" ? 0 : calculateTotalRounds(maxParticipants)
+
+  if (!bracket && (maxParticipants < 4 || maxParticipants > 512 || !isPowerOfTwo(maxParticipants))) {
     throw new Error("Max participants must be a power of 2: 4, 8, 16, 32, 64, 128, 256, or 512")
   }
 
@@ -161,6 +173,8 @@ export async function createTournament(
       current_round: 0,
       total_rounds: totalRounds,
       creator_id: user.id,
+      bracket_code: bracket?.code ?? null,
+      payout_schedule: bracket ? [...bracket.payouts] : null,
     })
     .select()
     .single()
@@ -286,23 +300,35 @@ export async function registerForTournament(tournamentId: string) {
       return { error: "Insufficient token balance" }
     }
 
-    // Deduct entry fee
-    const { error: updateError } = await supabase
-      .from("users")
-      .update({ tokens: userData.tokens - tournament.entry_fee })
-      .eq("id", user.id)
+    if (tournament.bracket_code) {
+      // One debit. The transactions trigger updates users.tokens.
+      const { error: entryTxError } = await supabase.from("transactions").insert({
+        user_id: user.id,
+        type: "bet",
+        amount: -tournament.entry_fee,
+        tournament_id: tournament.id,
+        description: `Tournament entry — ${tournament.entry_fee} gems`,
+      })
+      if (entryTxError) {
+        return { error: "Failed to deduct entry fee" }
+      }
+    } else {
+      const { error: updateError } = await supabase
+        .from("users")
+        .update({ tokens: userData.tokens - tournament.entry_fee })
+        .eq("id", user.id)
 
-    if (updateError) {
-      return { error: "Failed to deduct entry fee" }
+      if (updateError) {
+        return { error: "Failed to deduct entry fee" }
+      }
+
+      await supabase.from("transactions").insert({
+        user_id: user.id,
+        type: "bet",
+        amount: -tournament.entry_fee,
+        description: `Tournament entry fee: ${tournament.name}`,
+      })
     }
-
-    // Create transaction record
-    await supabase.from("transactions").insert({
-      user_id: user.id,
-      type: "bet",
-      amount: -tournament.entry_fee,
-      description: `Tournament entry fee: ${tournament.name}`,
-    })
 
     // Update prize pool
     const newPrizePool = (tournament.prize_pool || 0) + tournament.entry_fee
@@ -448,6 +474,24 @@ export async function startTournament(tournamentId: string) {
 
     const participantCount = uniqueParticipants.length
     const N = participantCount
+    const bracketCode = bracketFromTournament(tournament)
+
+    if (bracketCode === "B") {
+      if (N !== 5) return { error: "Pro bracket requires exactly 5 players." }
+      for (const participant of uniqueParticipants) {
+        await supabase.from("tournament_participants").update({ status: "active" }).eq("id", participant.id)
+      }
+      await supabase
+        .from("tournaments")
+        .update({ status: "in_progress", current_round: 0, started_at: new Date().toISOString() })
+        .eq("id", tournamentId)
+      revalidatePath("/tournaments")
+      revalidatePath(`/tournaments/${tournamentId}`)
+      return { success: true }
+    }
+
+    if (bracketCode === "A" && N !== 4) return { error: "Rookie bracket requires exactly 4 players." }
+    if (bracketCode === "C" && N !== 8) return { error: "Championship bracket requires exactly 8 players." }
 
     if (N < 4) {
       return { error: `Need at least 4 unique participants to start. Found: ${N}.` }
@@ -884,12 +928,18 @@ export async function advanceTournamentRound(tournamentId: string) {
       return { error: "Not all matches in current round are completed" }
     }
 
-    // Get winners (one per match) — use joined matches(*) data so we match bracket display exactly
+    // Placement matches (3rd place) stay in the round but do not advance a winner.
+    const advancingMatches = currentRoundMatches.filter((tm) => !tm.is_placement)
+    const placementMatch = currentRoundMatches.find((tm) => tm.is_placement)
+    const bracketCode = bracketFromTournament(tournament)
+    const deferThirdPlace = bracketCode === "C" && nextRound === tournament.total_rounds
+    const thirdPlacePlayers: string[] = []
+
+    // Get winners (one per championship match)
     const winners: Array<{ bracketPosition: number; userId: string }> = []
 
-    for (const tm of currentRoundMatches) {
+    for (const tm of advancingMatches) {
       if (tm.is_bye) {
-        // Use participant lookup (same as display) — player1_bracket_position = participant 99, 100, etc.
         const bp = tm.player1_bracket_position ?? tm.winner_bracket_position ?? 0
         const winnerId = bp ? participantByBracketPos.get(bp) : null
         if (winnerId) {
@@ -906,7 +956,9 @@ export async function advanceTournamentRound(tournamentId: string) {
           })
           const loserId =
             winnerId === matchData.player1_id ? matchData.player2_id : matchData.player1_id
-          if (loserId) {
+          if (loserId && deferThirdPlace) {
+            thirdPlacePlayers.push(loserId)
+          } else if (loserId) {
             await supabase
               .from("tournament_participants")
               .update({
@@ -926,8 +978,41 @@ export async function advanceTournamentRound(tournamentId: string) {
 
     // If only one winner, tournament is complete
     if (winners.length === 1) {
-      // Award prize to winner
       const winner = winners[0]
+      if (bracketCode) {
+        const finalTm = advancingMatches.find((tm) => !tm.is_bye && tm.matches?.winner_id)
+        const finalData = finalTm?.matches
+        const runnerUp = finalData
+          ? winner.userId === finalData.player1_id
+            ? finalData.player2_id
+            : finalData.player1_id
+          : null
+        const placementData = placementMatch?.matches
+        const third = placementData?.winner_id ?? null
+        const fourth = placementData
+          ? third === placementData.player1_id
+            ? placementData.player2_id
+            : placementData.player1_id
+          : null
+        const { data: everyone } = await supabase
+          .from("tournament_participants")
+          .select("user_id")
+          .eq("tournament_id", tournamentId)
+        const placements = orderedPlacements([
+          winner.userId,
+          runnerUp,
+          third,
+          fourth,
+          ...(everyone ?? []).map((row) => row.user_id),
+        ])
+        const paid = await payBracketPlacements(tournamentId, bracketCode, placements)
+        if ("error" in paid && paid.error) return { error: paid.error }
+        revalidatePath("/tournaments")
+        revalidatePath(`/tournaments/${tournamentId}`)
+        return { success: true, completed: true }
+      }
+
+      // Legacy tournaments still pay the full recorded prize pool to the champion.
       const { data: winnerUser } = await supabase
         .from("users")
         .select("tokens")
@@ -1079,6 +1164,33 @@ export async function advanceTournamentRound(tournamentId: string) {
       })
     }
 
+    if (bracketCode === "C" && nextRound === tournament.total_rounds && thirdPlacePlayers.length >= 2) {
+      const [thirdA, thirdB] = thirdPlacePlayers
+      const { data: placement } = await supabase
+        .from("matches")
+        .insert({
+          game_id: tournament.game_id,
+          player1_id: thirdA,
+          player2_id: thirdB,
+          bet_amount: 0,
+          status: "waiting",
+        })
+        .select()
+        .single()
+
+      if (placement) {
+        nextRoundMatchIds.push(placement.id)
+        await supabase.from("tournament_matches").insert({
+          tournament_id: tournamentId,
+          match_id: placement.id,
+          round_number: nextRound,
+          bracket_position: 100,
+          is_placement: true,
+          status: "pending",
+        })
+      }
+    }
+
     // Handle byes (shouldn't happen after Round 1, but handle it just in case)
     if (byes === 1) {
       console.log(`⚠️ Warning: Odd number of winners in round ${nextRound}, creating bye`)
@@ -1138,6 +1250,45 @@ export async function advanceTournamentRound(tournamentId: string) {
     console.error("Advance tournament error:", error)
     return { error: "An unexpected error occurred" }
   }
+}
+
+export async function settleProBracket(tournamentId: string, orderedUserIds: string[]) {
+  const cookieStore = await cookies()
+  const supabase = createServerActionClient({ cookies: () => cookieStore })
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return { error: "You must be logged in" }
+
+  const { data: tournament } = await supabase.from("tournaments").select("*").eq("id", tournamentId).single()
+  if (!tournament) return { error: "Tournament not found" }
+  if (tournament.creator_id !== user.id) return { error: "Only the creator can set the finishing order" }
+  if (tournament.bracket_code !== "B") return { error: "This bracket settles from match results" }
+  if (tournament.status !== "in_progress") return { error: "The pool is not in progress" }
+
+  const { data: participants } = await supabase
+    .from("tournament_participants")
+    .select("user_id")
+    .eq("tournament_id", tournamentId)
+
+  const registered = new Set((participants ?? []).map((row) => row.user_id))
+  if (orderedUserIds.length !== 5 || new Set(orderedUserIds).size !== 5) {
+    return { error: "Provide all 5 players in finishing order" }
+  }
+  if (orderedUserIds.some((id) => !registered.has(id))) {
+    return { error: "Finishing order includes someone who is not in this pool" }
+  }
+
+  const paid = await payBracketPlacements(
+    tournamentId,
+    "B",
+    orderedUserIds.map((userId, index) => ({ userId, rank: index + 1 })),
+  )
+  if ("error" in paid && paid.error) return { error: paid.error }
+
+  revalidatePath("/tournaments")
+  revalidatePath(`/tournaments/${tournamentId}`)
+  return { success: true as const }
 }
 
 // Get all tournaments

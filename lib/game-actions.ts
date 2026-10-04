@@ -2,6 +2,8 @@
 
 import { createServerActionClient } from "@supabase/auth-helpers-nextjs"
 import { cookies } from "next/headers"
+import { isHeadsUpStake } from "@/lib/economy/spec"
+import { lockHeadsUpEscrow, refundHeadsUpEscrow } from "@/lib/economy/escrow"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 
@@ -60,7 +62,8 @@ export async function createMatch(prevState: any, formData: FormData) {
       return { error: "Game not found" }
     }
 
-    if (betAmountNum > 0 && (betAmountNum < gameData.min_bet || betAmountNum > gameData.max_bet)) {
+    const headsUp = isHeadsUpStake(betAmountNum)
+    if (betAmountNum > 0 && !headsUp && (betAmountNum < gameData.min_bet || betAmountNum > gameData.max_bet)) {
       return { error: `Bet amount must be between ${gameData.min_bet} and ${gameData.max_bet} tokens` }
     }
 
@@ -72,6 +75,7 @@ export async function createMatch(prevState: any, formData: FormData) {
         player1_id: user.id,
         bet_amount: betAmountNum,
         status: "waiting",
+        winner_takes_all: headsUp,
       })
       .select()
       .single()
@@ -81,8 +85,9 @@ export async function createMatch(prevState: any, formData: FormData) {
       return { error: "Failed to create match" }
     }
 
-    // Escrow via transactions — DB trigger updates users.tokens (do not write tokens column directly).
-    if (betAmountNum > 0) {
+    // Heads-up stakes lock both players together when the opponent joins.
+    // Other lobbies escrow the host immediately. The transactions trigger updates users.tokens.
+    if (betAmountNum > 0 && !headsUp) {
       const { error: transactionError } = await supabase.from("transactions").insert({
         user_id: user.id,
         match_id: matchData.id,
@@ -145,6 +150,19 @@ export async function joinMatch(matchId: string) {
       throw new Error("Insufficient token balance")
     }
 
+    const headsUp = isHeadsUpStake(matchData.bet_amount) || matchData.winner_takes_all === true
+    if (headsUp && matchData.bet_amount > 0) {
+      const locked = await lockHeadsUpEscrow({
+        matchId,
+        player1Id: matchData.player1_id,
+        player2Id: user.id,
+        stake: matchData.bet_amount,
+      })
+      if (!locked.success) {
+        throw new Error(locked.error || "Failed to lock the match escrow")
+      }
+    }
+
     // Update match with player 2 and set status to in_progress
     const { error: updateError } = await supabase
       .from("matches")
@@ -152,6 +170,7 @@ export async function joinMatch(matchId: string) {
         player2_id: user.id,
         status: "in_progress",
         started_at: new Date().toISOString(),
+        ...(headsUp ? { winner_takes_all: true, escrow_status: "ESCROW_LOCKED" } : {}),
       })
       .eq("id", matchId)
 
@@ -176,18 +195,20 @@ export async function joinMatch(matchId: string) {
         .eq("status", "waiting")
     }
 
-    // Create bet transaction for player 2
-    const { error: transactionError } = await supabase.from("transactions").insert({
-      user_id: user.id,
-      match_id: matchId,
-      type: "bet",
-      amount: -matchData.bet_amount,
-      description: `Bet placed for ${matchData.games.name} match - ${matchData.bet_amount} tokens`,
-    })
+    // Heads-up stakes are already locked for both players. Other matches debit the joiner here.
+    if (!headsUp && matchData.bet_amount > 0) {
+      const { error: transactionError } = await supabase.from("transactions").insert({
+        user_id: user.id,
+        match_id: matchId,
+        type: "bet",
+        amount: -matchData.bet_amount,
+        description: `Bet placed for ${matchData.games.name} match - ${matchData.bet_amount} tokens`,
+      })
 
-    if (transactionError) {
-      console.error("Transaction error:", transactionError)
-      throw new Error("Failed to process bet transaction")
+      if (transactionError) {
+        console.error("Transaction error:", transactionError)
+        throw new Error("Failed to process bet transaction")
+      }
     }
 
     revalidatePath("/games")
@@ -254,21 +275,26 @@ export async function cancelMatch(matchId: string) {
       throw new Error("Failed to cancel match")
     }
 
-    // Refund the bet to player 1
-    console.log("🚫 Processing refund for amount:", matchData.bet_amount)
-    const { error: refundError } = await supabase.from("transactions").insert({
-      user_id: user.id,
-      match_id: matchId,
-      type: "bonus",
-      amount: matchData.bet_amount,
-      description: `Match cancelled - refund of ${matchData.bet_amount} tokens`,
-    })
+    if (matchData.escrow_status === "ESCROW_LOCKED") {
+      const refunded = await refundHeadsUpEscrow(matchId)
+      if ("error" in refunded && refunded.error) {
+        throw new Error(refunded.error)
+      }
+    } else if (!(matchData.winner_takes_all && matchData.bet_amount > 0) && matchData.bet_amount > 0) {
+      // Legacy lobbies debit the host at create time. Heads-up lobbies do not, until both seats lock.
+      console.log("🚫 Processing refund for amount:", matchData.bet_amount)
+      const { error: refundError } = await supabase.from("transactions").insert({
+        user_id: user.id,
+        match_id: matchId,
+        type: "bonus",
+        amount: matchData.bet_amount,
+        description: `Match cancelled - refund of ${matchData.bet_amount} tokens`,
+      })
 
-    console.log("🚫 Refund result:", { refundError })
-
-    if (refundError) {
-      console.error("🚫 Refund error:", refundError)
-      throw new Error("Failed to process refund")
+      if (refundError) {
+        console.error("🚫 Refund error:", refundError)
+        throw new Error("Failed to process refund")
+      }
     }
 
     console.log("🚫 Revalidating paths...")
@@ -554,7 +580,7 @@ export async function createFriendMatch(
       return { error: "Game not found" }
     }
 
-    if (betAmount < gameData.min_bet || betAmount > gameData.max_bet) {
+    if (betAmount > 0 && !isHeadsUpStake(betAmount) && (betAmount < gameData.min_bet || betAmount > gameData.max_bet)) {
       return { error: `Bet amount must be between ${gameData.min_bet} and ${gameData.max_bet} tokens` }
     }
 
@@ -566,6 +592,7 @@ export async function createFriendMatch(
         player1_id: user.id,
         player2_id: friendId,
         bet_amount: betAmount,
+        winner_takes_all: isHeadsUpStake(betAmount),
         status: "waiting", // Waiting for friend to accept
         game_data: category ? { category, friend_match_request: true, player1_ready: false, player2_ready: false } : { friend_match_request: true, player1_ready: false, player2_ready: false }
       })
@@ -744,33 +771,33 @@ export async function markPlayerReady(matchId: string) {
         .single()
 
       if (player1Data && player2Data) {
-        // Deduct tokens from both players
-        await supabase
-          .from("users")
-          .update({ tokens: player1Data.tokens - matchData.bet_amount })
-          .eq("id", matchData.player1_id)
+        if (isHeadsUpStake(matchData.bet_amount)) {
+          const locked = await lockHeadsUpEscrow({
+            matchId,
+            player1Id: matchData.player1_id,
+            player2Id: matchData.player2_id,
+            stake: matchData.bet_amount,
+          })
+          if (!locked.success) {
+            return { error: locked.error || "Failed to lock the match escrow" }
+          }
+        } else if (matchData.bet_amount > 0) {
+          await supabase.from("transactions").insert({
+            user_id: matchData.player1_id,
+            match_id: matchData.id,
+            amount: -matchData.bet_amount,
+            type: "bet",
+            description: `Friend match bet - ${matchData.bet_amount} tokens`,
+          })
 
-        await supabase
-          .from("users")
-          .update({ tokens: player2Data.tokens - matchData.bet_amount })
-          .eq("id", matchData.player2_id)
-
-        // Create transaction records
-        await supabase.from("transactions").insert({
-          user_id: matchData.player1_id,
-          match_id: matchData.id,
-          amount: -matchData.bet_amount,
-          type: "bet",
-          description: `Friend match bet - ${matchData.bet_amount} tokens`,
-        })
-
-        await supabase.from("transactions").insert({
-          user_id: matchData.player2_id,
-          match_id: matchData.id,
-          amount: -matchData.bet_amount,
-          type: "bet",
-          description: `Friend match bet - ${matchData.bet_amount} tokens`,
-        })
+          await supabase.from("transactions").insert({
+            user_id: matchData.player2_id,
+            match_id: matchData.id,
+            amount: -matchData.bet_amount,
+            type: "bet",
+            description: `Friend match bet - ${matchData.bet_amount} tokens`,
+          })
+        }
 
         // Start the match
         await supabase

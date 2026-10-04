@@ -1,0 +1,12 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/video-meter",
+      "schedule": "* * * * *"
+    },
+    {
+      "path": "/api/cron/ad-reset",
+      "schedule": "0 0 * * *"
+    }
+  ]
+}

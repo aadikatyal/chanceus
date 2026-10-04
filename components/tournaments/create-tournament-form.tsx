@@ -15,6 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { createTournament, registerForTournament } from "@/lib/tournament-actions"
+import { TOURNAMENT_BRACKETS, type BracketCode } from "@/lib/economy/spec"
 import { toast } from "@/hooks/use-toast"
 import { Trophy, Coins, Users } from "lucide-react"
 
@@ -28,7 +29,7 @@ interface CreateTournamentFormProps {
   }>
 }
 
-const TOURNAMENT_SIZES = [4, 8, 16, 32, 64, 128, 256, 512] as const
+const BRACKET_CODES = ["A", "B", "C"] as const
 
 export default function CreateTournamentForm({ games }: CreateTournamentFormProps) {
   const router = useRouter()
@@ -37,8 +38,7 @@ export default function CreateTournamentForm({ games }: CreateTournamentFormProp
     gameId: "",
     name: "",
     description: "",
-    entryFee: "100",
-    maxParticipants: "8",
+    bracket: "A" as BracketCode,
     joinAsPlayer: true,
   })
 
@@ -47,12 +47,14 @@ export default function CreateTournamentForm({ games }: CreateTournamentFormProp
     setIsSubmitting(true)
 
     try {
+      const bracket = TOURNAMENT_BRACKETS[formData.bracket]
       const result = await createTournament(
         formData.gameId,
         formData.name,
         formData.description || null,
-        parseInt(formData.entryFee),
-        parseInt(formData.maxParticipants)
+        bracket.entryStake,
+        bracket.players,
+        formData.bracket
       )
 
       if (result) {
@@ -151,51 +153,30 @@ export default function CreateTournamentForm({ games }: CreateTournamentFormProp
             />
           </div>
 
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <Label htmlFor="entryFee" className="text-white flex items-center gap-2">
-                <Coins className="h-4 w-4 text-yellow-400" />
-                Entry Fee (tokens)
-              </Label>
-              <Input
-                id="entryFee"
-                type="number"
-                value={formData.entryFee}
-                onChange={(e) => setFormData({ ...formData, entryFee: e.target.value })}
-                min="1"
-                className="bg-gray-800 border-gray-700 text-white"
-                required
-              />
-              <p className="text-xs text-gray-400">
-                Entry fees contribute to the prize pool
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="maxParticipants" className="text-white flex items-center gap-2">
-                <Users className="h-4 w-4" />
-                Max Participants
-              </Label>
-              <Select
-                value={formData.maxParticipants}
-                onValueChange={(value) => setFormData({ ...formData, maxParticipants: value })}
-                required
-              >
-                <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
-                  <SelectValue placeholder="Select size" />
-                </SelectTrigger>
-                <SelectContent>
-                  {TOURNAMENT_SIZES.map((size) => (
-                    <SelectItem key={size} value={String(size)} className="text-white">
-                      {size} players
+          <div className="space-y-2">
+            <Label className="text-white flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              Bracket
+            </Label>
+            <Select
+              value={formData.bracket}
+              onValueChange={(value) => setFormData({ ...formData, bracket: value as BracketCode })}
+              required
+            >
+              <SelectTrigger className="bg-gray-800 border-gray-700 text-white">
+                <SelectValue placeholder="Select a bracket" />
+              </SelectTrigger>
+              <SelectContent>
+                {BRACKET_CODES.map((code) => {
+                  const bracket = TOURNAMENT_BRACKETS[code]
+                  return (
+                    <SelectItem key={code} value={code} className="text-white">
+                      {bracket.name} · {bracket.entryStake} gems
                     </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <p className="text-xs text-gray-400">
-                Power of 2 only (no byes). Seed bots to fill: node scripts/seed-tournament-players.mjs &lt;id&gt; {formData.maxParticipants}
-              </p>
-            </div>
+                  )
+                })}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="flex items-center space-x-2">
@@ -213,16 +194,17 @@ export default function CreateTournamentForm({ games }: CreateTournamentFormProp
             </Label>
           </div>
 
-          <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
-            <p className="text-sm text-blue-300">
-              <strong>Prize Pool:</strong> {formData.entryFee && formData.maxParticipants
-                ? (parseInt(formData.entryFee) * parseInt(formData.maxParticipants)).toLocaleString()
-                : "0"}{" "}
-              tokens
+          <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 space-y-1">
+            <p className="text-sm text-blue-300 flex items-center gap-2">
+              <Coins className="h-4 w-4 text-yellow-400" />
+              <strong>Pot:</strong> {TOURNAMENT_BRACKETS[formData.bracket].pot} gems
             </p>
-            <p className="text-xs text-blue-400/70 mt-1">
-              Prize pool = Entry fee × Max participants
-            </p>
+            {TOURNAMENT_BRACKETS[formData.bracket].payouts.map((amount, index) => (
+              <p key={index} className="text-xs text-blue-400/80">
+                {index + 1}
+                {index === 0 ? "st" : index === 1 ? "nd" : index === 2 ? "rd" : "th"}: {amount} gems
+              </p>
+            ))}
           </div>
 
           <Button

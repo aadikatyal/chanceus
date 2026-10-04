@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import { Mic, MicOff, Video, VideoOff, Copy, PhoneOff } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -12,6 +12,8 @@ import CallMatchPanel from "@/components/call/call-match-panel"
 import { useToast } from "@/hooks/use-toast"
 import type { User } from "@/lib/supabase/client"
 import { cn } from "@/lib/utils"
+import { beginVideoRoomMeter, endVideoRoomMeter, pulseOwnVideoRoomMeter } from "@/lib/economy/actions"
+import { VIDEO_METER_DEBIT_GEMS, VIDEO_METER_INTERVAL_SECONDS } from "@/lib/economy/spec"
 
 export default function CallRoom({
   roomCode,
@@ -43,6 +45,28 @@ export default function CallRoom({
   const game = isCallGameId(selectedGame) ? selectedGame : initialGame
   const isHost = claimedHost
 
+  useEffect(() => {
+    let cancelled = false
+    beginVideoRoomMeter(roomCode).catch(() => {})
+    const timer = window.setInterval(() => {
+      pulseOwnVideoRoomMeter(roomCode).then((result) => {
+        if (cancelled || !result || !("stopped" in result)) return
+        if (result.stopped === "insufficient_funds") {
+          toast({
+            title: "Live room paused",
+            description: `Need ${VIDEO_METER_DEBIT_GEMS} gems to keep this room open.`,
+            variant: "destructive",
+          })
+        }
+      })
+    }, 30_000)
+    return () => {
+      cancelled = true
+      window.clearInterval(timer)
+      endVideoRoomMeter(roomCode).catch(() => {})
+    }
+  }, [roomCode, toast])
+
   const statusLabel = useMemo(() => {
     if (callStatus === "error" && error && !localVideoRef.current?.srcObject) return error
     if (callStatus === "requesting") return "Requesting camera and microphone…"
@@ -67,6 +91,9 @@ export default function CallRoom({
               <p className="chance-text-caption text-xs uppercase tracking-widest text-[var(--chance-brand)]">Live room</p>
               <h1 className="chance-display-title mt-0.5 text-lg sm:text-xl">{roomCode}</h1>
               <p className="mt-1 text-sm text-[var(--chance-muted-fg)]">{statusLabel}</p>
+              <p className="mt-1 text-xs text-[var(--chance-muted-fg)]">
+                {VIDEO_METER_DEBIT_GEMS} gems every {VIDEO_METER_INTERVAL_SECONDS / 60} minutes while this room is open.
+              </p>
             </div>
             <span
               className={cn(

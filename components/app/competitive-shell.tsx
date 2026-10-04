@@ -2,6 +2,8 @@ import type { User as UserType } from "@/lib/supabase/client"
 import CompetitiveSidebar from "@/components/app/competitive-sidebar"
 import CompetitiveTopbar from "@/components/app/competitive-topbar"
 import CallInviteListener from "@/components/call/call-invite-listener"
+import { spendableGems } from "@/lib/economy/ledger"
+import { createAdminClient } from "@/lib/supabase/admin"
 
 type CompetitiveShellProps = {
   user: UserType
@@ -10,7 +12,16 @@ type CompetitiveShellProps = {
 }
 
 /** Three-column competitive client: sidebar · main · utility rail (lg+) */
-export default function CompetitiveShell({ user, children, rail }: CompetitiveShellProps) {
+export default async function CompetitiveShell({ user, children, rail }: CompetitiveShellProps) {
+  let tokens = user.tokens
+  try {
+    const spendable = await spendableGems(createAdminClient(), user.id)
+    if (spendable != null) tokens = spendable
+  } catch {
+    tokens = user.tokens
+  }
+  const shown = { ...user, tokens }
+
   return (
     <div className="chance-competitive-theme chance-shell min-h-screen bg-[var(--chance-bg)] text-[var(--chance-fg)]">
       <a
@@ -21,7 +32,7 @@ export default function CompetitiveShell({ user, children, rail }: CompetitiveSh
       </a>
       <CompetitiveSidebar userId={user.id} />
       <div className="chance-shell-body flex min-w-0 flex-1 flex-col">
-        <CompetitiveTopbar user={user} />
+        <CompetitiveTopbar user={shown} />
         <div className="chance-shell-main-wrap flex min-h-0 flex-1 flex-col lg:flex-row">
           <main id="main-content" className="chance-shell-main min-w-0 flex-1 py-[var(--chance-page-pad-y,1rem)]">
             {children}

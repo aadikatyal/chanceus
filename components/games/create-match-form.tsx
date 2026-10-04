@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Trophy, DollarSign, Coins, Zap, Users, Brain, UserPlus } from "lucide-react"
+import { Trophy, Coins, Zap, Users, Brain, UserPlus } from "lucide-react"
 import { useState, useEffect } from "react"
 import type { Game } from "@/lib/supabase/client"
 import { useRouter, useSearchParams } from "next/navigation"
@@ -19,6 +19,14 @@ import {
 } from "@/components/ui/dialog"
 import { createFriendMatch } from "@/lib/game-actions"
 import { useToast } from "@/hooks/use-toast"
+import { HEADS_UP_TIERS } from "@/lib/economy/spec"
+
+type StakeTierId = "free" | "tier1" | "tier2" | "tier3"
+
+function stakeFor(id: StakeTierId) {
+  if (id === "free") return 0
+  return HEADS_UP_TIERS.find((tier) => tier.id === id)?.stake ?? 10
+}
 
 
 
@@ -28,7 +36,7 @@ interface CreateMatchFormProps {
 }
 
 export default function CreateMatchForm({ game, user }: CreateMatchFormProps) {
-  const [selectedTier, setSelectedTier] = useState<'free' | 'tokens' | 'cash5' | 'cash10'>('tokens')
+  const [selectedTier, setSelectedTier] = useState<StakeTierId>("tier1")
   const [selectedCategory, setSelectedCategory] = useState<string>('')
   const [showMatchmaking, setShowMatchmaking] = useState(false)
   const [isCheckingMatchmaking, setIsCheckingMatchmaking] = useState(true)
@@ -270,10 +278,10 @@ export default function CreateMatchForm({ game, user }: CreateMatchFormProps) {
 
   // Handle URL parameters for pre-selecting tier
   useEffect(() => {
-    const tier = searchParams.get('tier')
-    if (tier && ['free', 'tokens', 'cash5', 'cash10'].includes(tier)) {
-      setSelectedTier(tier as 'free' | 'tokens' | 'cash5' | 'cash10')
-    }
+    const tier = searchParams.get("tier")
+    const mapped: StakeTierId | null =
+      tier === "free" ? "free" : tier === "tier2" || tier === "cash5" ? "tier2" : tier === "tier3" || tier === "cash10" ? "tier3" : tier === "tier1" || tier === "tokens" ? "tier1" : null
+    if (mapped) setSelectedTier(mapped)
   }, [searchParams])
 
   // Fetch friends when dialog opens
@@ -330,9 +338,7 @@ export default function CreateMatchForm({ game, user }: CreateMatchFormProps) {
   }, [showFriendDialog, supabase])
 
   const handlePlayFriend = async (friendId: string) => {
-    const betAmount = selectedTier === 'free' ? 0 :
-      selectedTier === 'tokens' ? 100 :
-      selectedTier === 'cash5' ? 500 : 1000
+    const betAmount = stakeFor(selectedTier)
 
     if (betAmount > 0 && user.tokens < betAmount) {
       toast({
@@ -426,41 +432,23 @@ export default function CreateMatchForm({ game, user }: CreateMatchFormProps) {
   // Monetization tiers with fixed amounts
   const monetizationTiers = [
     {
-      id: 'free' as const,
-      name: 'Free Play',
+      id: "free" as const,
+      name: "Free Play",
       icon: <Zap className="h-5 w-5" />,
-      description: 'Practice with gems/tokens',
-      color: 'bg-green-500/20 text-green-400 border-green-500/30',
+      description: "Practice. No gems on the line.",
+      color: "bg-green-500/20 text-green-400 border-green-500/30",
       betAmount: 0,
-      available: true
+      available: true,
     },
-    {
-      id: 'tokens' as const,
-      name: 'Token Match',
+    ...HEADS_UP_TIERS.map((tier) => ({
+      id: tier.id,
+      name: `${tier.name} · winner takes all`,
       icon: <Coins className="h-5 w-5" />,
-      description: 'Bet 100 in-game tokens',
-      color: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
-      betAmount: 100,
-      available: user.tokens >= 100
-    },
-    {
-      id: 'cash5' as const,
-      name: '$5 Cash Pool',
-      icon: <DollarSign className="h-5 w-5" />,
-      description: 'Real money tournament',
-      color: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
-      betAmount: 500, // 500 tokens = $5
-      available: user.tokens >= 500
-    },
-    {
-      id: 'cash10' as const,
-      name: '$10 Cash Pool',
-      icon: <DollarSign className="h-5 w-5" />,
-      description: 'High-stakes competition',
-      color: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
-      betAmount: 1000, // 1000 tokens = $10
-      available: user.tokens >= 1000
-    }
+      description: `${tier.stake} gems in. Winner receives ${tier.payout} gems.`,
+      color: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
+      betAmount: tier.stake,
+      available: user.tokens >= tier.stake,
+    })),
   ]
 
 
@@ -677,12 +665,8 @@ export default function CreateMatchForm({ game, user }: CreateMatchFormProps) {
         key={`matchmaking-${game.id}-${user.id}`}
         gameId={game.id}
         currentUserId={user.id}
-        matchType={selectedTier}
-        betAmount={
-          selectedTier === 'free' ? 0 :
-          selectedTier === 'tokens' ? 100 :
-          selectedTier === 'cash5' ? 500 : 1000
-        }
+        matchType={selectedTier === "free" ? "free" : "tokens"}
+        betAmount={stakeFor(selectedTier)}
         category={isTriviaGame ? selectedCategory : undefined}
         onMatchFound={handleMatchFound}
         onCancel={handleCancelMatchmaking}
@@ -780,7 +764,7 @@ export default function CreateMatchForm({ game, user }: CreateMatchFormProps) {
                     </div>
                     {tier.betAmount > 0 && (
                       <div className="text-lg font-bold">
-                        {tier.betAmount.toLocaleString()} tokens
+                        {tier.betAmount.toLocaleString()} gems
                       </div>
                     )}
                   </div>
@@ -837,23 +821,19 @@ export default function CreateMatchForm({ game, user }: CreateMatchFormProps) {
             <div className="flex justify-between items-center mt-2">
               <span className="text-gray-400">After Bet:</span>
               <span className={`font-semibold ${
-                user.tokens - (selectedTier === 'free' ? 0 :
-                selectedTier === 'tokens' ? 100 :
-                selectedTier === 'cash5' ? 500 : 1000) >= 0 ? "text-green-400" : "text-red-400"
+                user.tokens - stakeFor(selectedTier) >= 0 ? "text-green-400" : "text-red-400"
               }`}>
-                {(user.tokens - (selectedTier === 'free' ? 0 :
-                selectedTier === 'tokens' ? 100 :
-                selectedTier === 'cash5' ? 500 : 1000)).toLocaleString()} tokens
+                {(user.tokens - stakeFor(selectedTier)).toLocaleString()} gems
               </span>
             </div>
-            {selectedTier === 'free' && (
+            {selectedTier === "free" && (
               <div className="mt-2 text-sm text-green-400">
-                🎉 Free play - no tokens required!
+                Free play. No gems required.
               </div>
             )}
-            {(selectedTier === 'cash5' || selectedTier === 'cash10') && (
-              <div className="mt-2 text-sm text-blue-400">
-                💰 Cash tournament - winner takes all!
+            {selectedTier !== "free" && (
+              <div className="mt-2 text-sm text-yellow-400">
+                Both stakes lock in escrow. The winner takes the full pot.
               </div>
             )}
           </div>
@@ -897,9 +877,7 @@ export default function CreateMatchForm({ game, user }: CreateMatchFormProps) {
                   </div>
                 ) : (
                   friends.map((friend) => {
-                    const betAmount = selectedTier === 'free' ? 0 :
-                      selectedTier === 'tokens' ? 100 :
-                      selectedTier === 'cash5' ? 500 : 1000
+                    const betAmount = stakeFor(selectedTier)
                     const canPlay = betAmount === 0 || (friend.tokens >= betAmount && user.tokens >= betAmount)
                     
                     return (

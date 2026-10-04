@@ -99,6 +99,12 @@ export async function cleanupExpiredMatches() {
       console.log(`🧹 Cleaning up ${oldMatches.length} old matches for user ${user.id}`)
 
       for (const match of oldMatches) {
+        if (match.escrow_status === "ESCROW_LOCKED") {
+          const { refundHeadsUpEscrow } = await import("@/lib/economy/escrow")
+          await refundHeadsUpEscrow(match.id)
+        } else if (match.winner_takes_all && match.bet_amount > 0) {
+          // Stake is still in the wallet until both players confirm.
+        } else {
         const { data: userData } = await supabase
           .from("users")
           .select("tokens")
@@ -118,6 +124,7 @@ export async function cleanupExpiredMatches() {
             type: "bonus",
             description: `Match expired - refund of ${match.bet_amount} tokens`,
           })
+        }
         }
 
         await supabase
