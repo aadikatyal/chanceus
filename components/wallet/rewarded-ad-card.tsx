@@ -1,9 +1,9 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { claimRewardedAd } from "@/lib/economy/actions"
-import { showRewardedAd } from "@/lib/ads/rewarded-ad"
+import { prepareRewardedAd, showRewardedAd, subscribeRewardedAd, type RewardedAdAvailability } from "@/lib/ads/rewarded-ad"
 import { AD_REWARD_GEMS, DAILY_AD_CAP } from "@/lib/economy/spec"
 import { useToast } from "@/hooks/use-toast"
 
@@ -16,14 +16,25 @@ export default function RewardedAdCard({
 }) {
   const router = useRouter()
   const { toast } = useToast()
-  const [pending, setPending] = useState(false)
+  const [availability, setAvailability] = useState<RewardedAdAvailability>("loading")
+  const [phase, setPhase] = useState<"idle" | "playing" | "crediting">("idle")
   const [left, setLeft] = useState(remaining)
 
+  useEffect(() => {
+    prepareRewardedAd()
+    return subscribeRewardedAd(setAvailability)
+  }, [])
+
   const claim = async () => {
-    setPending(true)
+    if (availability !== "ready") {
+      prepareRewardedAd()
+      return
+    }
+
+    setPhase("playing")
     const ad = await showRewardedAd()
     if (ad !== "viewed") {
-      setPending(false)
+      setPhase("idle")
       toast({
         title: ad === "dismissed" ? "Ad closed" : "No ad available",
         description:
@@ -35,8 +46,9 @@ export default function RewardedAdCard({
       return
     }
 
+    setPhase("crediting")
     const result = await claimRewardedAd()
-    setPending(false)
+    setPhase("idle")
     if ("error" in result && result.error) {
       toast({ title: "Ad reward unavailable", description: result.error, variant: "destructive" })
       return
@@ -45,6 +57,19 @@ export default function RewardedAdCard({
     toast({ title: `+${AD_REWARD_GEMS} gems`, description: "Rewarded ad credited." })
     router.refresh()
   }
+
+  const buttonLabel =
+    left <= 0
+      ? "Daily cap reached"
+      : phase === "playing"
+        ? "Playing ad..."
+        : phase === "crediting"
+          ? "Adding gems..."
+          : availability === "ready"
+            ? `Watch ad for ${AD_REWARD_GEMS} gems`
+            : availability === "none"
+              ? "No ad available"
+              : "Finding an ad..."
 
   return (
     <section className="chance-premium-card p-4 sm:p-[1.125rem]">
@@ -58,10 +83,10 @@ export default function RewardedAdCard({
       <button
         type="button"
         className="chance-hero-cta-primary chance-focus-ring mt-4 inline-flex px-4 py-2.5 text-sm disabled:opacity-50"
-        disabled={pending || left <= 0}
+        disabled={left <= 0 || phase !== "idle" || availability === "loading"}
         onClick={claim}
       >
-        {left <= 0 ? "Daily cap reached" : pending ? "Playing ad..." : `Watch ad for ${AD_REWARD_GEMS} gems`}
+        {buttonLabel}
       </button>
     </section>
   )
