@@ -13,6 +13,7 @@ import LandingMockup from "@/components/landing/landing-mockup"
 import { useCountUp } from "@/components/landing/use-count-up"
 import { onLandingHashClick, scrollToLandingSection } from "@/components/landing/landing-scroll"
 import { getGameDisplayName, getGameThumbnail } from "@/lib/games/game-visuals"
+import { guidePathForGame } from "@/lib/public-content"
 import {
   EMPTY_LANDING_LIVE_METRICS,
   LANDING_SHOWCASE_LABELS,
@@ -233,9 +234,14 @@ export default function LandingPageClient({ games, live: liveProp, stats }: Land
                   <p className="chance-landing-stakes chance-text-mono">
                     {game.min_bet}–{game.max_bet} tokens per match
                   </p>
-                  <Link href={`/games/${game.id}`} className="chance-hero-cta-primary chance-focus-ring chance-landing-cta-lg mt-10 inline-flex">
-                    Enter queue
-                  </Link>
+                  <div className="mt-10 flex flex-wrap items-center gap-4">
+                    <Link href={`/games/${game.id}`} className="chance-hero-cta-primary chance-focus-ring chance-landing-cta-lg inline-flex">
+                      Enter queue
+                    </Link>
+                    <Link href={guidePathForGame(game.name)} className="chance-landing-nav-link chance-focus-ring text-sm font-medium">
+                      Read the rules
+                    </Link>
+                  </div>
                 </div>
                 <div className="chance-landing-game-backdrop">
                   <div className="chance-landing-game-backdrop-glow" aria-hidden />
@@ -343,6 +349,9 @@ export default function LandingPageClient({ games, live: liveProp, stats }: Land
               <p className="chance-landing-lede mt-8 max-w-lg">
                 Streaks. History. Seasonal ladders. A profile that reads like a career — not a buried settings page.
               </p>
+              <Link href="/standings" className="chance-landing-nav-link chance-focus-ring mt-8 inline-flex text-sm font-medium">
+                See public standings
+              </Link>
             </div>
             <div className="chance-landing-rank-stack" aria-hidden>
               {["Diamond", "Platinum", "Gold"].map((tier) => (

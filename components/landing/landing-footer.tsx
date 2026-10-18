@@ -18,19 +18,29 @@ export default function LandingFooter() {
                 </Link>
               </li>
               <li>
-                <a href="#games" className="chance-landing-footer-link">
-                  Games
-                </a>
+                <Link href="/guides" className="chance-landing-footer-link">
+                  How play works
+                </Link>
               </li>
               <li>
-                <a href="#community" className="chance-landing-footer-link">
-                  Community
-                </a>
+                <Link href="/guides/four-in-a-row" className="chance-landing-footer-link">
+                  Four in a Row
+                </Link>
               </li>
               <li>
-                <a href="#tournaments" className="chance-landing-footer-link">
-                  Tournaments
-                </a>
+                <Link href="/guides/math-blitz" className="chance-landing-footer-link">
+                  Math Blitz
+                </Link>
+              </li>
+              <li>
+                <Link href="/guides/trivia-challenge" className="chance-landing-footer-link">
+                  Trivia Challenge
+                </Link>
+              </li>
+              <li>
+                <Link href="/standings" className="chance-landing-footer-link">
+                  Standings
+                </Link>
               </li>
             </ul>
           </div>
