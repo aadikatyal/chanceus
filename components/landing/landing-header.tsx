@@ -8,7 +8,8 @@ import { onLandingHashClick } from "@/components/landing/landing-scroll"
 
 const NAV = [
   { href: "#games", label: "Games" },
-  { href: "#community", label: "Community" },
+  { href: "/guides", label: "Guides" },
+  { href: "/standings", label: "Standings" },
   { href: "#tournaments", label: "Tournaments" },
 ]
 
@@ -51,16 +52,26 @@ export default function LandingHeader({ arenaActive = false }: LandingHeaderProp
           className="flex min-w-0 items-center justify-center gap-4 overflow-x-auto sm:gap-6 md:gap-8 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           aria-label="Landing"
         >
-          {NAV.map((item) => (
-            <a
-              key={item.href}
-              href={item.href}
-              className="chance-landing-nav-link chance-focus-ring whitespace-nowrap text-sm font-medium"
-              onClick={(e) => onLandingHashClick(e, item.href)}
-            >
-              {item.label}
-            </a>
-          ))}
+          {NAV.map((item) =>
+            item.href.startsWith("#") ? (
+              <a
+                key={item.href}
+                href={item.href}
+                className="chance-landing-nav-link chance-focus-ring whitespace-nowrap text-sm font-medium"
+                onClick={(e) => onLandingHashClick(e, item.href)}
+              >
+                {item.label}
+              </a>
+            ) : (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="chance-landing-nav-link chance-focus-ring whitespace-nowrap text-sm font-medium"
+              >
+                {item.label}
+              </Link>
+            )
+          )}
         </nav>
 
         <div className="flex min-w-0 items-center justify-self-end gap-2 sm:gap-3">

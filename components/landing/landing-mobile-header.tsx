@@ -9,7 +9,8 @@ import { onLandingHashClick } from "@/components/landing/landing-scroll"
 
 const NAV = [
   { href: "#games", label: "Games" },
-  { href: "#community", label: "Community" },
+  { href: "/guides", label: "Guides" },
+  { href: "/standings", label: "Standings" },
   { href: "#tournaments", label: "Tournaments" },
 ]
 
@@ -61,19 +62,25 @@ export default function LandingMobileHeader({ arenaActive = false }: LandingMobi
         aria-hidden={!open}
       >
         <nav className="chance-landing-mobile-nav-inner" aria-label="Mobile">
-          {NAV.map((item) => (
-            <a
-              key={item.href}
-              href={item.href}
-              className="chance-landing-mobile-nav-link"
-              onClick={(e) => {
-                onLandingHashClick(e, item.href)
-                close()
-              }}
-            >
-              {item.label}
-            </a>
-          ))}
+          {NAV.map((item) =>
+            item.href.startsWith("#") ? (
+              <a
+                key={item.href}
+                href={item.href}
+                className="chance-landing-mobile-nav-link"
+                onClick={(e) => {
+                  onLandingHashClick(e, item.href)
+                  close()
+                }}
+              >
+                {item.label}
+              </a>
+            ) : (
+              <Link key={item.href} href={item.href} className="chance-landing-mobile-nav-link" onClick={close}>
+                {item.label}
+              </Link>
+            )
+          )}
           <Link href="/auth/login" className="chance-landing-mobile-nav-link" onClick={close}>
             Sign in
           </Link>

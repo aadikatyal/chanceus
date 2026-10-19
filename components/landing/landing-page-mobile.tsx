@@ -11,6 +11,7 @@ import { useCountUp } from "@/components/landing/use-count-up"
 import { onLandingHashClick, scrollToLandingSection } from "@/components/landing/landing-scroll"
 import type { LandingGame } from "@/components/landing/landing-page-client"
 import { getGameDisplayName, getGameThumbnail } from "@/lib/games/game-visuals"
+import { guidePathForGame } from "@/lib/public-content"
 import { LANDING_SHOWCASE_LABELS, type LandingLiveMetrics } from "@/lib/landing-live-metrics"
 
 const LOOP = ["Home", "Play", "Queue", "Lobby", "Match", "Results", "Rank"]
@@ -163,9 +164,14 @@ export default function LandingPageMobile({ games, live }: LandingPageMobileProp
                   <p className="chance-landing-stakes chance-text-mono">
                     {game.min_bet}–{game.max_bet} tokens per match
                   </p>
-                  <Link href={`/games/${game.id}`} className="chance-hero-cta-primary chance-focus-ring chance-landing-cta-lg mt-10 inline-flex w-full justify-center sm:w-auto">
-                    Enter queue
-                  </Link>
+                  <div className="mt-10 flex flex-col items-stretch gap-4 sm:flex-row sm:items-center">
+                    <Link href={`/games/${game.id}`} className="chance-hero-cta-primary chance-focus-ring chance-landing-cta-lg inline-flex w-full justify-center sm:w-auto">
+                      Enter queue
+                    </Link>
+                    <Link href={guidePathForGame(game.name)} className="chance-landing-nav-link chance-focus-ring justify-center text-sm font-medium sm:inline-flex">
+                      Read the rules
+                    </Link>
+                  </div>
                 </div>
               </div>
             </section>
@@ -265,6 +271,9 @@ export default function LandingPageMobile({ games, live }: LandingPageMobileProp
               <p className="chance-landing-lede mt-8 max-w-lg">
                 Streaks. History. Seasonal ladders. A profile that reads like a career — not a buried settings page.
               </p>
+              <Link href="/standings" className="chance-landing-nav-link chance-focus-ring mt-8 inline-flex text-sm font-medium">
+                See public standings
+              </Link>
             </div>
             <div className="chance-landing-rank-stack" aria-hidden>
               {["Diamond", "Platinum", "Gold"].map((tier) => (
