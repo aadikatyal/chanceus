@@ -15,6 +15,12 @@ html:has(.chance-landing) {
   overflow-x: clip;
 }
 
+/* Desktop column sits above the fixed full-viewport backdrop. The footer is outside `.chance-landing-main`, so without this it paints underneath that opaque layer. */
+.chance-landing-desktop {
+  position: relative;
+  z-index: 1;
+}
+
 .chance-landing #games,
 .chance-landing #community,
 .chance-landing #tournaments,
@@ -827,6 +833,12 @@ html:has(.chance-landing) {
 }
 
 /* Footer */
+.chance-landing-footer {
+  position: relative;
+  z-index: 1;
+  background: var(--chance-bg);
+}
+
 .chance-landing-footer-label {
   font-size: 0.6875rem;
   font-weight: 700;
